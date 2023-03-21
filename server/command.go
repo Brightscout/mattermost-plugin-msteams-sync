@@ -84,19 +84,19 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	}
 
 	if action == "link" {
-		return p.executeLinkCommand(c, args, parameters)
+		return p.ExecuteLinkCommand(c, args, parameters)
 	}
 
 	if action == "unlink" {
-		return p.executeUnlinkCommand(c, args)
+		return p.ExecuteUnlinkCommand(c, args)
 	}
 
 	if action == "show" {
-		return p.executeShowCommand(c, args)
+		return p.ExecuteShowCommand(c, args)
 	}
 
 	if action == "connect" {
-		return p.executeConnectCommand(c, args)
+		return p.ExecuteConnectCommand(c, args)
 	}
 
 	if action == "connect-bot" {
@@ -106,7 +106,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	return cmdError(args.ChannelId, "Unknown command. Valid options: link, unlink and show.")
 }
 
-func (p *Plugin) executeLinkCommand(c *plugin.Context, args *model.CommandArgs, parameters []string) (*model.CommandResponse, *model.AppError) {
+func (p *Plugin) ExecuteLinkCommand(c *plugin.Context, args *model.CommandArgs, parameters []string) (*model.CommandResponse, *model.AppError) {
 	if len(parameters) < 2 {
 		return cmdError(args.ChannelId, "Invalid link command, please pass the MS Teams team id and channel id as parameters.")
 	}
@@ -155,7 +155,7 @@ func (p *Plugin) executeLinkCommand(c *plugin.Context, args *model.CommandArgs, 
 	return &model.CommandResponse{}, nil
 }
 
-func (p *Plugin) executeUnlinkCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+func (p *Plugin) ExecuteUnlinkCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	channel, appErr := p.API.GetChannel(args.ChannelId)
 	if appErr != nil {
 		return cmdError(args.ChannelId, "Unable to get the current channel information.")
@@ -176,7 +176,7 @@ func (p *Plugin) executeUnlinkCommand(c *plugin.Context, args *model.CommandArgs
 	return &model.CommandResponse{}, nil
 }
 
-func (p *Plugin) executeShowCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+func (p *Plugin) ExecuteShowCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	link, err := p.store.GetLinkByChannelID(args.ChannelId)
 	if err != nil || link == nil {
 		return cmdError(args.ChannelId, "Link doesn't exists.")
@@ -204,7 +204,7 @@ func (p *Plugin) executeShowCommand(c *plugin.Context, args *model.CommandArgs) 
 	return &model.CommandResponse{}, nil
 }
 
-func (p *Plugin) executeConnectCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+func (p *Plugin) ExecuteConnectCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	messageChan := make(chan string)
 	go func(userID string, messageChan chan string) {
 		tokenSource, err := msteams.RequestUserToken(p.configuration.TenantID, p.configuration.ClientID, messageChan)

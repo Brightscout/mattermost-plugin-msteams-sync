@@ -3,6 +3,7 @@ module github.com/mattermost/mattermost-plugin-msteams-sync
 go 1.18
 
 require (
+	bou.ke/monkey v1.0.2
 	github.com/Masterminds/squirrel v1.5.3
 	github.com/enescakir/emoji v1.0.0
 	github.com/gorilla/mux v1.8.0
