@@ -16,3 +16,7 @@ func GetInternalServerAppError(errorMsg string) *model.AppError {
 func GetID() string {
 	return "sfmq19kpztg5iy47ebe51hb31w"
 }
+
+func GetChannelID() string {
+	return "bnqnzipmnir4zkkj95ggba5pde"
+}

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-plugin-msteams-sync/server/testutils"
+	"github.com/mattermost/mattermost-plugin-msteams-sync/server/store/mocks"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest"
 	"github.com/stretchr/testify/assert"
 )
@@ -85,6 +86,38 @@ func TestSetAvatarCache(t *testing.T) {
 			if tc.ExpectedErrorMessage != "" {
 				assert.Contains(err.Error(), tc.ExpectedErrorMessage)
 			} else {
+				assert.Nil(err)
+			}
+		})
+	}
+}
+
+func TestGetLinkByChannelID(t *testing.T) {
+	ttcases := []struct {
+		Name                 string
+		SetupStore             func(*mocks.Store)
+		ExpectedErrorMessage string
+	}{
+		{
+			"GetLinkByChannelID: Valid",
+			func(s *mocks.Store) {
+				s.On("CheckEnabledTeamByTeamID", "mockData").Return(true)
+			},
+			"",
+		},
+	}
+	for _, tc := range ttcases {
+		t.Run(tc.Name, func(t *testing.T) {
+			assert := assert.New(t)
+			s := SQLStore{}
+			tc.SetupStore(mocks.NewStore(t))
+			resp, err := s.GetLinkByChannelID(testutils.GetChannelID())
+
+			if tc.ExpectedErrorMessage != "" {
+				assert.Nil(resp)
+				assert.Contains(err.Error(), tc.ExpectedErrorMessage)
+			} else {
+				assert.NotNil(resp)
 				assert.Nil(err)
 			}
 		})
