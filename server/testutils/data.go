@@ -24,8 +24,9 @@ func GetPost() *model.Post {
 	}
 }
 
-func GetInternalServerAppError() *model.AppError {
+func GetInternalServerAppError(errorMsg string) *model.AppError {
 	return &model.AppError{
-		StatusCode: http.StatusInternalServerError,
+		StatusCode:    http.StatusInternalServerError,
+		DetailedError: errorMsg,
 	}
 }

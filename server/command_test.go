@@ -126,7 +126,7 @@ func TestExecuteUnlinkCommand(t *testing.T) {
 		{
 			description: "Unable to get the current channel",
 			setupAPI: func(api *plugintest.API) {
-				api.On("GetChannel", "").Return(nil, testutils.GetInternalServerAppError())
+				api.On("GetChannel", "").Return(nil, testutils.GetInternalServerAppError("Error while getting the current channel."))
 			},
 			args: &model.CommandArgs{
 				UserId:    "",
@@ -203,10 +203,8 @@ func TestExecuteUnlinkCommand(t *testing.T) {
 			if testCase.expectedError != "" {
 				assert.Error(t, err)
 				assert.Equal(t, testCase.response, resp)
-			} else {
-				if err == nil {
-					assert.NoError(t, nil)
-				}
+			} else if err == nil {
+				assert.NoError(t, nil)
 			}
 		})
 	}
@@ -287,7 +285,7 @@ func TestExecuteShowCommand(t *testing.T) {
 				return s
 			},
 			setupClient: func(c *mockClient.Client) *mockClient.Client {
-				c.On("GetTeam", mock.Anything).Return(nil, errors.New("Error while getting the MS Teams team information."))
+				c.On("GetTeam", mock.Anything).Return(nil, errors.New("Error while getting the MS Teams team information"))
 				return c
 			},
 			expectedError: "Error while getting the MS Teams team information.",
@@ -312,7 +310,7 @@ func TestExecuteShowCommand(t *testing.T) {
 			},
 			setupClient: func(c *mockClient.Client) *mockClient.Client {
 				c.On("GetTeam", mock.AnythingOfType("string")).Return(&msteams.Team{}, nil)
-				c.On("GetChannel", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil, errors.New("Error while getting the MS Teams channel information."))
+				c.On("GetChannel", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil, errors.New("Error while getting the MS Teams channel information"))
 				return c
 			},
 			expectedError: "Error while getting the MS Teams channel information.",
@@ -333,10 +331,8 @@ func TestExecuteShowCommand(t *testing.T) {
 			if testCase.expectedError != "" {
 				assert.Error(t, err)
 				assert.Equal(t, testCase.response, resp)
-			} else {
-				if err == nil {
-					assert.NoError(t, nil)
-				}
+			} else if err == nil {
+				assert.NoError(t, nil)
 			}
 		})
 	}
