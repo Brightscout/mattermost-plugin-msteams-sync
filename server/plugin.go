@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/base32"
@@ -125,7 +126,22 @@ func (p *Plugin) startSubscriptions(ctx context.Context) {
 	p.clusterMutex.Lock()
 	defer p.clusterMutex.Unlock()
 
-	time.Sleep(100 * time.Millisecond)
+	counter := 0
+	maxRetries := 20
+	for {
+		resp, _ := http.Post(p.getURL()+"/changes?validationToken=test-alive", "text/html", bytes.NewReader([]byte{}))
+		resp.Body.Close()
+		if resp.StatusCode == 200 {
+			break
+		}
+
+		counter++
+		if counter > maxRetries {
+			break
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
+
 	subscriptionID, err := p.msteamsAppClient.SubscribeToChannels(p.getURL()+"/", p.configuration.WebhookSecret, !p.configuration.EvaluationAPI)
 	if err != nil {
 		p.API.LogError("Unable to subscribe to channels", "error", err)
@@ -210,18 +226,18 @@ func (p *Plugin) OnActivate() error {
 	if err != nil {
 		return err
 	}
-	botID, appErr := p.API.EnsureBotUser(&model.Bot{
+	botID, appErr := client.Bot.EnsureBot(&model.Bot{
 		Username:    botUsername,
 		DisplayName: botDisplayName,
 		Description: "Created by the MS Teams Sync plugin.",
-	})
+	}, pluginapi.ProfileImagePath("assets/msteams-sync-icon.png"))
 	if appErr != nil {
 		return appErr
 	}
 	p.userID = botID
 	p.clusterMutex = clusterMutex
 
-	appErr = p.API.RegisterCommand(createMsteamsSyncCommand())
+	appErr = p.API.RegisterCommand(p.createMsteamsSyncCommand())
 	if appErr != nil {
 		return appErr
 	}
