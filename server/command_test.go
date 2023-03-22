@@ -7,9 +7,9 @@ import (
 
 	"bou.ke/monkey"
 	"github.com/mattermost/mattermost-plugin-msteams-sync/server/msteams"
-	mockClient "github.com/mattermost/mattermost-plugin-msteams-sync/server/msteams/mocks"
 	"github.com/mattermost/mattermost-plugin-msteams-sync/server/store"
 	mockStore "github.com/mattermost/mattermost-plugin-msteams-sync/server/store/mocks"
+	mockClient "github.com/mattermost/mattermost-plugin-msteams-sync/server/msteams/mocks"
 	"github.com/mattermost/mattermost-plugin-msteams-sync/server/testutils"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
