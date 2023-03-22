@@ -203,8 +203,8 @@ func TestExecuteUnlinkCommand(t *testing.T) {
 			if testCase.expectedError != "" {
 				assert.Error(t, err)
 				assert.Equal(t, testCase.response, resp)
-			} else if err == nil {
-				assert.NoError(t, nil)
+			} else {
+				assert.Nil(t, err)
 			}
 		})
 	}
@@ -331,8 +331,8 @@ func TestExecuteShowCommand(t *testing.T) {
 			if testCase.expectedError != "" {
 				assert.Error(t, err)
 				assert.Equal(t, testCase.response, resp)
-			} else if err == nil {
-				assert.NoError(t, nil)
+			} else {
+				assert.Nil(t, err)
 			}
 		})
 	}
