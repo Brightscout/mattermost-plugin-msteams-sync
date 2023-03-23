@@ -97,15 +97,15 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	}
 
 	if action == "link" {
-		return p.ExecuteLinkCommand(c, args, parameters)
+		return p.executeLinkCommand(c, args, parameters)
 	}
 
 	if action == "unlink" {
-		return p.ExecuteUnlinkCommand(c, args)
+		return p.executeUnlinkCommand(c, args)
 	}
 
 	if action == "show" {
-		return p.ExecuteShowCommand(c, args)
+		return p.executeShowCommand(c, args)
 	}
 
 	if action == "connect" {
@@ -127,7 +127,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	return cmdError(args.ChannelId, "Unknown command. Valid options: link, unlink and show.")
 }
 
-func (p *Plugin) ExecuteLinkCommand(c *plugin.Context, args *model.CommandArgs, parameters []string) (*model.CommandResponse, *model.AppError) {
+func (p *Plugin) executeLinkCommand(c *plugin.Context, args *model.CommandArgs, parameters []string) (*model.CommandResponse, *model.AppError) {
 	if len(parameters) < 2 {
 		return cmdError(args.ChannelId, "Invalid link command, please pass the MS Teams team id and channel id as parameters.")
 	}
@@ -176,7 +176,7 @@ func (p *Plugin) ExecuteLinkCommand(c *plugin.Context, args *model.CommandArgs, 
 	return &model.CommandResponse{}, nil
 }
 
-func (p *Plugin) ExecuteUnlinkCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+func (p *Plugin) executeUnlinkCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	channel, appErr := p.API.GetChannel(args.ChannelId)
 	if appErr != nil {
 		return cmdError(args.ChannelId, "Unable to get the current channel information.")
@@ -197,7 +197,7 @@ func (p *Plugin) ExecuteUnlinkCommand(c *plugin.Context, args *model.CommandArgs
 	return &model.CommandResponse{}, nil
 }
 
-func (p *Plugin) ExecuteShowCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+func (p *Plugin) executeShowCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	link, err := p.store.GetLinkByChannelID(args.ChannelId)
 	if err != nil || link == nil {
 		return cmdError(args.ChannelId, "Link doesn't exists.")
