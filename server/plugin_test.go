@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-plugin-msteams-sync/server/msteams/mocks"
-	"github.com/mattermost/mattermost-plugin-msteams-sync/server/store"
 	storemocks "github.com/mattermost/mattermost-plugin-msteams-sync/server/store/mocks"
+	"github.com/mattermost/mattermost-plugin-msteams-sync/server/store/storemodels"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest"
@@ -42,6 +42,7 @@ func newTestPlugin() *Plugin {
 	}
 	config := model.Config{}
 	config.SetDefaults()
+	plugin.API.(*plugintest.API).On("KVGet", lastReceivedChangeKey).Return([]byte{}, nil)
 	plugin.API.(*plugintest.API).On("GetServerVersion").Return("7.8.0")
 	plugin.API.(*plugintest.API).On("GetBundlePath").Return("./dist", nil)
 	plugin.API.(*plugintest.API).On("GetConfig").Return(&config)
@@ -81,7 +82,7 @@ func TestMessageHasBeenPostedNewMessage(t *testing.T) {
 		Message:   "message",
 	}
 
-	link := store.ChannelLink{
+	link := storemodels.ChannelLink{
 		MattermostTeam:    "team-id",
 		MattermostChannel: "channel-id",
 		MSTeamsTeam:       "ms-team-id",
@@ -133,7 +134,7 @@ func TestMessageHasBeenPostedNewMessageWithFailureSending(t *testing.T) {
 		Message:   "message",
 	}
 
-	link := store.ChannelLink{
+	link := storemodels.ChannelLink{
 		MattermostTeam:    "team-id",
 		MattermostChannel: "channel-id",
 		MSTeamsTeam:       "ms-team-id",
