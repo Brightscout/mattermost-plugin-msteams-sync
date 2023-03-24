@@ -144,17 +144,21 @@ func (p *Plugin) executeLinkCommand(c *plugin.Context, args *model.CommandArgs, 
 		return p.cmdError(args.UserId, args.ChannelId, "Unable to link the channel. You have to be a channel admin to link it.")
 	}
 
+	fmt.Print("222222222222222222")
 	link, err := p.store.GetLinkByChannelID(args.ChannelId)
 	if err == nil && link != nil {
 		return p.cmdError(args.UserId, args.ChannelId, "A link for this channel already exists, please remove unlink the channel before you link a new one")
 	}
+	fmt.Print("!1111111111111111111111111")
 
 	client, err := p.GetClientForUser(args.UserId)
+	fmt.Print("33333333333333333333")
 	if err != nil {
 		return p.cmdError(args.UserId, args.ChannelId, "Unable to link the channel, looks like your account is not connected to MS Teams")
 	}
 
 	_, err = client.GetChannel(parameters[0], parameters[1])
+	fmt.Print("4444444444444")
 	if err != nil {
 		return p.cmdError(args.UserId, args.ChannelId, "MS Teams channel not found or you don't have the permissions to access it.")
 	}

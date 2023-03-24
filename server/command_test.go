@@ -294,13 +294,38 @@ func TestExecuteLinkCommand(t *testing.T) {
 		args        *model.CommandArgs
 		setupAPI    func(*plugintest.API)
 		setupStore  func(*mockStore.Store)
+		setupClient func(*mockClient.Client, *mockClient.Client)
 	}{
-		// TODO: Unit test for successful case
+		{
+			description: "Successfully executed link command",
+			parameters:  []string{testutils.GetTeamUserID(), testutils.GetChannelID()},
+			args: &model.CommandArgs{
+				UserId:    testutils.GetUserID(),
+				TeamId:    testutils.GetTeamUserID(),
+				ChannelId: testutils.GetChannelID(),
+			},
+			setupAPI: func(api *plugintest.API) {
+				api.On("GetChannel", testutils.GetChannelID()).Return(&model.Channel{
+					Type: model.ChannelTypeOpen,
+				}, nil).Times(1)
+				api.On("HasPermissionToChannel", testutils.GetUserID(), testutils.GetChannelID(), model.PermissionManagePublicChannelProperties).Return(true).Times(1)
+			},
+			setupStore: func(s *mockStore.Store) {
+				s.On("CheckEnabledTeamByTeamID", testutils.GetTeamUserID()).Return(true).Times(1)
+				s.On("GetLinkByChannelID", testutils.GetChannelID()).Return(nil, nil).Times(1)
+				s.On("GetTokenForMattermostUser", testutils.GetUserID()).Return(&oauth2.Token{}, nil).Times(1)
+				s.On("StoreChannelLink", mock.Anything).Return(nil).Times(1)
+			},
+			setupClient: func(c *mockClient.Client, uc *mockClient.Client) {
+				uc.On("GetChannel", testutils.GetTeamUserID(), testutils.GetChannelID()).Return(&msteams.Channel{}, nil)
+			},
+		},
 		{
 			description: "Invalid link command",
 			args:        &model.CommandArgs{},
 			setupAPI:    func(api *plugintest.API) {},
 			setupStore:  func(s *mockStore.Store) {},
+			setupClient: func(c *mockClient.Client, uc *mockClient.Client) {},
 		},
 		{
 			description: "Team is not enabled for MS Teams sync",
@@ -310,6 +335,7 @@ func TestExecuteLinkCommand(t *testing.T) {
 			setupStore: func(s *mockStore.Store) {
 				s.On("CheckEnabledTeamByTeamID", "").Return(false).Times(1)
 			},
+			setupClient: func(c *mockClient.Client, uc *mockClient.Client) {},
 		},
 		{
 			description: "Unable to get the current channel information",
@@ -323,6 +349,7 @@ func TestExecuteLinkCommand(t *testing.T) {
 			setupStore: func(s *mockStore.Store) {
 				s.On("CheckEnabledTeamByTeamID", testutils.GetTeamUserID()).Return(true).Times(1)
 			},
+			setupClient: func(c *mockClient.Client, uc *mockClient.Client) {},
 		},
 		{
 			description: "Unable to link the channel as only channel admin can link it",
@@ -340,6 +367,7 @@ func TestExecuteLinkCommand(t *testing.T) {
 			setupStore: func(s *mockStore.Store) {
 				s.On("CheckEnabledTeamByTeamID", testutils.GetTeamUserID()).Return(true).Times(1)
 			},
+			setupClient: func(c *mockClient.Client, uc *mockClient.Client) {},
 		},
 		{
 			description: "Unable to find MS Teams channel as user don't have the permissions to access it",
@@ -360,6 +388,9 @@ func TestExecuteLinkCommand(t *testing.T) {
 				s.On("GetLinkByChannelID", testutils.GetChannelID()).Return(nil, nil).Times(1)
 				s.On("GetTokenForMattermostUser", testutils.GetUserID()).Return(&oauth2.Token{}, nil).Times(1)
 			},
+			setupClient: func(c *mockClient.Client, uc *mockClient.Client) {
+				uc.On("GetChannel", testutils.GetTeamUserID(), "").Return(nil, errors.New("Error while getting the channel"))
+			},
 		},
 	} {
 		t.Run(testCase.description, func(t *testing.T) {
@@ -368,8 +399,8 @@ func TestExecuteLinkCommand(t *testing.T) {
 			testCase.setupAPI(mockAPI)
 
 			testCase.setupStore(p.store.(*mockStore.Store))
+			testCase.setupClient(p.msteamsAppClient.(*mockClient.Client), p.clientBuilderWithToken("", "", nil, nil).(*mockClient.Client))
 			_, _ = p.executeLinkCommand(&plugin.Context{}, testCase.args, testCase.parameters)
 		})
 	}
 }
-
