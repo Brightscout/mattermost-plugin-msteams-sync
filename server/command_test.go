@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -401,6 +402,98 @@ func TestExecuteLinkCommand(t *testing.T) {
 			testCase.setupStore(p.store.(*mockStore.Store))
 			testCase.setupClient(p.msteamsAppClient.(*mockClient.Client), p.clientBuilderWithToken("", "", nil, nil).(*mockClient.Client))
 			_, _ = p.executeLinkCommand(&plugin.Context{}, testCase.args, testCase.parameters)
+		})
+	}
+}
+
+func TestGetAutocompleteData(t *testing.T) {
+	for _, testCase := range []struct {
+		description      string
+		autocompleteData *model.AutocompleteData
+	}{
+		{
+			description: "Successfully get all auto complete data",
+			autocompleteData: &model.AutocompleteData{
+				Trigger:   "msteams-sync",
+				Hint:      "[command]",
+				HelpText:  "Manage MS Teams linked channels",
+				RoleID:    "system_user",
+				Arguments: []*model.AutocompleteArg{},
+				SubCommands: []*model.AutocompleteData{
+					{
+						Trigger:  "link",
+						Hint:     "[msteams-team-id] [msteams-channel-id]",
+						HelpText: "Link current channel to a MS Teams channel",
+						RoleID:   "system_user",
+						Arguments: []*model.AutocompleteArg{
+							{
+								HelpText: "[msteams-team-id]",
+								Type:     "DynamicList",
+								Required: true,
+								Data: &model.AutocompleteDynamicListArg{
+									FetchURL: "plugins/com.mattermost.msteams-sync/autocomplete/teams",
+								},
+							},
+							{
+								HelpText: "[msteams-channel-id]",
+								Type:     "DynamicList",
+								Required: true,
+								Data: &model.AutocompleteDynamicListArg{
+									FetchURL: "plugins/com.mattermost.msteams-sync/autocomplete/channels",
+								},
+							},
+						},
+						SubCommands: []*model.AutocompleteData{},
+					},
+					{
+						Trigger:     "unlink",
+						HelpText:    "Unlink the current channel from the MS Teams channel",
+						RoleID:      "system_user",
+						Arguments:   []*model.AutocompleteArg{},
+						SubCommands: []*model.AutocompleteData{},
+					},
+					{
+						Trigger:     "show",
+						HelpText:    "Show MS Teams linked channel",
+						RoleID:      "system_user",
+						Arguments:   []*model.AutocompleteArg{},
+						SubCommands: []*model.AutocompleteData{},
+					},
+					{
+						Trigger:     "connect",
+						HelpText:    "Connect your Mattermost account to your MS Teams account",
+						RoleID:      "system_user",
+						Arguments:   []*model.AutocompleteArg{},
+						SubCommands: []*model.AutocompleteData{},
+					},
+					{
+						Trigger:     "disconnect",
+						HelpText:    "Disconnect your Mattermost account from your MS Teams account",
+						RoleID:      "system_user",
+						Arguments:   []*model.AutocompleteArg{},
+						SubCommands: []*model.AutocompleteData{},
+					},
+					{
+						Trigger:     "connect-bot",
+						HelpText:    "Connect the bot account (only system admins can do this)",
+						RoleID:      "system_user",
+						Arguments:   []*model.AutocompleteArg{},
+						SubCommands: []*model.AutocompleteData{},
+					},
+					{
+						Trigger:     "disconnect-bot",
+						HelpText:    "Disconnect the bot account (only system admins can do this)",
+						RoleID:      "system_user",
+						Arguments:   []*model.AutocompleteArg{},
+						SubCommands: []*model.AutocompleteData{},
+					},
+				},
+			},
+		},
+	} {
+		t.Run(testCase.description, func(t *testing.T) {
+			autocompleteData := getAutocompleteData()
+			assert.Equal(t, testCase.autocompleteData, autocompleteData)
 		})
 	}
 }
