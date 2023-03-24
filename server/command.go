@@ -106,7 +106,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	}
 
 	if action == "connect" {
-		return p.ExecuteConnectCommand(c, args)
+		return p.executeConnectCommand(c, args)
 	}
 
 	if action == "connect-bot" {
@@ -222,7 +222,7 @@ func (p *Plugin) executeShowCommand(c *plugin.Context, args *model.CommandArgs) 
 	return &model.CommandResponse{}, nil
 }
 
-func (p *Plugin) ExecuteConnectCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+func (p *Plugin) executeConnectCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	messageChan := make(chan string)
 	go func(userID string, messageChan chan string) {
 		tokenSource, err := msteams.RequestUserToken(p.configuration.TenantID, p.configuration.ClientID, messageChan)
