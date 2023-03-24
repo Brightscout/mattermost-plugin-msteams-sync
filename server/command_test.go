@@ -12,6 +12,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest"
 	"github.com/pkg/errors"
+	"golang.org/x/oauth2"
 
 	"github.com/stretchr/testify/mock"
 )
@@ -158,3 +159,217 @@ func TestExecuteShowCommand(t *testing.T) {
 		})
 	}
 }
+
+func TestExecuteDisconnectCommand(t *testing.T) {
+	p := newTestPlugin()
+	mockAPI := &plugintest.API{}
+
+	for _, testCase := range []struct {
+		description string
+		args        *model.CommandArgs
+		setupAPI    func(*plugintest.API)
+		setupStore  func(*mockStore.Store)
+	}{
+		{
+			description: "Successfully account disconnected",
+			args: &model.CommandArgs{
+				UserId: testutils.GetUserID(),
+			},
+			setupAPI: func(api *plugintest.API) {},
+			setupStore: func(s *mockStore.Store) {
+				s.On("MattermostToTeamsUserID", testutils.GetUserID()).Return(testutils.GetTeamUserID(), nil).Times(1)
+				var token *oauth2.Token = nil
+				s.On("SetUserInfo", testutils.GetUserID(), testutils.GetTeamUserID(), token).Return(nil).Times(1)
+			},
+		},
+		{
+			description: "User account is not connected",
+			args:        &model.CommandArgs{},
+			setupAPI:    func(api *plugintest.API) {},
+			setupStore: func(s *mockStore.Store) {
+				s.On("MattermostToTeamsUserID", "").Return("", errors.New("Unable to get team UserID")).Times(1)
+			},
+		},
+		{
+			description: "Unable to disconnect your account",
+			args: &model.CommandArgs{
+				UserId: testutils.GetUserID(),
+			},
+			setupAPI: func(api *plugintest.API) {},
+			setupStore: func(s *mockStore.Store) {
+				s.On("MattermostToTeamsUserID", testutils.GetUserID()).Return("", nil).Times(1)
+				var token *oauth2.Token = nil
+				s.On("SetUserInfo", testutils.GetUserID(), "", token).Return(errors.New("Error while disconnecting your account")).Times(1)
+			},
+		},
+	} {
+		t.Run(testCase.description, func(t *testing.T) {
+			mockAPI.On("SendEphemeralPost", mock.Anything, mock.Anything).Return(testutils.GetPost())
+			testCase.setupAPI(mockAPI)
+			p.SetAPI(mockAPI)
+
+			testCase.setupStore(p.store.(*mockStore.Store))
+			_, _ = p.executeDisconnectCommand(&plugin.Context{}, testCase.args)
+		})
+	}
+}
+
+func TestExecuteDisconnectBotCommand(t *testing.T) {
+	p := newTestPlugin()
+	mockAPI := &plugintest.API{}
+
+	for _, testCase := range []struct {
+		description string
+		args        *model.CommandArgs
+		setupAPI    func(*plugintest.API)
+		setupStore  func(*mockStore.Store)
+	}{
+		{
+			description: "Successfully bot account disconnected",
+			args: &model.CommandArgs{
+				UserId: testutils.GetUserID(),
+			},
+			setupAPI: func(api *plugintest.API) {
+				api.On("HasPermissionTo", testutils.GetUserID(), model.PermissionManageSystem).Return(true).Times(1)
+			},
+			setupStore: func(s *mockStore.Store) {
+				s.On("MattermostToTeamsUserID", "bot-user-id").Return(testutils.GetUserID(), nil).Times(1)
+				var token *oauth2.Token = nil
+				s.On("SetUserInfo", "bot-user-id", testutils.GetUserID(), token).Return(nil).Times(1)
+			},
+		},
+		{
+			description: "Unable to find the connected bot account",
+			args: &model.CommandArgs{
+				UserId: testutils.GetUserID(),
+			},
+			setupAPI: func(api *plugintest.API) {
+				api.On("HasPermissionTo", testutils.GetUserID(), model.PermissionManageSystem).Return(true).Times(1)
+			},
+			setupStore: func(s *mockStore.Store) {
+				s.On("MattermostToTeamsUserID", "bot-user-id").Return("", errors.New("Error: unable to find the connected bot account")).Times(1)
+			},
+		},
+		{
+			description: "Unable to disconnect the bot account",
+			args: &model.CommandArgs{
+				UserId: testutils.GetUserID(),
+			},
+			setupAPI: func(api *plugintest.API) {
+				api.On("HasPermissionTo", testutils.GetUserID(), model.PermissionManageSystem).Return(true).Times(1)
+			},
+			setupStore: func(s *mockStore.Store) {
+				s.On("MattermostToTeamsUserID", "bot-user-id").Return(testutils.GetUserID(), nil).Times(1)
+				var token *oauth2.Token = nil
+				s.On("SetUserInfo", "bot-user-id", testutils.GetUserID(), token).Return(errors.New("Error while disconnecting the bot account")).Times(1)
+			},
+		},
+		{
+			description: "Unable to connect the bot account",
+			args:        &model.CommandArgs{},
+			setupAPI: func(api *plugintest.API) {
+				api.On("HasPermissionTo", "", model.PermissionManageSystem).Return(false).Times(1)
+			},
+			setupStore: func(s *mockStore.Store) {},
+		},
+	} {
+		t.Run(testCase.description, func(t *testing.T) {
+			mockAPI.On("SendEphemeralPost", mock.Anything, mock.Anything).Return(testutils.GetPost())
+			p.SetAPI(mockAPI)
+			testCase.setupAPI(mockAPI)
+			testCase.setupStore(p.store.(*mockStore.Store))
+
+			_, _ = p.executeDisconnectBotCommand(&plugin.Context{}, testCase.args)
+		})
+	}
+}
+
+func TestExecuteLinkCommand(t *testing.T) {
+	p := newTestPlugin()
+	mockAPI := &plugintest.API{}
+
+	for _, testCase := range []struct {
+		description string
+		parameters  []string
+		args        *model.CommandArgs
+		setupAPI    func(*plugintest.API)
+		setupStore  func(*mockStore.Store)
+	}{
+		// TODO: Unit test for successful case
+		{
+			description: "Invalid link command",
+			args:        &model.CommandArgs{},
+			setupAPI:    func(api *plugintest.API) {},
+			setupStore:  func(s *mockStore.Store) {},
+		},
+		{
+			description: "Team is not enabled for MS Teams sync",
+			parameters:  []string{"", ""},
+			args:        &model.CommandArgs{},
+			setupAPI:    func(api *plugintest.API) {},
+			setupStore: func(s *mockStore.Store) {
+				s.On("CheckEnabledTeamByTeamID", "").Return(false).Times(1)
+			},
+		},
+		{
+			description: "Unable to get the current channel information",
+			parameters:  []string{testutils.GetTeamUserID(), ""},
+			args: &model.CommandArgs{
+				TeamId: testutils.GetTeamUserID(),
+			},
+			setupAPI: func(api *plugintest.API) {
+				api.On("GetChannel", "").Return(nil, testutils.GetInternalServerAppError("Error while getting the current channel.")).Times(1)
+			},
+			setupStore: func(s *mockStore.Store) {
+				s.On("CheckEnabledTeamByTeamID", testutils.GetTeamUserID()).Return(true).Times(1)
+			},
+		},
+		{
+			description: "Unable to link the channel as only channel admin can link it",
+			parameters:  []string{testutils.GetTeamUserID(), ""},
+			args: &model.CommandArgs{
+				TeamId:    testutils.GetTeamUserID(),
+				ChannelId: testutils.GetChannelID(),
+			},
+			setupAPI: func(api *plugintest.API) {
+				api.On("GetChannel", testutils.GetChannelID()).Return(&model.Channel{
+					Type: model.ChannelTypeOpen,
+				}, nil).Times(1)
+				api.On("HasPermissionToChannel", "", testutils.GetChannelID(), model.PermissionManagePublicChannelProperties).Return(false).Times(1)
+			},
+			setupStore: func(s *mockStore.Store) {
+				s.On("CheckEnabledTeamByTeamID", testutils.GetTeamUserID()).Return(true).Times(1)
+			},
+		},
+		{
+			description: "Unable to find MS Teams channel as user don't have the permissions to access it",
+			parameters:  []string{testutils.GetTeamUserID(), ""},
+			args: &model.CommandArgs{
+				UserId:    testutils.GetUserID(),
+				TeamId:    testutils.GetTeamUserID(),
+				ChannelId: testutils.GetChannelID(),
+			},
+			setupAPI: func(api *plugintest.API) {
+				api.On("GetChannel", testutils.GetChannelID()).Return(&model.Channel{
+					Type: model.ChannelTypeOpen,
+				}, nil).Times(1)
+				api.On("HasPermissionToChannel", testutils.GetUserID(), testutils.GetChannelID(), model.PermissionManagePublicChannelProperties).Return(true).Times(1)
+			},
+			setupStore: func(s *mockStore.Store) {
+				s.On("CheckEnabledTeamByTeamID", testutils.GetTeamUserID()).Return(true).Times(1)
+				s.On("GetLinkByChannelID", testutils.GetChannelID()).Return(nil, nil).Times(1)
+				s.On("GetTokenForMattermostUser", testutils.GetUserID()).Return(&oauth2.Token{}, nil).Times(1)
+			},
+		},
+	} {
+		t.Run(testCase.description, func(t *testing.T) {
+			mockAPI.On("SendEphemeralPost", mock.Anything, mock.Anything).Return(testutils.GetPost())
+			p.SetAPI(mockAPI)
+			testCase.setupAPI(mockAPI)
+
+			testCase.setupStore(p.store.(*mockStore.Store))
+			_, _ = p.executeLinkCommand(&plugin.Context{}, testCase.args, testCase.parameters)
+		})
+	}
+}
+

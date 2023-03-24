@@ -14,6 +14,10 @@ func GetUserID() string {
 	return "sfmq19kpztg5iy47ebe51hb31w"
 }
 
+func GetTeamUserID() string {
+	return "rioegneonqimomsoqwiew3qeo"
+}
+
 func GetPostID() string {
 	return "qwifdnaootmgkerodfdmwo"
 }
