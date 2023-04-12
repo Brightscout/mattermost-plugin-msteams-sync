@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/base32"
+	"fmt"
 
 	"github.com/gosimple/slug"
 	"github.com/mattermost/mattermost-plugin-msteams-sync/server/msteams"
@@ -38,7 +39,9 @@ func (ah *ActivityHandler) getReplyFromChannel(userID string, teamID, channelID,
 	}
 
 	var msg *msteams.Message
+	fmt.Print("00000000000000000")
 	msg, err = client.GetReply(teamID, channelID, messageID, replyID)
+	fmt.Print("111111111111111111")
 	if err != nil {
 		ah.plugin.GetAPI().LogError("Unable to get original post", "error", err)
 		return nil, err

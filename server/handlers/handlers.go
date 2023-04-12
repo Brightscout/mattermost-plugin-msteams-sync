@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -140,6 +141,7 @@ func (ah *ActivityHandler) handleCreatedActivity(activityIds msteams.ActivityIds
 			// Skipping because direct/group messages are disabled
 			return
 		}
+
 		channelID, err = ah.getChatChannelID(chat, msg.UserID)
 		if err != nil {
 			ah.plugin.GetAPI().LogError("Unable to get original channel id", "error", err.Error())
@@ -161,6 +163,7 @@ func (ah *ActivityHandler) handleCreatedActivity(activityIds msteams.ActivityIds
 	if msg.TeamID != "" && msg.ChannelID != "" {
 		userID = ah.getUserIDForChannelLink(msg.TeamID, msg.ChannelID)
 	}
+	fmt.Print("00000000000000000")
 
 	post, err := ah.msgToPost(userID, channelID, msg, senderID)
 	if err != nil {
@@ -367,6 +370,7 @@ func (ah *ActivityHandler) handleDeletedActivity(activityIds msteams.ActivityIds
 }
 
 func (ah *ActivityHandler) updateLastReceivedChangeDate(t time.Time) {
+	fmt.Print("999999999999999999999")
 	err := ah.plugin.GetAPI().KVSet(lastReceivedChangeKey, []byte(strconv.FormatInt(t.UnixMicro(), 10)))
 	if err != nil {
 		ah.plugin.GetAPI().LogError("Unable to store properly the last received change")
