@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost-plugin-msteams-sync/server/msteams"
@@ -113,9 +114,22 @@ func (ah *ActivityHandler) handleEmojis(text string) string {
 				continue
 			}
 
+			emojiID := ""
 			for _, a := range doc.FirstChild.FirstChild.NextSibling.FirstChild.Attr {
+				if a.Key == "id" {
+					emojiID = a.Val
+				}
+
 				if a.Key == "alt" {
-					text = strings.Replace(text, emojiData, a.Val, 1)
+					emojiVal := strconv.QuoteToASCII(a.Val)
+					// Check if we are able to render the emoji or not
+					if strings.Contains(emojiVal, "1fae") {
+						// Show formatted emoji ID in case if emoji is not rendered
+						text = strings.Replace(text, emojiData, "`"+emojiID+"` ", 1)
+					} else {
+						text = strings.Replace(text, emojiData, a.Val+" ", 1)
+					}
+
 					break
 				}
 			}
