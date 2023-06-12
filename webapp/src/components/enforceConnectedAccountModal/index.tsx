@@ -1,7 +1,7 @@
 import React, {useCallback, useState, useEffect} from 'react';
 
-import Client from '../client';
-import {id as pluginId} from '../manifest';
+import Client from '../../client';
+import {id as pluginId} from '../../manifest';
 
 import './enforceConnectedAccountModal.css';
 

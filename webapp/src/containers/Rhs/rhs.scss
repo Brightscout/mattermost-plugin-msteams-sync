@@ -1,0 +1,9 @@
+@import "../../styles/abstract/variables";
+
+.teams-rhs {
+    height: calc(100% - #{$rhs-header-height});
+
+    .rhs-content {
+        height: 100%;
+    }
+}
