@@ -18,6 +18,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	azidentity "github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/mattermost/mattermost-plugin-msteams-sync/server/markdown"
 	msgraphsdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/chats"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/drives"
@@ -145,11 +146,27 @@ type GraphAPIError struct {
 	Message string `json:"message"`
 }
 
+type ChatMessageAttachmentUser struct {
+	UserIdentityType string `json:"userIdentityType"`
+	ID               string `json:"id"`
+	DisplayName      string `json:"displayName"`
+}
+
+type ChatMessageAttachmentSender struct {
+	User ChatMessageAttachmentUser `json:"user"`
+}
+
+type ChatMessageAttachment struct {
+	MessageID      string                      `json:"messageId"`
+	MessagePreview string                      `json:"messagePreview"`
+	MessageSender  ChatMessageAttachmentSender `json:"messageSender"`
+}
+
 func (e *GraphAPIError) Error() string {
 	return fmt.Sprintf("code: %s, message: %s", e.Code, e.Message)
 }
 
-func NormalizeGraphAPIError(err error) *GraphAPIError {
+func NormalizeGraphAPIError(err error) error {
 	if err == nil {
 		return nil
 	}
@@ -385,11 +402,73 @@ func (tc *ClientImpl) SendMessageWithAttachments(teamID, channelID, parentID, me
 	return convertToMessage(res, teamID, channelID, ""), nil
 }
 
-func (tc *ClientImpl) SendChat(chatID, parentID, message string, mentions []models.ChatMessageMentionable) (*Message, error) {
+func (tc *ClientImpl) SendChat(chatID, message string, parentMessage *Message, attachments []*Attachment, mentions []models.ChatMessageMentionable) (*Message, error) {
 	rmsg := models.NewChatMessage()
 
-	// TODO: Add support for parent id
-	_ = parentID
+	msteamsAttachments := []models.ChatMessageAttachmentable{}
+	if parentMessage != nil && parentMessage.ID != "" {
+		parentMessage.Text = markdown.ConvertToMD(parentMessage.Text)
+		contentType := "messageReference"
+		contentData, err := json.Marshal(ChatMessageAttachment{
+			MessageID:      parentMessage.ID,
+			MessagePreview: parentMessage.Text,
+			MessageSender: ChatMessageAttachmentSender{
+				ChatMessageAttachmentUser{
+					UserIdentityType: "aadUser",
+					ID:               parentMessage.UserID,
+					DisplayName:      parentMessage.UserDisplayName,
+				},
+			},
+		})
+
+		if err != nil {
+			tc.logError("Unable to convert content to JSON", "error", err)
+		} else {
+			message = fmt.Sprintf("<attachment id=%q></attachment> %s", parentMessage.ID, message)
+			content := string(contentData)
+			attachment := models.NewChatMessageAttachment()
+			attachment.SetId(&parentMessage.ID)
+			attachment.SetContentType(&contentType)
+			attachment.SetContent(&content)
+			msteamsAttachments = append(msteamsAttachments, attachment)
+		}
+	}
+
+	for _, a := range attachments {
+		att := a
+		contentType := "reference"
+		attachment := models.NewChatMessageAttachment()
+		attachment.SetId(&att.ID)
+		attachment.SetContentType(&contentType)
+
+		extension := filepath.Ext(att.Name)
+		if !strings.HasSuffix(att.ContentURL, extension) {
+			teamsURL, err := url.Parse(att.ContentURL)
+			if err != nil {
+				tc.logError("Unable to parse URL", "Error", err.Error())
+				continue
+			}
+
+			q := teamsURL.Query()
+			fileQueryParam := q.Get("file")
+			q.Del("file")
+			teamsURL.RawQuery = q.Encode()
+
+			// We are deleting the file query param from the content URL as it is present in
+			// the middle and when MS Teams processes the content URL, it needs the file query param at the end
+			// otherwise, it gives the error: "contentUrl extension and name extension do not match"
+			// So, we are appending the file query param at the end
+			teamsURL.RawQuery += fmt.Sprintf("&file=%s", fileQueryParam)
+			att.ContentURL = teamsURL.String()
+		}
+
+		attachment.SetContentUrl(&att.ContentURL)
+		attachment.SetName(&att.Name)
+		msteamsAttachments = append(msteamsAttachments, attachment)
+		message = fmt.Sprintf("<attachment id=%q></attachment> %s", att.ID, message)
+	}
+
+	rmsg.SetAttachments(msteamsAttachments)
 
 	contentType := models.HTML_BODYTYPE
 
@@ -409,12 +488,32 @@ func (tc *ClientImpl) SendChat(chatID, parentID, message string, mentions []mode
 }
 
 func (tc *ClientImpl) UploadFile(teamID, channelID, filename string, filesize int, mimeType string, data io.Reader) (*Attachment, error) {
-	folderInfo, err := tc.client.TeamsById(teamID).ChannelsById(channelID).FilesFolder().Get(tc.ctx, nil)
-	if err != nil {
-		return nil, NormalizeGraphAPIError(err)
+	driveID := ""
+	itemID := ""
+	if teamID != "" && channelID != "" {
+		folderInfo, err := tc.client.TeamsById(teamID).ChannelsById(channelID).FilesFolder().Get(tc.ctx, nil)
+		if err != nil {
+			return nil, NormalizeGraphAPIError(err)
+		}
+
+		driveID = *folderInfo.GetParentReference().GetDriveId()
+		itemID = *folderInfo.GetId() + ":/" + filename + ":"
+	} else {
+		drive, err := tc.client.Me().Drive().Get(tc.ctx, nil)
+		if err != nil {
+			return nil, NormalizeGraphAPIError(err)
+		}
+
+		driveID = *drive.GetId()
+		rootDirectory, err := tc.client.DrivesById(driveID).Root().Get(tc.ctx, nil)
+		if err != nil {
+			return nil, NormalizeGraphAPIError(err)
+		}
+
+		itemID = *rootDirectory.GetId() + ":/" + filename + ":"
 	}
 
-	uploadSession, err := tc.client.DrivesById(*folderInfo.GetParentReference().GetDriveId()).ItemsById(*folderInfo.GetId()+":/"+filename+":").CreateUploadSession().Post(tc.ctx, nil, nil)
+	uploadSession, err := tc.client.DrivesById(driveID).ItemsById(itemID).CreateUploadSession().Post(tc.ctx, nil, nil)
 	if err != nil {
 		return nil, NormalizeGraphAPIError(err)
 	}
@@ -478,6 +577,25 @@ func (tc *ClientImpl) UpdateMessage(teamID, channelID, parentID, msgID, message 
 	contentType := models.HTML_BODYTYPE
 	rmsg.SetMentions(mentions)
 
+	var originalMessage models.ChatMessageable
+	var err error
+	if parentID != "" {
+		originalMessage, err = tc.client.TeamsById(teamID).ChannelsById(channelID).MessagesById(parentID).RepliesById(msgID).Get(tc.ctx, nil)
+	} else {
+		originalMessage, err = tc.client.TeamsById(teamID).ChannelsById(channelID).MessagesById(msgID).Get(tc.ctx, nil)
+	}
+	if err != nil {
+		tc.logError("Error in getting original message from Teams", "error", NormalizeGraphAPIError(err))
+	}
+
+	if originalMessage != nil {
+		attachments := originalMessage.GetAttachments()
+		for _, a := range attachments {
+			message = fmt.Sprintf("<attachment id=%q></attachment> %s", *a.GetId(), message)
+		}
+		rmsg.SetAttachments(attachments)
+	}
+
 	body := models.NewItemBody()
 	body.SetContentType(&contentType)
 	body.SetContent(&message)
@@ -498,6 +616,19 @@ func (tc *ClientImpl) UpdateMessage(teamID, channelID, parentID, msgID, message 
 func (tc *ClientImpl) UpdateChatMessage(chatID, msgID, message string, mentions []models.ChatMessageMentionable) error {
 	rmsg := models.NewChatMessage()
 
+	originalMessage, err := tc.client.ChatsById(chatID).MessagesById(msgID).Get(tc.ctx, nil)
+	if err != nil {
+		tc.logError("Error in getting original message from Teams", "error", NormalizeGraphAPIError(err))
+	}
+
+	if originalMessage != nil {
+		attachments := originalMessage.GetAttachments()
+		for _, a := range attachments {
+			message = fmt.Sprintf("<attachment id=%q></attachment> %s", *a.GetId(), message)
+		}
+		rmsg.SetAttachments(attachments)
+	}
+
 	contentType := models.HTML_BODYTYPE
 
 	rmsg.SetMentions(mentions)
@@ -506,10 +637,10 @@ func (tc *ClientImpl) UpdateChatMessage(chatID, msgID, message string, mentions 
 	body.SetContentType(&contentType)
 	body.SetContent(&message)
 	rmsg.SetBody(body)
-
 	if _, err := tc.client.ChatsById(chatID).MessagesById(msgID).Patch(tc.ctx, rmsg, nil); err != nil {
 		return NormalizeGraphAPIError(err)
 	}
+
 	return nil
 }
 
