@@ -1091,7 +1091,7 @@ func (tc *ClientImpl) GetFileContent(weburl string) ([]byte, error) {
 	var itemRequest *drives.ItemItemsDriveItemItemRequestBuilder
 	var driveID string
 	for _, drive := range msDrives.GetValue() {
-		// When some certain file types are sent from MM to Teams and we get a change request from Teams, the URL is a bit different and in such case we won't enter this if condition and "itemRequest" will be "nil" which is handled below. This will not cause any harm to the functionality but we were unable to find why this is happening.
+		// When certain file types are sent from MM to Teams and we get a change request from Teams, the URL is a bit different and in such cases, we don't execute the below if condition and "itemRequest" will be "nil" which is handled below. This will not cause any harm to the functionality, but we were unable to find why this is happening.
 		if strings.HasPrefix(u.String(), *drive.GetWebUrl()) {
 			path := u.String()[len(*drive.GetWebUrl()):]
 			if len(path) == 0 || path[0] != '/' {
