@@ -2034,7 +2034,7 @@ func TestGetMentionsData(t *testing.T) {
 			ExpectedMentionsCount: 1,
 		},
 		{
-			Name:            "GetMentionsData: error occured while getting chat",
+			Name:            "GetMentionsData: error occurred while getting chat",
 			Message:         "Hi @all",
 			ExpectedMessage: "Hi <at id=\"0\">@all</at>",
 			ChatID:          testutils.GetChatID(),
@@ -2042,7 +2042,7 @@ func TestGetMentionsData(t *testing.T) {
 				api.On("LogDebug", "Unable to get ms teams chat", "Error", mock.Anything)
 			},
 			SetupClient: func(client *clientmocks.Client) {
-				client.On("GetChat", testutils.GetChatID()).Return(nil, errors.New("error occured while getting chat"))
+				client.On("GetChat", testutils.GetChatID()).Return(nil, errors.New("error occurred while getting chat"))
 			},
 			SetupStore:            func(store *storemocks.Store) {},
 			ExpectedMentionsCount: 1,
@@ -2059,14 +2059,14 @@ func TestGetMentionsData(t *testing.T) {
 			ExpectedMentionsCount: 1,
 		},
 		{
-			Name:            "GetMentionsData: error occured while getting channel in team",
+			Name:            "GetMentionsData: error occurred while getting channel in team",
 			Message:         "Hi @all",
 			ExpectedMessage: "Hi <at id=\"0\">@all</at>",
 			SetupAPI: func(api *plugintest.API) {
 				api.On("LogDebug", "Unable to get ms teams channel", "Error", mock.Anything)
 			},
 			SetupClient: func(client *clientmocks.Client) {
-				client.On("GetChannelInTeam", testutils.GetTeamID(), testutils.GetChannelID()).Return(nil, errors.New("error occured while getting channel in team"))
+				client.On("GetChannelInTeam", testutils.GetTeamID(), testutils.GetChannelID()).Return(nil, errors.New("error occurred while getting channel in team"))
 			},
 			SetupStore:            func(store *storemocks.Store) {},
 			ExpectedMentionsCount: 1,
