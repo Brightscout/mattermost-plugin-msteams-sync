@@ -3,7 +3,6 @@ package testutils
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-plugin-msteams-sync/server/msteams"
 	"github.com/mattermost/mattermost-plugin-msteams-sync/server/store/storemodels"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
@@ -152,19 +151,5 @@ func GetPostFromTeamsMessage() *model.Post {
 			"msteams_sync_mock-BotUserID": true,
 		},
 		FileIds: model.StringArray{},
-	}
-}
-
-func GetMSTeamsUser(name string) *msteams.User {
-	return &msteams.User{
-		ID:          GetID(),
-		DisplayName: name,
-	}
-}
-
-func GetMSTeamsChannel(name string) *msteams.Channel {
-	return &msteams.Channel{
-		ID:          GetChannelID(),
-		DisplayName: name,
 	}
 }

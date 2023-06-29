@@ -2052,7 +2052,9 @@ func TestGetMentionsData(t *testing.T) {
 			ExpectedMessage: "Hi <at id=\"0\">mock-name</at>",
 			SetupAPI:        func(api *plugintest.API) {},
 			SetupClient: func(client *clientmocks.Client) {
-				client.On("GetChannelInTeam", testutils.GetTeamID(), testutils.GetChannelID()).Return(testutils.GetMSTeamsChannel("mock-name"), nil)
+				client.On("GetChannelInTeam", testutils.GetTeamID(), testutils.GetChannelID()).Return(&msteams.Channel{
+					DisplayName: "mock-name",
+				}, nil)
 			},
 			SetupStore:            func(store *storemocks.Store) {},
 			ExpectedMentionsCount: 1,
@@ -2079,7 +2081,9 @@ func TestGetMentionsData(t *testing.T) {
 				api.On("GetUserByUsername", "test-username").Return(testutils.GetUser("mock-role", "mock-email"), nil)
 			},
 			SetupClient: func(client *clientmocks.Client) {
-				client.On("GetUser", testutils.GetUserID()).Return(testutils.GetMSTeamsUser("mock-name"), nil)
+				client.On("GetUser", testutils.GetUserID()).Return(&msteams.User{
+					DisplayName: "mock-name",
+				}, nil)
 			},
 			SetupStore: func(store *storemocks.Store) {
 				store.On("MattermostToTeamsUserID", testutils.GetID()).Return(testutils.GetUserID(), nil)
@@ -2098,7 +2102,9 @@ func TestGetMentionsData(t *testing.T) {
 				client.On("GetChat", testutils.GetChatID()).Return(&msteams.Chat{
 					Type: "G",
 				}, nil)
-				client.On("GetUser", testutils.GetUserID()).Return(testutils.GetMSTeamsUser("mock-name"), nil)
+				client.On("GetUser", testutils.GetUserID()).Return(&msteams.User{
+					DisplayName: "mock-name",
+				}, nil)
 			},
 			SetupStore: func(store *storemocks.Store) {
 				store.On("MattermostToTeamsUserID", testutils.GetID()).Return(testutils.GetUserID(), nil)
