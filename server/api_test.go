@@ -742,3 +742,74 @@ func TestNeedsConnect(t *testing.T) {
 		})
 	}
 }
+
+func TestConnect(t *testing.T) {
+	for _, test := range []struct {
+		Name               string
+		SetupPlugin        func(*plugintest.API)
+		SetupStore         func(*storemocks.Store)
+		ExpectedResult     string
+		ExpectedStatusCode int
+	}{
+		{
+			Name: "connect: User connected",
+			SetupPlugin: func(api *plugintest.API) {
+				api.On("KVSet", mock.AnythingOfType("string"), mock.AnythingOfType("[]uint8")).Return(nil)
+			},
+			SetupStore: func(store *storemocks.Store) {
+				store.On("StoreOAuth2State", mock.AnythingOfType("string")).Return(nil).Times(1)
+			},
+			ExpectedStatusCode: http.StatusOK,
+		},
+		{
+			Name: "connect: Error in storing the OAuth state",
+			SetupPlugin: func(api *plugintest.API) {
+				api.On("LogError", "Error in storing the OAuth state", "error", "error in storing the oauth state").Return(nil)
+			},
+			SetupStore: func(store *storemocks.Store) {
+				store.On("StoreOAuth2State", mock.AnythingOfType("string")).Return(errors.New("error in storing the oauth state")).Times(1)
+			},
+			ExpectedResult:     "Error trying to connect the account, please try again.\n",
+			ExpectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			Name: "connect: Error in storing the code verifier",
+			SetupPlugin: func(api *plugintest.API) {
+				api.On("KVSet", mock.AnythingOfType("string"), mock.AnythingOfType("[]uint8")).Return(&model.AppError{
+					Message: "error in storing the code verifier",
+				})
+				api.On("LogError", "Error in storing the code verifier", "error", "error in storing the code verifier").Return(nil)
+			},
+			SetupStore: func(store *storemocks.Store) {
+				store.On("StoreOAuth2State", mock.AnythingOfType("string")).Return(nil).Times(1)
+			},
+			ExpectedResult:     "Error trying to connect the account, please try again.\n",
+			ExpectedStatusCode: http.StatusInternalServerError,
+		},
+	} {
+		t.Run(test.Name, func(t *testing.T) {
+			assert := assert.New(t)
+			plugin := newTestPlugin(t)
+
+			test.SetupPlugin(plugin.API.(*plugintest.API))
+			test.SetupStore(plugin.store.(*storemocks.Store))
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/connect", nil)
+			r.Header.Add("Mattermost-User-ID", testutils.GetID())
+			plugin.ServeHTTP(nil, w, r)
+
+			result := w.Result()
+			defer result.Body.Close()
+
+			assert.NotNil(t, result)
+			assert.Equal(test.ExpectedStatusCode, result.StatusCode)
+
+			bodyBytes, _ := io.ReadAll(result.Body)
+			bodyString := string(bodyBytes)
+			if test.ExpectedResult != "" {
+				assert.Equal(test.ExpectedResult, bodyString)
+			}
+		})
+	}
+}
