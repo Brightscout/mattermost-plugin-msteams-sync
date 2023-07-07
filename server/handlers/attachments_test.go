@@ -354,7 +354,7 @@ func TestHandleAttachments(t *testing.T) {
 			attachments: []msteams.Attachment{
 				{},
 			},
-			ExpectedText:               "mock-text",
+			ExpectedText: "mock-text",
 		},
 		{
 			description: "Number of attachments are greater than 10",

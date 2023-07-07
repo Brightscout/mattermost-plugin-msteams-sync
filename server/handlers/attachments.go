@@ -26,7 +26,6 @@ func (ah *ActivityHandler) handleDownloadFile(userID, weburl string) ([]byte, er
 	return data, nil
 }
 
-// TODO: Add unit tests for this function
 func (ah *ActivityHandler) handleAttachments(userID, channelID string, text string, msg *msteams.Message) (string, model.StringArray, string) {
 	attachments := []string{}
 	newText := text
