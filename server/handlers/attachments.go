@@ -51,7 +51,7 @@ func (ah *ActivityHandler) handleAttachments(userID, channelID string, text stri
 		// handle the download
 		attachmentData, err := ah.handleDownloadFile(userID, a.ContentURL)
 		if err != nil {
-			ah.plugin.GetAPI().LogError("file download failed", "filename", a.Name, "error", err)
+			ah.plugin.GetAPI().LogError("file download failed", "filename", a.Name, "error", err.Error())
 			continue
 		}
 
@@ -78,7 +78,7 @@ func (ah *ActivityHandler) handleAttachments(userID, channelID string, text stri
 
 		fileInfo, appErr := ah.plugin.GetAPI().UploadFile(attachmentData, channelID, a.Name)
 		if appErr != nil {
-			ah.plugin.GetAPI().LogError("upload file to mattermost failed", "filename", a.Name, "error", err)
+			ah.plugin.GetAPI().LogError("upload file to mattermost failed", "filename", a.Name, "error", appErr.Message)
 			continue
 		}
 
