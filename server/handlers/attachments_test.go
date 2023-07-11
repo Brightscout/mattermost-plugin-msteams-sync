@@ -267,9 +267,9 @@ func TestHandleAttachments(t *testing.T) {
 		setupAPI                   func(mockAPI *plugintest.API)
 		setupClient                func(*mocksClient.Client)
 		attachments                []msteams.Attachment
-		ExpectedText               string
-		ExpectedAttachmentIDsCount int
-		ExpectedParentID           string
+		expectedText               string
+		expectedAttachmentIDsCount int
+		expectedParentID           string
 	}{
 		{
 			description: "Successfully handled attachments",
@@ -283,7 +283,7 @@ func TestHandleAttachments(t *testing.T) {
 						MaxFileSize: model.NewInt64(5),
 					},
 				})
-				mockAPI.On("UploadFile", []byte{}, mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(&model.FileInfo{
+				mockAPI.On("UploadFile", []byte{}, testutils.GetChannelID(), "mock-name").Return(&model.FileInfo{
 					Id: testutils.GetID(),
 				}, nil)
 			},
@@ -291,10 +291,12 @@ func TestHandleAttachments(t *testing.T) {
 				client.On("GetFileContent", "").Return([]byte{}, nil)
 			},
 			attachments: []msteams.Attachment{
-				{},
+				{
+					Name: "mock-name",
+				},
 			},
-			ExpectedText:               "mock-text",
-			ExpectedAttachmentIDsCount: 1,
+			expectedText:               "mock-text",
+			expectedAttachmentIDsCount: 1,
 		},
 		{
 			description: "Error getting client for the user",
@@ -303,13 +305,15 @@ func TestHandleAttachments(t *testing.T) {
 				p.On("GetAPI").Return(mockAPI)
 			},
 			setupAPI: func(mockAPI *plugintest.API) {
-				mockAPI.On("LogError", "file download failed", "filename", "", "error", "error getting client for the user").Return()
+				mockAPI.On("LogError", "file download failed", "filename", "mock-name", "error", "error getting client for the user").Return()
 			},
 			setupClient: func(client *mocksClient.Client) {},
 			attachments: []msteams.Attachment{
-				{},
+				{
+					Name: "mock-name",
+				},
 			},
-			ExpectedText: "mock-text",
+			expectedText: "mock-text",
 		},
 		{
 			description: "File size is greater than the max allowed size",
@@ -323,15 +327,17 @@ func TestHandleAttachments(t *testing.T) {
 						MaxFileSize: model.NewInt64(-1),
 					},
 				})
-				mockAPI.On("LogError", "cannot upload file to mattermost as its size is greater than allowed size", "filename", "").Return()
+				mockAPI.On("LogError", "cannot upload file to mattermost as its size is greater than allowed size", "filename", "mock-name").Return()
 			},
 			setupClient: func(client *mocksClient.Client) {
 				client.On("GetFileContent", "").Return([]byte{}, nil)
 			},
 			attachments: []msteams.Attachment{
-				{},
+				{
+					Name: "mock-name",
+				},
 			},
-			ExpectedText: "mock-text",
+			expectedText: "mock-text",
 		},
 		{
 			description: "Error uploading the file",
@@ -345,16 +351,18 @@ func TestHandleAttachments(t *testing.T) {
 						MaxFileSize: model.NewInt64(5),
 					},
 				})
-				mockAPI.On("UploadFile", []byte{}, mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil, &model.AppError{Message: "error uploading the file"})
-				mockAPI.On("LogError", "upload file to mattermost failed", "filename", "", "error", "error uploading the file").Return()
+				mockAPI.On("UploadFile", []byte{}, testutils.GetChannelID(), "mock-name").Return(nil, &model.AppError{Message: "error uploading the file"})
+				mockAPI.On("LogError", "upload file to mattermost failed", "filename", "mock-name", "error", "error uploading the file").Return()
 			},
 			setupClient: func(client *mocksClient.Client) {
 				client.On("GetFileContent", "").Return([]byte{}, nil)
 			},
 			attachments: []msteams.Attachment{
-				{},
+				{
+					Name: "mock-name",
+				},
 			},
-			ExpectedText: "mock-text",
+			expectedText: "mock-text",
 		},
 		{
 			description: "Number of attachments are greater than 10",
@@ -368,7 +376,7 @@ func TestHandleAttachments(t *testing.T) {
 						MaxFileSize: model.NewInt64(5),
 					},
 				})
-				mockAPI.On("UploadFile", []byte{}, mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(&model.FileInfo{}, nil)
+				mockAPI.On("UploadFile", []byte{}, testutils.GetChannelID(), "").Return(&model.FileInfo{}, nil)
 				mockAPI.On("LogDebug", "discarding the rest of the attachments as mattermost supports only 10 attachments per post").Return()
 			},
 			setupClient: func(client *mocksClient.Client) {
@@ -377,8 +385,8 @@ func TestHandleAttachments(t *testing.T) {
 			attachments: []msteams.Attachment{
 				{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
 			},
-			ExpectedText:               "mock-text",
-			ExpectedAttachmentIDsCount: 10,
+			expectedText:               "mock-text",
+			expectedAttachmentIDsCount: 10,
 		},
 		{
 			description: "Attachment type code snippet",
@@ -391,25 +399,28 @@ func TestHandleAttachments(t *testing.T) {
 						MaxFileSize: model.NewInt64(5),
 					},
 				})
-				mockAPI.On("UploadFile", []byte{}, mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(&model.FileInfo{}, nil)
+				mockAPI.On("UploadFile", []byte{}, testutils.GetChannelID(), "mock-name").Return(&model.FileInfo{}, nil)
 			},
 			setupClient: func(client *mocksClient.Client) {
 				client.On("GetCodeSnippet", "mock-url////////////").Return("", nil)
 			},
 			attachments: []msteams.Attachment{
 				{
+					Name:        "mock-name",
 					ContentType: "application/vnd.microsoft.card.codesnippet",
 					Content:     `{"language":"", "codeSnippetUrl": "mock-url////////////"}`,
 				},
 			},
-			ExpectedText: "mock-text\n```\n\n```\n",
+			expectedText: "mock-text\n```\n\n```\n",
 		},
 		{
 			description: "Attachment type message reference",
 			setupPlugin: func(p *mocksPlugin.PluginIface, mockAPI *plugintest.API, client *mocksClient.Client, store *mocksStore.Store) {
 				p.On("GetStore").Return(store, nil)
 				p.On("GetAPI").Return(mockAPI)
-				store.On("GetPostInfoByMSTeamsID", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(&storemodels.PostInfo{}, nil)
+				store.On("GetPostInfoByMSTeamsID", fmt.Sprintf("%s%s", testutils.GetChatID(), testutils.GetChannelID()), "mock-ID").Return(&storemodels.PostInfo{
+					MattermostID: testutils.GetUserID(),
+				}, nil)
 			},
 			setupAPI: func(mockAPI *plugintest.API) {
 				mockAPI.On("GetConfig").Return(&model.Config{
@@ -417,22 +428,22 @@ func TestHandleAttachments(t *testing.T) {
 						MaxFileSize: model.NewInt64(5),
 					},
 				})
-				mockAPI.On("UploadFile", []byte{}, mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(&model.FileInfo{}, nil)
-				mockAPI.On("GetPost", mock.AnythingOfType("string")).Return(&model.Post{
+				mockAPI.On("UploadFile", []byte{}, testutils.GetChannelID(), "mock-name").Return(&model.FileInfo{}, nil)
+				mockAPI.On("GetPost", testutils.GetUserID()).Return(&model.Post{
 					Id: testutils.GetID(),
 				}, nil)
 			},
 			setupClient: func(client *mocksClient.Client) {},
 			attachments: []msteams.Attachment{{
+				Name:        "mock-name",
 				ContentType: "messageReference",
 				Content:     `{"messageId":"mock-ID"}`,
 			}},
-			ExpectedText:     "mock-text",
-			ExpectedParentID: testutils.GetID(),
+			expectedText:     "mock-text",
+			expectedParentID: testutils.GetID(),
 		},
 	} {
 		t.Run(testCase.description, func(t *testing.T) {
-			fmt.Printf("\n\n%s\n\n", testCase.description)
 			p := mocksPlugin.NewPluginIface(t)
 			ah := ActivityHandler{}
 			mockAPI := &plugintest.API{}
@@ -445,12 +456,14 @@ func TestHandleAttachments(t *testing.T) {
 
 			attachments := &msteams.Message{
 				Attachments: testCase.attachments,
+				ChatID:      testutils.GetChatID(),
+				ChannelID:   testutils.GetChannelID(),
 			}
 
 			newText, attachmentIDs, parentID := ah.handleAttachments(testutils.GetUserID(), testutils.GetChannelID(), "mock-text", attachments)
-			assert.Equal(t, testCase.ExpectedParentID, parentID)
-			assert.Equal(t, testCase.ExpectedAttachmentIDsCount, len(attachmentIDs))
-			assert.Equal(t, testCase.ExpectedText, newText)
+			assert.Equal(t, testCase.expectedParentID, parentID)
+			assert.Equal(t, testCase.expectedAttachmentIDsCount, len(attachmentIDs))
+			assert.Equal(t, testCase.expectedText, newText)
 		})
 	}
 }
