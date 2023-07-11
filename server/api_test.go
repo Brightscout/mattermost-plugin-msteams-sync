@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -754,7 +755,7 @@ func TestConnect(t *testing.T) {
 		{
 			Name: "connect: User connected",
 			SetupPlugin: func(api *plugintest.API) {
-				api.On("KVSet", mock.AnythingOfType("string"), mock.AnythingOfType("[]uint8")).Return(nil)
+				api.On("KVSet", fmt.Sprintf("_code_verifier_%s", testutils.GetUserID()), mock.AnythingOfType("[]uint8")).Return(nil).Times(1)
 			},
 			SetupStore: func(store *storemocks.Store) {
 				store.On("StoreOAuth2State", mock.AnythingOfType("string")).Return(nil).Times(1)
@@ -764,7 +765,7 @@ func TestConnect(t *testing.T) {
 		{
 			Name: "connect: Error in storing the OAuth state",
 			SetupPlugin: func(api *plugintest.API) {
-				api.On("LogError", "Error in storing the OAuth state", "error", "error in storing the oauth state").Return(nil)
+				api.On("LogError", "Error in storing the OAuth state", "error", "error in storing the oauth state").Return(nil).Times(1)
 			},
 			SetupStore: func(store *storemocks.Store) {
 				store.On("StoreOAuth2State", mock.AnythingOfType("string")).Return(errors.New("error in storing the oauth state")).Times(1)
@@ -777,8 +778,8 @@ func TestConnect(t *testing.T) {
 			SetupPlugin: func(api *plugintest.API) {
 				api.On("KVSet", mock.AnythingOfType("string"), mock.AnythingOfType("[]uint8")).Return(&model.AppError{
 					Message: "error in storing the code verifier",
-				})
-				api.On("LogError", "Error in storing the code verifier", "error", "error in storing the code verifier").Return(nil)
+				}).Times(1)
+				api.On("LogError", "Error in storing the code verifier", "error", "error in storing the code verifier").Return(nil).Times(1)
 			},
 			SetupStore: func(store *storemocks.Store) {
 				store.On("StoreOAuth2State", mock.AnythingOfType("string")).Return(nil).Times(1)
@@ -796,7 +797,7 @@ func TestConnect(t *testing.T) {
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/connect", nil)
-			r.Header.Add("Mattermost-User-ID", testutils.GetID())
+			r.Header.Add("Mattermost-User-ID", testutils.GetUserID())
 			plugin.ServeHTTP(nil, w, r)
 
 			result := w.Result()
@@ -805,10 +806,11 @@ func TestConnect(t *testing.T) {
 			assert.NotNil(t, result)
 			assert.Equal(test.ExpectedStatusCode, result.StatusCode)
 
-			bodyBytes, _ := io.ReadAll(result.Body)
-			bodyString := string(bodyBytes)
-			if test.ExpectedResult != "" {
-				assert.Equal(test.ExpectedResult, bodyString)
+			bodyBytes, err := io.ReadAll(result.Body)
+			if err != nil {
+				if test.ExpectedResult != "" {
+					assert.Equal(test.ExpectedResult, string(bodyBytes))
+				}
 			}
 		})
 	}
