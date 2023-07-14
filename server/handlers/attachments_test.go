@@ -449,9 +449,13 @@ func TestHandleAttachments(t *testing.T) {
 			mockAPI := &plugintest.API{}
 			client := mocksClient.NewClient(t)
 			store := mocksStore.NewStore(t)
+
+			mockAPI.AssertExpectations(t)
+
 			testCase.setupPlugin(p, mockAPI, client, store)
 			testCase.setupAPI(mockAPI)
 			testCase.setupClient(client)
+
 			ah.plugin = p
 
 			attachments := &msteams.Message{
