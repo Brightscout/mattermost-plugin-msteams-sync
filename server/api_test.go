@@ -755,6 +755,7 @@ func TestConnect(t *testing.T) {
 		{
 			Name: "connect: User connected",
 			SetupPlugin: func(api *plugintest.API) {
+				api.On("GetConfig").Return(&model.Config{ServiceSettings: model.ServiceSettings{SiteURL: model.NewString("/")}}, nil).Times(1)
 				api.On("KVSet", fmt.Sprintf("_code_verifier_%s", testutils.GetUserID()), mock.AnythingOfType("[]uint8")).Return(nil).Times(1)
 			},
 			SetupStore: func(store *storemocks.Store) {
@@ -776,10 +777,10 @@ func TestConnect(t *testing.T) {
 		{
 			Name: "connect: Error in storing the code verifier",
 			SetupPlugin: func(api *plugintest.API) {
+				api.On("LogError", "Error in storing the code verifier", "error", "error in storing the code verifier").Return(nil).Times(1)
 				api.On("KVSet", mock.AnythingOfType("string"), mock.AnythingOfType("[]uint8")).Return(&model.AppError{
 					Message: "error in storing the code verifier",
 				}).Times(1)
-				api.On("LogError", "Error in storing the code verifier", "error", "error in storing the code verifier").Return(nil).Times(1)
 			},
 			SetupStore: func(store *storemocks.Store) {
 				store.On("StoreOAuth2State", mock.AnythingOfType("string")).Return(nil).Times(1)
@@ -791,8 +792,13 @@ func TestConnect(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			assert := assert.New(t)
 			plugin := newTestPlugin(t)
+			mockAPI := &plugintest.API{}
 
-			test.SetupPlugin(plugin.API.(*plugintest.API))
+			plugin.SetAPI(mockAPI)
+
+			defer mockAPI.AssertExpectations(t)
+
+			test.SetupPlugin(mockAPI)
 			test.SetupStore(plugin.store.(*storemocks.Store))
 
 			w := httptest.NewRecorder()
