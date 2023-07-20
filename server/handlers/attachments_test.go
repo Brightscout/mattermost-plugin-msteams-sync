@@ -327,7 +327,7 @@ func TestHandleAttachments(t *testing.T) {
 						MaxFileSize: model.NewInt64(-1),
 					},
 				})
-				mockAPI.On("LogError", "cannot upload file to mattermost as its size is greater than allowed size", "filename", "mock-name").Return()
+				mockAPI.On("LogError", "cannot upload file to Mattermost as its size is greater than allowed size", "filename", "mock-name").Return()
 			},
 			setupClient: func(client *mocksClient.Client) {
 				client.On("GetFileContent", "").Return([]byte{}, nil)
@@ -352,7 +352,7 @@ func TestHandleAttachments(t *testing.T) {
 					},
 				})
 				mockAPI.On("UploadFile", []byte{}, testutils.GetChannelID(), "mock-name").Return(nil, &model.AppError{Message: "error uploading the file"})
-				mockAPI.On("LogError", "upload file to mattermost failed", "filename", "mock-name", "error", "error uploading the file").Return()
+				mockAPI.On("LogError", "upload file to Mattermost failed", "filename", "mock-name", "error", "error uploading the file").Return()
 			},
 			setupClient: func(client *mocksClient.Client) {
 				client.On("GetFileContent", "").Return([]byte{}, nil)
@@ -377,7 +377,7 @@ func TestHandleAttachments(t *testing.T) {
 					},
 				})
 				mockAPI.On("UploadFile", []byte{}, testutils.GetChannelID(), "").Return(&model.FileInfo{}, nil)
-				mockAPI.On("LogDebug", "discarding the rest of the attachments as mattermost supports only 10 attachments per post").Return()
+				mockAPI.On("LogDebug", "discarding the rest of the attachments as Mattermost supports only 10 attachments per post").Return()
 			},
 			setupClient: func(client *mocksClient.Client) {
 				client.On("GetFileContent", "").Return([]byte{}, nil)
