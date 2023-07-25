@@ -42,7 +42,7 @@ func createTestDB(driverName string) (*sql.DB, func()) {
 		postgres, _ := testcontainers.GenericContainer(context.Background(),
 			testcontainers.GenericContainerRequest{
 				ContainerRequest: testcontainers.ContainerRequest{
-					Image:        "postgres",
+					Image:        "postgres:latest",
 					ExposedPorts: []string{postgresPort.Port()},
 					Env: map[string]string{
 						"POSTGRES_PASSWORD": "pass",
