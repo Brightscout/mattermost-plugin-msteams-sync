@@ -28,7 +28,7 @@ jobs:
           registry-url: https://npm.pkg.github.com/
 
       - name: Install golangci
-        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.52.2
+        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.49.0
 
       - uses: actions/checkout@v2
 
@@ -53,10 +53,10 @@ jobs:
         env:
           TERM: dumb
 
-      # - name: check style
-      #   run: make check-style
-      #   env:
-      #     TERM: dumb
+      - name: check style
+        run: make check-style
+        env:
+          TERM: dumb
 
       - name: run tests
         run: make test
