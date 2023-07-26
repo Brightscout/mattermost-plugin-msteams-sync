@@ -175,8 +175,7 @@ func TestGetAvatarCache(t *testing.T) {
 	} {
 		t.Run(test.Name, func(t *testing.T) {
 			assert := assert.New(t)
-			store, api, tearDownContainer := setupTestStore(&plugintest.API{}, "")
-			defer tearDownContainer()
+			store, api, _ := setupTestStore(&plugintest.API{}, "")
 			test.SetupAPI(api)
 			resp, err := store.GetAvatarCache(testutils.GetID())
 
@@ -214,8 +213,7 @@ func TestSetAvatarCache(t *testing.T) {
 	} {
 		t.Run(test.Name, func(t *testing.T) {
 			assert := assert.New(t)
-			store, api, tearDownContainer := setupTestStore(&plugintest.API{}, "")
-			defer tearDownContainer()
+			store, api, _ := setupTestStore(&plugintest.API{}, "")
 			test.SetupAPI(api)
 			err := store.SetAvatarCache(testutils.GetID(), []byte{10})
 
@@ -280,8 +278,7 @@ func TestCheckEnabledTeamByTeamID(t *testing.T) {
 	} {
 		t.Run(test.Name, func(t *testing.T) {
 			assert := assert.New(t)
-			store, api, tearDownContainer := setupTestStore(&plugintest.API{}, "")
-			defer tearDownContainer()
+			store, api, _ := setupTestStore(&plugintest.API{}, "")
 			test.SetupAPI(api)
 			store.enabledTeams = test.EnabledTeams
 			resp := store.CheckEnabledTeamByTeamID("mockTeamID")
