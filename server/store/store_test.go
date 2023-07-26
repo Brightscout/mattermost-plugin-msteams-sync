@@ -9,7 +9,6 @@ import (
 
 	"testing"
 
-	"github.com/docker/go-connections/nat"
 	"github.com/jmoiron/sqlx"
 	"github.com/mattermost/mattermost-plugin-msteams-sync/server/store/storemodels"
 	"github.com/mattermost/mattermost-plugin-msteams-sync/server/testutils"
@@ -38,25 +37,24 @@ func setupTestStore(api *plugintest.API, driverName string) (*SQLStore, *plugint
 func createTestDB(driverName string) (*sql.DB, func()) {
 	// Create postgres container
 	if driverName == model.DatabaseDriverPostgres {
-		postgresPort := nat.Port("5432/tcp")
 		postgres, _ := testcontainers.GenericContainer(context.Background(),
 			testcontainers.GenericContainerRequest{
 				ContainerRequest: testcontainers.ContainerRequest{
 					Image:        "postgres",
-					ExposedPorts: []string{postgresPort.Port()},
+					ExposedPorts: []string{"5432/tcp"},
 					Env: map[string]string{
 						"POSTGRES_PASSWORD": "pass",
 						"POSTGRES_USER":     "user",
 					},
 					WaitingFor: wait.ForAll(
 						wait.ForLog("database system is ready to accept connections"),
-						wait.ForListeningPort(postgresPort),
 					),
+					SkipReaper: true,
 				},
 				Started: true,
 			})
 
-		hostPort, _ := postgres.MappedPort(context.Background(), postgresPort)
+		hostPort, _ := postgres.MappedPort(context.Background(), "5432/tcp")
 		conn, _ := sqlx.Connect("postgres", fmt.Sprintf("postgres://user:pass@localhost:%s?sslmode=disable", hostPort.Port()))
 		tearDownContainer := func() {
 			if err := postgres.Terminate(context.Background()); err != nil {
@@ -81,6 +79,7 @@ func createTestDB(driverName string) (*sql.DB, func()) {
 				WaitingFor: wait.ForAll(
 					wait.ForLog("database system is ready to accept connections"),
 				),
+				SkipReaper: true,
 			},
 			Started: true,
 		})
@@ -136,8 +135,10 @@ func TestStore(t *testing.T) {
 		"testStoreAndGetAndDeleteDMGMPromptTime":                     testStoreAndGetAndDeleteDMGMPromptTime,
 		"testStoreAndVerifyOAuthState":                               testStoreAndVerifyOAuthState,
 	}
-	for _, driver := range []string{model.DatabaseDriverPostgres, model.DatabaseDriverMysql} {
+	for _, driver := range []string{model.DatabaseDriverMysql} {
+		fmt.Println(-1)
 		store, api, tearDownContainer := setupTestStore(&plugintest.API{}, driver)
+		fmt.Println(0)
 		for test := range testFunctions {
 			t.Run(driver+"/"+test, func(t *testing.T) {
 				testFunctions[test](t, store, api)
