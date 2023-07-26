@@ -20,7 +20,7 @@ require (
 	github.com/pborman/uuid v1.2.1
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.8.2
-	github.com/testcontainers/testcontainers-go v0.19.0
+	github.com/testcontainers/testcontainers-go v0.18.0
 	gitlab.com/golang-commonmark/markdown v0.0.0-20211110145824-bf3e522c626a
 	golang.org/x/net v0.7.0
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
@@ -36,7 +36,6 @@ require (
 	github.com/cenkalti/backoff/v4 v4.2.0 // indirect
 	github.com/cjlapao/common-go v0.0.39 // indirect
 	github.com/containerd/containerd v1.6.19 // indirect
-	github.com/cpuguy83/dockercfg v0.3.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/disintegration/imaging v1.6.2 // indirect
 	github.com/docker/distribution v2.8.1+incompatible // indirect
