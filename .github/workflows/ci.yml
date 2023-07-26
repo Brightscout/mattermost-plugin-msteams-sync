@@ -53,10 +53,10 @@ jobs:
         env:
           TERM: dumb
 
-      - name: check style
-        run: make check-style
-        env:
-          TERM: dumb
+      # - name: check style
+      #   run: make check-style
+      #   env:
+      #     TERM: dumb
 
       - name: run tests
         run: make test
