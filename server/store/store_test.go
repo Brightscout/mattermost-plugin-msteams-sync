@@ -25,9 +25,14 @@ import (
 func setupTestStore(api *plugintest.API, driverName string) (*SQLStore, *plugintest.API, func()) {
 	store := &SQLStore{}
 	store.api = api
-	store.driverName = driverName
-	db, tearDownContainer := createTestDB(driverName)
-	store.db = db
+	var tearDownContainer func()
+	if driverName != "" {
+		store.driverName = driverName
+		var db *sql.DB
+		db, tearDownContainer = createTestDB(driverName)
+		store.db = db
+	}
+
 	_ = store.Init()
 	_ = store.createTable("Teams", "Id VARCHAR(255), DisplayName VARCHAR(255)")
 	_ = store.createTable("Channels", "Id VARCHAR(255), DisplayName VARCHAR(255)")
@@ -136,9 +141,7 @@ func TestStore(t *testing.T) {
 		"testStoreAndVerifyOAuthState":                               testStoreAndVerifyOAuthState,
 	}
 	for _, driver := range []string{model.DatabaseDriverMysql} {
-		fmt.Println(-1)
 		store, api, tearDownContainer := setupTestStore(&plugintest.API{}, driver)
-		fmt.Println(0)
 		for test := range testFunctions {
 			t.Run(driver+"/"+test, func(t *testing.T) {
 				testFunctions[test](t, store, api)
@@ -172,7 +175,7 @@ func TestGetAvatarCache(t *testing.T) {
 	} {
 		t.Run(test.Name, func(t *testing.T) {
 			assert := assert.New(t)
-			store, api, tearDownContainer := setupTestStore(&plugintest.API{}, model.DatabaseDriverPostgres)
+			store, api, tearDownContainer := setupTestStore(&plugintest.API{}, "")
 			defer tearDownContainer()
 			test.SetupAPI(api)
 			resp, err := store.GetAvatarCache(testutils.GetID())
@@ -211,7 +214,7 @@ func TestSetAvatarCache(t *testing.T) {
 	} {
 		t.Run(test.Name, func(t *testing.T) {
 			assert := assert.New(t)
-			store, api, tearDownContainer := setupTestStore(&plugintest.API{}, model.DatabaseDriverPostgres)
+			store, api, tearDownContainer := setupTestStore(&plugintest.API{}, "")
 			defer tearDownContainer()
 			test.SetupAPI(api)
 			err := store.SetAvatarCache(testutils.GetID(), []byte{10})
@@ -277,7 +280,7 @@ func TestCheckEnabledTeamByTeamID(t *testing.T) {
 	} {
 		t.Run(test.Name, func(t *testing.T) {
 			assert := assert.New(t)
-			store, api, tearDownContainer := setupTestStore(&plugintest.API{}, model.DatabaseDriverPostgres)
+			store, api, tearDownContainer := setupTestStore(&plugintest.API{}, "")
 			defer tearDownContainer()
 			test.SetupAPI(api)
 			store.enabledTeams = test.EnabledTeams
