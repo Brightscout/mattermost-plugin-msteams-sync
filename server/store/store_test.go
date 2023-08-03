@@ -9,6 +9,7 @@ import (
 
 	"testing"
 
+	"github.com/docker/go-connections/nat"
 	"github.com/jmoiron/sqlx"
 	"github.com/mattermost/mattermost-plugin-msteams-sync/server/store/storemodels"
 	"github.com/mattermost/mattermost-plugin-msteams-sync/server/testutils"
@@ -25,14 +26,9 @@ import (
 func setupTestStore(api *plugintest.API, driverName string) (*SQLStore, *plugintest.API, func()) {
 	store := &SQLStore{}
 	store.api = api
-	var tearDownContainer func()
-	if driverName != "" {
-		store.driverName = driverName
-		var db *sql.DB
-		db, tearDownContainer = createTestDB(driverName)
-		store.db = db
-	}
-
+	store.driverName = driverName
+	db, tearDownContainer := createTestDB(driverName)
+	store.db = db
 	_ = store.Init()
 	_ = store.createTable("Teams", "Id VARCHAR(255), DisplayName VARCHAR(255)")
 	_ = store.createTable("Channels", "Id VARCHAR(255), DisplayName VARCHAR(255)")
@@ -40,26 +36,30 @@ func setupTestStore(api *plugintest.API, driverName string) (*SQLStore, *plugint
 }
 
 func createTestDB(driverName string) (*sql.DB, func()) {
+	container := "testContainer"
 	// Create postgres container
 	if driverName == model.DatabaseDriverPostgres {
+		postgresPort := nat.Port("5432/tcp")
 		postgres, _ := testcontainers.GenericContainer(context.Background(),
 			testcontainers.GenericContainerRequest{
 				ContainerRequest: testcontainers.ContainerRequest{
 					Image:        "postgres",
-					ExposedPorts: []string{"5432/tcp"},
+					ExposedPorts: []string{postgresPort.Port()},
 					Env: map[string]string{
 						"POSTGRES_PASSWORD": "pass",
 						"POSTGRES_USER":     "user",
 					},
 					WaitingFor: wait.ForAll(
 						wait.ForLog("database system is ready to accept connections"),
+						wait.ForListeningPort(postgresPort),
 					),
-					SkipReaper: true,
+					Name: container,
 				},
 				Started: true,
+				Reuse: true,
 			})
 
-		hostPort, _ := postgres.MappedPort(context.Background(), "5432/tcp")
+		hostPort, _ := postgres.MappedPort(context.Background(), postgresPort)
 		conn, _ := sqlx.Connect("postgres", fmt.Sprintf("postgres://user:pass@localhost:%s?sslmode=disable", hostPort.Port()))
 		tearDownContainer := func() {
 			if err := postgres.Terminate(context.Background()); err != nil {
@@ -84,9 +84,10 @@ func createTestDB(driverName string) (*sql.DB, func()) {
 				WaitingFor: wait.ForAll(
 					wait.ForLog("database system is ready to accept connections"),
 				),
-				SkipReaper: true,
+				Name: container,
 			},
 			Started: true,
+			Reuse: true,
 		})
 
 	host, _ := mysql.Host(context)
@@ -140,7 +141,7 @@ func TestStore(t *testing.T) {
 		"testStoreAndGetAndDeleteDMGMPromptTime":                     testStoreAndGetAndDeleteDMGMPromptTime,
 		"testStoreAndVerifyOAuthState":                               testStoreAndVerifyOAuthState,
 	}
-	for _, driver := range []string{model.DatabaseDriverMysql} {
+	for _, driver := range []string{model.DatabaseDriverPostgres, model.DatabaseDriverMysql} {
 		store, api, tearDownContainer := setupTestStore(&plugintest.API{}, driver)
 		for test := range testFunctions {
 			t.Run(driver+"/"+test, func(t *testing.T) {
@@ -175,7 +176,8 @@ func TestGetAvatarCache(t *testing.T) {
 	} {
 		t.Run(test.Name, func(t *testing.T) {
 			assert := assert.New(t)
-			store, api, _ := setupTestStore(&plugintest.API{}, "")
+			store, api, tearDownContainer := setupTestStore(&plugintest.API{}, model.DatabaseDriverPostgres)
+			defer tearDownContainer()
 			test.SetupAPI(api)
 			resp, err := store.GetAvatarCache(testutils.GetID())
 
@@ -213,7 +215,8 @@ func TestSetAvatarCache(t *testing.T) {
 	} {
 		t.Run(test.Name, func(t *testing.T) {
 			assert := assert.New(t)
-			store, api, _ := setupTestStore(&plugintest.API{}, "")
+			store, api, tearDownContainer := setupTestStore(&plugintest.API{}, model.DatabaseDriverPostgres)
+			defer tearDownContainer()
 			test.SetupAPI(api)
 			err := store.SetAvatarCache(testutils.GetID(), []byte{10})
 
@@ -278,7 +281,8 @@ func TestCheckEnabledTeamByTeamID(t *testing.T) {
 	} {
 		t.Run(test.Name, func(t *testing.T) {
 			assert := assert.New(t)
-			store, api, _ := setupTestStore(&plugintest.API{}, "")
+			store, api, tearDownContainer := setupTestStore(&plugintest.API{}, model.DatabaseDriverPostgres)
+			defer tearDownContainer()
 			test.SetupAPI(api)
 			store.enabledTeams = test.EnabledTeams
 			resp := store.CheckEnabledTeamByTeamID("mockTeamID")
