@@ -60,6 +60,7 @@ func createTestDB(driverName string) (*sql.DB, func()) {
 				Started: true,
 			})
 
+		time.Sleep(5 * time.Second)
 		hostPort, _ := postgres.MappedPort(context.Background(), postgresPort)
 		conn, _ := sqlx.Connect("postgres", fmt.Sprintf("postgres://user:pass@localhost:%s?sslmode=disable", hostPort.Port()))
 		tearDownContainer := func() {
