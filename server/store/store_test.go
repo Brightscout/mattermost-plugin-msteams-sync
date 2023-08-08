@@ -53,10 +53,10 @@ func createTestDB(driverName string) (*sql.DB, func()) {
 						wait.ForLog("database system is ready to accept connections"),
 						wait.ForListeningPort(postgresPort),
 					),
-					Name: name,
+					Name:       name,
 					SkipReaper: true,
 				},
-				Reuse: true,
+				Reuse:   true,
 				Started: true,
 			})
 
@@ -86,9 +86,9 @@ func createTestDB(driverName string) (*sql.DB, func()) {
 					wait.ForLog("database system is ready to accept connections"),
 				),
 				SkipReaper: true,
-				Name: name,
+				Name:       name,
 			},
-			Reuse: true,
+			Reuse:   true,
 			Started: true,
 		})
 
