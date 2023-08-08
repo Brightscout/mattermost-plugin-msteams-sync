@@ -9,7 +9,6 @@ import (
 
 	"testing"
 
-	"github.com/docker/go-connections/nat"
 	"github.com/jmoiron/sqlx"
 	"github.com/mattermost/mattermost-plugin-msteams-sync/server/store/storemodels"
 	"github.com/mattermost/mattermost-plugin-msteams-sync/server/testutils"
@@ -39,19 +38,19 @@ func createTestDB(driverName string) (*sql.DB, func()) {
 	// Create postgres container
 	name1 := "c1"
 	if driverName == model.DatabaseDriverPostgres {
-		postgresPort := nat.Port("5432/tcp")
-		postgres, _ := testcontainers.GenericContainer(context.Background(),
+		context := context.Background()
+		postgres, _ := testcontainers.GenericContainer(context,
 			testcontainers.GenericContainerRequest{
 				ContainerRequest: testcontainers.ContainerRequest{
 					Image:        "postgres",
-					ExposedPorts: []string{postgresPort.Port()},
+					ExposedPorts: []string{"5432/tcp"},
 					Env: map[string]string{
 						"POSTGRES_PASSWORD": "pass",
 						"POSTGRES_USER":     "user",
 					},
 					WaitingFor: wait.ForAll(
 						wait.ForLog("database system is ready to accept connections"),
-						wait.ForListeningPort(postgresPort),
+						// wait.ForListeningPort(postgresPort),
 					),
 					Name:       name1,
 					SkipReaper: true,
@@ -61,11 +60,12 @@ func createTestDB(driverName string) (*sql.DB, func()) {
 			})
 
 		// fmt.Println("post", postgres)
-		// time.Sleep(5 * time.Second)
-		hostPort, _ := postgres.MappedPort(context.Background(), postgresPort)
-		conn, _ := sqlx.Connect("postgres", fmt.Sprintf("postgres://user:pass@localhost:%s?sslmode=disable", hostPort.Port()))
+		time.Sleep(5 * time.Second)
+		host, _ := postgres.Host(context)
+		hostPort, _ := postgres.MappedPort(context, "5432/tcp")
+		conn, _ := sqlx.Connect("postgres", fmt.Sprintf("postgres://user:pass@%s:%d?sslmode=disable", host, hostPort.Int()))
 		tearDownContainer := func() {
-			if err := postgres.Terminate(context.Background()); err != nil {
+			if err := postgres.Terminate(context); err != nil {
 				log.Fatalf("failed to terminate container: %s", err.Error())
 			}
 		}
@@ -97,7 +97,7 @@ func createTestDB(driverName string) (*sql.DB, func()) {
 		})
 
 	// fmt.Println("sql", mysql)
-	// time.Sleep(5 * time.Second)
+	time.Sleep(5 * time.Second)
 	host, _ := mysql.Host(context)
 	p, _ := mysql.MappedPort(context, "3306/tcp")
 	port := p.Int()
