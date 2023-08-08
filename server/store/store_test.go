@@ -97,6 +97,7 @@ func createTestDB(driverName string) (*sql.DB, func()) {
 	p, _ := mysql.MappedPort(context, "3306/tcp")
 	port := p.Int()
 
+	time.Sleep(5 * time.Second)
 	mysqlConn, _ := sqlx.Connect("mysql", fmt.Sprintf("root:root@tcp(%s:%d)/test", host, port))
 	tearDownContainer := func() {
 		if err := mysql.Terminate(context); err != nil {
@@ -152,7 +153,7 @@ func TestStore(t *testing.T) {
 			})
 		}
 
-		tearDownContainer()
+		defer tearDownContainer()
 	}
 }
 
