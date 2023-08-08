@@ -60,7 +60,7 @@ func createTestDB(driverName string) (*sql.DB, func()) {
 			})
 
 		// fmt.Println("post", postgres)
-		time.Sleep(5 * time.Second)
+		// time.Sleep(5 * time.Second)
 		host, _ := postgres.Host(context)
 		hostPort, _ := postgres.MappedPort(context, "5432/tcp")
 		conn, _ := sqlx.Connect("postgres", fmt.Sprintf("postgres://user:pass@%s:%d?sslmode=disable", host, hostPort.Int()))
@@ -97,7 +97,7 @@ func createTestDB(driverName string) (*sql.DB, func()) {
 		})
 
 	// fmt.Println("sql", mysql)
-	time.Sleep(5 * time.Second)
+	// time.Sleep(5 * time.Second)
 	host, _ := mysql.Host(context)
 	p, _ := mysql.MappedPort(context, "3306/tcp")
 	port := p.Int()
