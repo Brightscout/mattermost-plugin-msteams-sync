@@ -49,8 +49,8 @@ func createTestDB(driverName string) (*sql.DB, func()) {
 						"POSTGRES_USER":     "user",
 					},
 					WaitingFor: wait.ForAll(
-						// wait.ForLog("database system is ready to accept connections"),
-						wait.ForHealthCheck(),
+						wait.ForLog("database system is ready to accept connections"),
+						// wait.ForHealthCheck(),
 						// wait.ForExposedPort(),
 						// wait.ForListeningPort(postgresPort),
 					),
@@ -62,7 +62,7 @@ func createTestDB(driverName string) (*sql.DB, func()) {
 			})
 
 		// fmt.Println("post", postgres)
-		// time.Sleep(5 * time.Second)
+		time.Sleep(5 * time.Second)
 		host, _ := postgres.Host(context)
 		hostPort, _ := postgres.MappedPort(context, "5432/tcp")
 		conn, _ := sqlx.Connect("postgres", fmt.Sprintf("postgres://user:pass@%s:%d?sslmode=disable", host, hostPort.Int()))
@@ -89,9 +89,9 @@ func createTestDB(driverName string) (*sql.DB, func()) {
 					"MYSQL_DATABASE":      "test",
 				},
 				WaitingFor: wait.ForAll(
-					wait.ForHealthCheck(),
+					// wait.ForHealthCheck(),
 					// wait.ForExposedPort(),
-					// wait.ForLog("database system is ready to accept connections"),
+					wait.ForLog("database system is ready to accept connections"),
 				),
 				SkipReaper: true,
 				// Name:       name2,
@@ -101,7 +101,7 @@ func createTestDB(driverName string) (*sql.DB, func()) {
 		})
 
 	// fmt.Println("sql", mysql)
-	// time.Sleep(5 * time.Second)
+	time.Sleep(5 * time.Second)
 	host, _ := mysql.Host(context)
 	p, _ := mysql.MappedPort(context, "3306/tcp")
 	port := p.Int()
