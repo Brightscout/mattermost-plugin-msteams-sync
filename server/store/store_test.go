@@ -37,6 +37,7 @@ func setupTestStore(api *plugintest.API, driverName string) (*SQLStore, *plugint
 
 func createTestDB(driverName string) (*sql.DB, func()) {
 	// Create postgres container
+	name := "container"
 	if driverName == model.DatabaseDriverPostgres {
 		postgresPort := nat.Port("5432/tcp")
 		postgres, _ := testcontainers.GenericContainer(context.Background(),
@@ -52,7 +53,10 @@ func createTestDB(driverName string) (*sql.DB, func()) {
 						wait.ForLog("database system is ready to accept connections"),
 						wait.ForListeningPort(postgresPort),
 					),
+					Name: name,
+					SkipReaper: true,
 				},
+				Reuse: true,
 				Started: true,
 			})
 
@@ -81,7 +85,10 @@ func createTestDB(driverName string) (*sql.DB, func()) {
 				WaitingFor: wait.ForAll(
 					wait.ForLog("database system is ready to accept connections"),
 				),
+				SkipReaper: true,
+				Name: name,
 			},
+			Reuse: true,
 			Started: true,
 		})
 
