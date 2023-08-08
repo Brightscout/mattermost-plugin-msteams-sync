@@ -51,7 +51,7 @@ func createTestDB(driverName string) (*sql.DB, func()) {
 					WaitingFor: wait.ForAll(
 						// wait.ForLog("database system is ready to accept connections"),
 						wait.ForHealthCheck(),
-						wait.ForExposedPort(),
+						// wait.ForExposedPort(),
 						// wait.ForListeningPort(postgresPort),
 					),
 					// Name:       name1,
@@ -90,7 +90,7 @@ func createTestDB(driverName string) (*sql.DB, func()) {
 				},
 				WaitingFor: wait.ForAll(
 					wait.ForHealthCheck(),
-					wait.ForExposedPort(),
+					// wait.ForExposedPort(),
 					// wait.ForLog("database system is ready to accept connections"),
 				),
 				SkipReaper: true,
