@@ -37,7 +37,7 @@ func setupTestStore(api *plugintest.API, driverName string) (*SQLStore, *plugint
 
 func createTestDB(driverName string) (*sql.DB, func()) {
 	// Create postgres container
-	name := "container"
+	name1 := "c1"
 	if driverName == model.DatabaseDriverPostgres {
 		postgresPort := nat.Port("5432/tcp")
 		postgres, _ := testcontainers.GenericContainer(context.Background(),
@@ -53,14 +53,15 @@ func createTestDB(driverName string) (*sql.DB, func()) {
 						wait.ForLog("database system is ready to accept connections"),
 						wait.ForListeningPort(postgresPort),
 					),
-					Name:       name,
+					Name:       name1,
 					SkipReaper: true,
 				},
 				Reuse:   true,
 				Started: true,
 			})
 
-		time.Sleep(5 * time.Second)
+		// fmt.Println("post", postgres)
+		// time.Sleep(5 * time.Second)
 		hostPort, _ := postgres.MappedPort(context.Background(), postgresPort)
 		conn, _ := sqlx.Connect("postgres", fmt.Sprintf("postgres://user:pass@localhost:%s?sslmode=disable", hostPort.Port()))
 		tearDownContainer := func() {
@@ -69,9 +70,11 @@ func createTestDB(driverName string) (*sql.DB, func()) {
 			}
 		}
 
+		// fmt.Println("db", conn)
 		return conn.DB, tearDownContainer
 	}
 
+	name2 := "c2"
 	// Create MySQL container
 	context := context.Background()
 	mysql, _ := testcontainers.GenericContainer(context,
@@ -87,17 +90,18 @@ func createTestDB(driverName string) (*sql.DB, func()) {
 					wait.ForLog("database system is ready to accept connections"),
 				),
 				SkipReaper: true,
-				Name:       name,
+				Name:       name2,
 			},
 			Reuse:   true,
 			Started: true,
 		})
 
+	// fmt.Println("sql", mysql)
+	// time.Sleep(5 * time.Second)
 	host, _ := mysql.Host(context)
 	p, _ := mysql.MappedPort(context, "3306/tcp")
 	port := p.Int()
 
-	time.Sleep(5 * time.Second)
 	mysqlConn, _ := sqlx.Connect("mysql", fmt.Sprintf("root:root@tcp(%s:%d)/test", host, port))
 	tearDownContainer := func() {
 		if err := mysql.Terminate(context); err != nil {
@@ -105,6 +109,7 @@ func createTestDB(driverName string) (*sql.DB, func()) {
 		}
 	}
 
+	// fmt.Println("dbm", mysqlConn)
 	return mysqlConn.DB, tearDownContainer
 }
 
