@@ -780,7 +780,7 @@ func TestHandleUpdatedActivity(t *testing.T) {
 			setupPlugin: func(p *mocksPlugin.PluginIface, client *mocksClient.Client, mockAPI *plugintest.API, store *mocksStore.Store) {
 				p.On("GetClientForApp").Return(client).Times(1)
 				p.On("GetClientForTeamsUser", testutils.GetTeamUserID()).Return(client, nil).Times(1)
-				p.On("GetAPI").Return(mockAPI).Times(5)
+				p.On("GetAPI").Return(mockAPI).Times(6)
 				p.On("GetStore").Return(store).Times(5)
 				p.On("GetBotUserID").Return("mock-BotUserID").Times(1)
 				mockAPI.On("KVSet", lastReceivedChangeKey, mock.Anything).Return(nil).Times(1)
@@ -808,7 +808,7 @@ func TestHandleUpdatedActivity(t *testing.T) {
 				mockAPI.On("LogDebug", "Handling reactions", "reactions", mock.Anything).Times(1)
 				mockAPI.On("UpdatePost", mock.Anything).Return(nil, nil).Times(1)
 				mockAPI.On("GetReactions", "mockMattermostID").Return([]*model.Reaction{}, nil).Times(1)
-				mockAPI.On("GetUser", testutils.GetUserID()).Return(testutils.GetUser(model.ChannelAdminRoleId, "test@test.com"), nil).Once()
+				mockAPI.On("GetUser", testutils.GetTeamUserID()).Return(testutils.GetUser(model.ChannelAdminRoleId, "test@test.com"), nil).Once()
 			},
 			setupStore: func(store *mocksStore.Store) {
 				store.On("MattermostToTeamsUserID", "mock-BotUserID").Return(testutils.GetTeamUserID(), nil).Times(1)
