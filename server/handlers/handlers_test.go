@@ -1052,7 +1052,7 @@ func TestHandleReactions(t *testing.T) {
 			},
 			setupPlugin: func(p *mocksPlugin.PluginIface, mockAPI *plugintest.API, store *mocksStore.Store) {
 				p.On("GetStore").Return(store).Times(1)
-				p.On("GetAPI").Return(mockAPI).Times(6)
+				p.On("GetAPI").Return(mockAPI).Times(7)
 			},
 			setupAPI: func(mockAPI *plugintest.API) {
 				mockAPI.On("GetReactions", testutils.GetPostID()).Return([]*model.Reaction{
@@ -1072,6 +1072,7 @@ func TestHandleReactions(t *testing.T) {
 
 				mockAPI.On("LogError", "No code reaction found for reaction", "reaction", mock.Anything).Times(2)
 				mockAPI.On("LogError", "Unable to remove reaction", "error", mock.Anything).Times(1)
+				mockAPI.On("GetUser", testutils.GetTeamUserID()).Return(testutils.GetUser(model.ChannelAdminRoleId, "test@test.com"), nil).Once()
 			},
 			setupStore: func(store *mocksStore.Store) {
 				store.On("TeamsToMattermostUserID", testutils.GetTeamUserID()).Return(testutils.GetID(), nil).Times(1)
