@@ -781,7 +781,7 @@ func TestHandleUpdatedActivity(t *testing.T) {
 				p.On("GetClientForApp").Return(client).Times(1)
 				p.On("GetClientForTeamsUser", testutils.GetTeamUserID()).Return(client, nil).Times(1)
 				p.On("GetAPI").Return(mockAPI).Times(6)
-				p.On("GetStore").Return(store).Times(5)
+				p.On("GetStore").Return(store).Times(4)
 				p.On("GetBotUserID").Return("mock-BotUserID").Times(1)
 				mockAPI.On("KVSet", lastReceivedChangeKey, mock.Anything).Return(nil).Times(1)
 				p.On("GetBotUserID").Return(testutils.GetSenderID()).Times(2)
