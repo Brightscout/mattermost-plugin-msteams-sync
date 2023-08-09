@@ -16,6 +16,10 @@ const DefaultPageSize = 20;
 
 import {pluginApiServiceConfigs} from './apiService';
 
+export enum ModalIds {
+    LINK_CHANNELS = 'linkChannels',
+}
+
 export default {
     iconUrl,
     notConnectIconUrl,

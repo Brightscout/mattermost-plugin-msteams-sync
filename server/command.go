@@ -13,6 +13,7 @@ import (
 
 const msteamsCommand = "msteams-sync"
 const commandWaitingMessage = "Please wait while your request is being processed."
+const wsEventOpenLinkChannelsModal = "link_channels"
 
 func (p *Plugin) createMsteamsSyncCommand() *model.Command {
 	iconData, err := command.GetIconData(p.API, "assets/msteams-sync-icon.svg")
@@ -160,62 +161,68 @@ func (p *Plugin) executeLinkCommand(args *model.CommandArgs, parameters []string
 		return p.cmdError(args.UserId, args.ChannelId, "Unable to link the channel. You have to be a channel admin to link it.")
 	}
 
-	if len(parameters) < 2 {
-		return p.cmdError(args.UserId, args.ChannelId, "Invalid link command, please pass the MS Teams team id and channel id as parameters.")
-	}
+	p.API.PublishWebSocketEvent(
+		wsEventOpenLinkChannelsModal,
+		nil,
+		&model.WebsocketBroadcast{UserId: args.UserId},
+	)
 
-	if !p.store.CheckEnabledTeamByTeamID(args.TeamId) {
-		return p.cmdError(args.UserId, args.ChannelId, "This team is not enabled for MS Teams sync.")
-	}
+	// if len(parameters) < 2 {
+	// 	return p.cmdError(args.UserId, args.ChannelId, "Invalid link command, please pass the MS Teams team id and channel id as parameters.")
+	// }
 
-	link, err := p.store.GetLinkByChannelID(args.ChannelId)
-	if err == nil && link != nil {
-		return p.cmdError(args.UserId, args.ChannelId, "A link for this channel already exists. Please unlink the channel before you link again with another channel.")
-	}
+	// if !p.store.CheckEnabledTeamByTeamID(args.TeamId) {
+	// 	return p.cmdError(args.UserId, args.ChannelId, "This team is not enabled for MS Teams sync.")
+	// }
 
-	link, err = p.store.GetLinkByMSTeamsChannelID(parameters[0], parameters[1])
-	if err == nil && link != nil {
-		return p.cmdError(args.UserId, args.ChannelId, "A link for this channel already exists. Please unlink the channel before you link again with another channel.")
-	}
+	// link, err := p.store.GetLinkByChannelID(args.ChannelId)
+	// if err == nil && link != nil {
+	// 	return p.cmdError(args.UserId, args.ChannelId, "A link for this channel already exists. Please unlink the channel before you link again with another channel.")
+	// }
 
-	client, err := p.GetClientForUser(args.UserId)
-	if err != nil {
-		return p.cmdError(args.UserId, args.ChannelId, "Unable to link the channel, looks like your account is not connected to MS Teams")
-	}
+	// link, err = p.store.GetLinkByMSTeamsChannelID(parameters[0], parameters[1])
+	// if err == nil && link != nil {
+	// 	return p.cmdError(args.UserId, args.ChannelId, "A link for this channel already exists. Please unlink the channel before you link again with another channel.")
+	// }
 
-	if _, err = client.GetChannelInTeam(parameters[0], parameters[1]); err != nil {
-		return p.cmdError(args.UserId, args.ChannelId, "MS Teams channel not found or you don't have the permissions to access it.")
-	}
+	// client, err := p.GetClientForUser(args.UserId)
+	// if err != nil {
+	// 	return p.cmdError(args.UserId, args.ChannelId, "Unable to link the channel, looks like your account is not connected to MS Teams")
+	// }
 
-	channelLink := storemodels.ChannelLink{
-		MattermostTeamID:    channel.TeamId,
-		MattermostChannelID: channel.Id,
-		MSTeamsTeamID:       parameters[0],
-		MSTeamsChannelID:    parameters[1],
-		Creator:             args.UserId,
-	}
-	err = p.store.StoreChannelLink(&channelLink)
-	if err != nil {
-		return p.cmdError(args.UserId, args.ChannelId, "Unable to create new link.")
-	}
+	// if _, err = client.GetChannelInTeam(parameters[0], parameters[1]); err != nil {
+	// 	return p.cmdError(args.UserId, args.ChannelId, "MS Teams channel not found or you don't have the permissions to access it.")
+	// }
 
-	channelsSubscription, err := p.msteamsAppClient.SubscribeToChannel(channelLink.MSTeamsTeamID, channelLink.MSTeamsChannelID, p.GetURL()+"/", p.getConfiguration().WebhookSecret)
-	if err != nil {
-		return p.cmdError(args.UserId, args.ChannelId, "Unable to subscribe to the channel: "+err.Error())
-	}
+	// channelLink := storemodels.ChannelLink{
+	// 	MattermostTeamID:    channel.TeamId,
+	// 	MattermostChannelID: channel.Id,
+	// 	MSTeamsTeam:         parameters[0],
+	// 	MSTeamsChannel:      parameters[1],
+	// 	Creator:             args.UserId,
+	// }
+	// err = p.store.StoreChannelLink(&channelLink)
+	// if err != nil {
+	// 	return p.cmdError(args.UserId, args.ChannelId, "Unable to create new link.")
+	// }
 
-	err = p.store.SaveChannelSubscription(storemodels.ChannelSubscription{
-		SubscriptionID: channelsSubscription.ID,
-		TeamID:         channelLink.MSTeamsTeamID,
-		ChannelID:      channelLink.MSTeamsChannelID,
-		ExpiresOn:      channelsSubscription.ExpiresOn,
-		Secret:         p.getConfiguration().WebhookSecret,
-	})
-	if err != nil {
-		return p.cmdError(args.UserId, args.ChannelId, "Unable to save the subscription in the monitoring system: "+err.Error())
-	}
+	// channelsSubscription, err := p.msteamsAppClient.SubscribeToChannel(channelLink.MSTeamsTeam, channelLink.MSTeamsChannel, p.GetURL()+"/", p.getConfiguration().WebhookSecret)
+	// if err != nil {
+	// 	return p.cmdError(args.UserId, args.ChannelId, "Unable to subscribe to the channel: "+err.Error())
+	// }
 
-	p.sendBotEphemeralPost(args.UserId, args.ChannelId, "The MS Teams channel is now linked to this Mattermost channel.")
+	// err = p.store.SaveChannelSubscription(storemodels.ChannelSubscription{
+	// 	SubscriptionID: channelsSubscription.ID,
+	// 	TeamID:         channelLink.MSTeamsTeam,
+	// 	ChannelID:      channelLink.MSTeamsChannel,
+	// 	ExpiresOn:      channelsSubscription.ExpiresOn,
+	// 	Secret:         p.getConfiguration().WebhookSecret,
+	// })
+	// if err != nil {
+	// 	return p.cmdError(args.UserId, args.ChannelId, "Unable to save the subscription in the monitoring system: "+err.Error())
+	// }
+
+	// p.sendBotEphemeralPost(args.UserId, args.ChannelId, "The MS Teams channel is now linked to this Mattermost channel.")
 	return &model.CommandResponse{}, nil
 }
 
