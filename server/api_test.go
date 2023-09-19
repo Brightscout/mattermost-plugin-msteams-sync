@@ -840,8 +840,10 @@ func TestDisconnect(t *testing.T) {
 		ExpectedStatusCode int
 	}{
 		{
-			Name:        "Disconnect: user successfully disconnected",
-			SetupPlugin: func(api *plugintest.API) {},
+			Name: "Disconnect: user successfully disconnected",
+			SetupPlugin: func(api *plugintest.API) {
+				api.On("GetConfig").Return(&model.Config{ServiceSettings: model.ServiceSettings{SiteURL: model.NewString("/")}}, nil).Times(1)
+			},
 			SetupStore: func(store *storemocks.Store) {
 				store.On("GetTokenForMattermostUser", testutils.GetUserID()).Return(&oauth2.Token{}, nil).Times(1)
 				store.On("MattermostToTeamsUserID", testutils.GetUserID()).Return(testutils.GetID(), nil).Times(1)
@@ -853,6 +855,7 @@ func TestDisconnect(t *testing.T) {
 		{
 			Name: "Disconnect: could not find the Teams user ID",
 			SetupPlugin: func(api *plugintest.API) {
+				api.On("GetConfig").Return(&model.Config{ServiceSettings: model.ServiceSettings{SiteURL: model.NewString("/")}}, nil).Times(1)
 				api.On("LogError", "Unable to get Teams user ID from Mattermost user ID.", "UserID", testutils.GetUserID(), "Error", "could not find the Teams user ID").Once()
 			},
 			SetupStore: func(store *storemocks.Store) {
@@ -877,6 +880,7 @@ func TestDisconnect(t *testing.T) {
 		{
 			Name: "Disconnect: error occurred while setting the user info",
 			SetupPlugin: func(api *plugintest.API) {
+				api.On("GetConfig").Return(&model.Config{ServiceSettings: model.ServiceSettings{SiteURL: model.NewString("/")}}, nil).Times(1)
 				api.On("LogError", "Error occurred while disconnecting the user.", "UserID", testutils.GetUserID(), "Error", "error occurred while setting the user info").Once()
 			},
 			SetupStore: func(store *storemocks.Store) {

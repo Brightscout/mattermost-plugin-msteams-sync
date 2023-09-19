@@ -23,10 +23,10 @@ const (
 
 	// Used for storing the token in the request context to pass from one middleware to another
 	// #nosec G101 -- This is a false positive. The below line is not a hardcoded credential
-	ContextTokenKey MSTeamsOAuthToken = "MS-Teams-Oauth-Token"
+	ContextClientKey MSTeamsClient = "MS-Teams-Client"
 )
 
-type MSTeamsOAuthToken string
+type MSTeamsClient string
 
 type API struct {
 	p      *Plugin
@@ -531,7 +531,9 @@ func (a *API) checkUserConnected(handleFunc http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), ContextTokenKey, token)
+		client := a.p.clientBuilderWithToken(a.p.GetURL()+"/oauth-redirect", a.p.getConfiguration().TenantID, a.p.getConfiguration().ClientID, a.p.getConfiguration().ClientSecret, token, a.p.API.LogError)
+
+		ctx := context.WithValue(r.Context(), ContextClientKey, client)
 		r = r.Clone(ctx)
 
 		handleFunc(w, r)
