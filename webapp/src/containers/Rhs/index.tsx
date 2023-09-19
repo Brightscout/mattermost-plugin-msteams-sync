@@ -30,7 +30,7 @@ const Rhs = (): JSX.Element => {
     const [getLinkedChannelsParams, setGetLinkedChannelsParams] = useState<PaginationQueryParams | null>(null);
     const [showDialog, setShowDialog] = useState(false);
     const [dialogContent, setDialogContent] = useState('');
-    const [showDestructivetDialog, setShowDestructiveDialog] = useState(false);
+    const [showDestructiveDialog, setShowDestructiveDialog] = useState(false);
     const [primaryActionText, setPrimaryActionText] = useState('');
     const [unlinkChannelParams, setUnlinkChannelParams] = useState<UnlinkChannelParams | null>(null);
     const [searchLinkedChannelsText, setSearchLinkedChannelsText] = useState('');
@@ -315,10 +315,9 @@ const Rhs = (): JSX.Element => {
                 </div>
             )}
             <Dialog
-                description={dialogContent}
-                destructive={showDestructivetDialog}
+                destructive={showDestructiveDialog}
                 show={showDialog}
-                primaryActionText={showDestructivetDialog && primaryActionText}
+                primaryButtonText={showDestructiveDialog && primaryActionText}
                 onCloseHandler={() => {
                     setShowDialog(false);
                     setTimeout(() => {
@@ -330,6 +329,7 @@ const Rhs = (): JSX.Element => {
                 onSubmitHandler={primaryActionText === 'Disconnect' ? disconnectUser : unlinkChannel}
                 className='disconnect-dialog'
             >
+                <p>{dialogContent}</p>
                 {(isDisconnectUserLoading || isUnlinkChannelLoading) && <LinearProgress/>}
             </Dialog>
         </div>
