@@ -408,7 +408,11 @@ func TestProcessLifecycle(t *testing.T) {
 			SetupAPI:    func(api *plugintest.API) {},
 			SetupClient: func(client *clientmocks.Client, uclient *clientmocks.Client) {},
 			SetupStore: func(store *storemocks.Store) {
-				store.On("GetSubscriptionType", "mockID").Return("allChats", nil)
+				store.On("GetChannelSubscription", "mockID").Return(&storemodels.ChannelSubscription{
+					TeamID:    testutils.GetTeamsTeamID(),
+					ChannelID: testutils.GetMSTeamsChannelID(),
+				}, nil).Once()
+				store.On("GetLinkByMSTeamsChannelID", testutils.GetTeamsTeamID(), testutils.GetMSTeamsChannelID()).Return(nil, nil).Once()
 			},
 			RequestBody: `{
 				"Value": [{
@@ -427,7 +431,11 @@ func TestProcessLifecycle(t *testing.T) {
 				client.On("RefreshSubscription", "mockID").Return(&newTime, nil)
 			},
 			SetupStore: func(store *storemocks.Store) {
-				store.On("GetSubscriptionType", "mockID").Return("allChats", nil)
+				store.On("GetChannelSubscription", "mockID").Return(&storemodels.ChannelSubscription{
+					TeamID:    testutils.GetTeamsTeamID(),
+					ChannelID: testutils.GetMSTeamsChannelID(),
+				}, nil).Once()
+				store.On("GetLinkByMSTeamsChannelID", testutils.GetTeamsTeamID(), testutils.GetMSTeamsChannelID()).Return(nil, nil).Once()
 				store.On("UpdateSubscriptionExpiresOn", "mockID", newTime).Return(nil)
 			},
 			RequestBody: `{

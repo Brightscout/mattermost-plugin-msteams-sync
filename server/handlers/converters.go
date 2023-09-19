@@ -11,6 +11,8 @@ import (
 	"golang.org/x/net/html"
 )
 
+const hostedContentsStr = "hostedContents"
+
 func (ah *ActivityHandler) GetAvatarURL(userID string) string {
 	defaultAvatarURL := ah.plugin.GetURL() + "/public/msteams-sync-icon.svg"
 	resp, err := http.Get(ah.plugin.GetURL() + "/avatar/" + userID)
@@ -30,7 +32,7 @@ func (ah *ActivityHandler) GetAvatarURL(userID string) string {
 	return defaultAvatarURL
 }
 
-func (ah *ActivityHandler) msgToPost(channelID, senderID string, msg *msteams.Message, chat *msteams.Chat) (*model.Post, error) {
+func (ah *ActivityHandler) msgToPost(channelID, senderID string, msg *msteams.Message, chat *msteams.Chat) (*model.Post, bool) {
 	text := ah.handleMentions(msg)
 	text = ah.handleEmojis(text)
 	var embeddedImages []msteams.Attachment
@@ -47,7 +49,7 @@ func (ah *ActivityHandler) msgToPost(channelID, senderID string, msg *msteams.Me
 		}
 	}
 
-	newText, attachments, parentID := ah.handleAttachments(channelID, text, msg, chat)
+	newText, attachments, parentID, errorFound := ah.handleAttachments(channelID, senderID, text, msg, chat)
 	text = newText
 	if parentID != "" {
 		rootID = parentID
@@ -65,13 +67,28 @@ func (ah *ActivityHandler) msgToPost(channelID, senderID string, msg *msteams.Me
 		post.AddProp("from_webhook", "true")
 		post.AddProp("override_icon_url", ah.GetAvatarURL(msg.UserID))
 	}
-	return post, nil
+	return post, errorFound
 }
 
 func (ah *ActivityHandler) handleMentions(msg *msteams.Message) string {
-	for _, mention := range msg.Mentions {
+	userIDVsNames := make(map[string]string)
+	if msg.ChatID != "" {
+		for _, mention := range msg.Mentions {
+			if userIDVsNames[mention.UserID] == "" {
+				userIDVsNames[mention.UserID] = mention.MentionedText
+			} else if userIDVsNames[mention.UserID] != mention.MentionedText {
+				userIDVsNames[mention.UserID] += " " + mention.MentionedText
+			}
+		}
+	}
+
+	idx := 0
+	for idx < len(msg.Mentions) {
 		mmMention := ""
-		if mention.UserID != "" {
+		mention := msg.Mentions[idx]
+		idx++
+		switch {
+		case mention.UserID != "":
 			mmUserID, err := ah.plugin.GetStore().TeamsToMattermostUserID(mention.UserID)
 			if err != nil {
 				ah.plugin.GetAPI().LogDebug("Unable to get MM user ID from Teams user ID", "TeamsUserID", mention.UserID, "Error", err.Error())
@@ -85,15 +102,23 @@ func (ah *ActivityHandler) handleMentions(msg *msteams.Message) string {
 			}
 
 			mmMention = fmt.Sprintf("@%s ", mmUser.Username)
-		} else {
-			if mention.MentionedText == "Everyone" {
-				mmMention = "@all"
-			} else {
-				mmMention = "@channel"
-			}
+		case mention.MentionedText == "Everyone" && mention.ConversationID == msg.ChatID:
+			mmMention = "@all"
+		case mention.ConversationID == msg.ChannelID:
+			mmMention = "@channel"
 		}
 
-		msg.Text = strings.Replace(msg.Text, fmt.Sprintf("<at id=\"%s\">%s</at>", fmt.Sprint(mention.ID), mention.MentionedText), mmMention, 1)
+		if mmMention == "" {
+			msg.Text = strings.Replace(msg.Text, fmt.Sprintf("<at id=\"%s\">%s</at>", fmt.Sprint(mention.ID), mention.MentionedText), mention.MentionedText, 1)
+		} else {
+			msg.Text = strings.Replace(msg.Text, fmt.Sprintf("<at id=\"%s\">%s</at>", fmt.Sprint(mention.ID), mention.MentionedText), mmMention, 1)
+		}
+
+		if idx < len(msg.Mentions) && len(strings.Fields(userIDVsNames[mention.UserID])) >= 2 {
+			mention = msg.Mentions[idx]
+			msg.Text = strings.Replace(msg.Text, fmt.Sprintf("&nbsp;<at id=\"%s\">%s</at>", fmt.Sprint(mention.ID), mention.MentionedText), "", 1)
+			idx++
+		}
 	}
 
 	return msg.Text
@@ -137,7 +162,14 @@ func (ah *ActivityHandler) handleImages(text string) (string, []msteams.Attachme
 		})
 	}
 
-	text = imageRE.ReplaceAllString(text, "")
+	text = imageRE.ReplaceAllStringFunc(text, func(s string) string {
+		if strings.Contains(s, hostedContentsStr) {
+			return ""
+		}
+
+		return s
+	})
+
 	return text, attachments
 }
 
@@ -152,7 +184,7 @@ func getImageTagsFromHTML(text string) []string {
 		case token == html.StartTagToken:
 			if t := tokenizer.Token(); t.Data == "img" {
 				for _, a := range t.Attr {
-					if a.Key == "src" {
+					if a.Key == "src" && strings.Contains(a.Val, hostedContentsStr) {
 						images = append(images, a.Val)
 						break
 					}
