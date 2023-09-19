@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-plugin-msteams-sync/server/msteams"
-	"golang.org/x/oauth2"
 
 	"github.com/mattermost/mattermost-plugin-msteams-sync/server/store/storemodels"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -101,14 +100,14 @@ func (p *Plugin) GetMSTeamsChannelDetailsForAllTeams(msTeamsTeamIDsVsChannelsQue
 func (p *Plugin) GetMSTeamsTeamList(userID string, r *http.Request) ([]*msteams.Team, int, error) {
 	var client msteams.Client
 	var err error
-	if r.Context().Value(ContextTokenKey) == nil {
+	if r.Context().Value(ContextClientKey) == nil {
 		client, err = p.GetClientForUser(userID)
 		if err != nil {
 			p.API.LogError("Unable to get the client for user", "MMUserID", userID, "Error", err.Error())
 			return nil, http.StatusUnauthorized, err
 		}
 	} else {
-		client = p.clientBuilderWithToken(p.GetURL()+"/oauth-redirect", p.getConfiguration().TenantID, p.getConfiguration().ClientID, p.getConfiguration().ClientSecret, r.Context().Value(ContextTokenKey).(*oauth2.Token), p.API.LogError)
+		client = r.Context().Value(ContextClientKey).(msteams.Client)
 	}
 
 	teams, err := client.ListTeams()
@@ -123,14 +122,14 @@ func (p *Plugin) GetMSTeamsTeamList(userID string, r *http.Request) ([]*msteams.
 func (p *Plugin) GetMSTeamsTeamChannels(teamID, userID string, r *http.Request) ([]*msteams.Channel, int, error) {
 	var client msteams.Client
 	var err error
-	if r.Context().Value(ContextTokenKey) == nil {
+	if r.Context().Value(ContextClientKey) == nil {
 		client, err = p.GetClientForUser(userID)
 		if err != nil {
 			p.API.LogError("Unable to get the client for user", "MMUserID", userID, "Error", err.Error())
 			return nil, http.StatusUnauthorized, err
 		}
 	} else {
-		client = p.clientBuilderWithToken(p.GetURL()+"/oauth-redirect", p.getConfiguration().TenantID, p.getConfiguration().ClientID, p.getConfiguration().ClientSecret, r.Context().Value(ContextTokenKey).(*oauth2.Token), p.API.LogError)
+		client = r.Context().Value(ContextClientKey).(msteams.Client)
 	}
 
 	channels, err := client.ListChannels(teamID)
@@ -142,7 +141,7 @@ func (p *Plugin) GetMSTeamsTeamChannels(teamID, userID string, r *http.Request) 
 	return channels, http.StatusOK, nil
 }
 
-func (p *Plugin) LinkChannels(userID, mattermostTeamID, mattermostChannelID, msTeamsTeamID, msTeamsChannelID string, token *oauth2.Token) (responseMsg string, statusCode int) {
+func (p *Plugin) LinkChannels(userID, mattermostTeamID, mattermostChannelID, msTeamsTeamID, msTeamsChannelID string, client msteams.Client) (responseMsg string, statusCode int) {
 	channel, appErr := p.API.GetChannel(mattermostChannelID)
 	if appErr != nil {
 		p.API.LogError("Unable to get the current channel details.", "ChannelID", mattermostChannelID, "Error", appErr.Message)
@@ -182,15 +181,12 @@ func (p *Plugin) LinkChannels(userID, mattermostTeamID, mattermostChannelID, msT
 		return "The Teams channel that you're trying to link is already linked to another Mattermost channel. Please unlink that channel and try again.", http.StatusBadRequest
 	}
 
-	var client msteams.Client
-	if token == nil {
+	if client == nil {
 		client, err = p.GetClientForUser(userID)
 		if err != nil {
 			p.API.LogError("Unable to get the client for user", "MMUserID", userID, "Error", err.Error())
 			return "Unable to link the channel, looks like your account is not connected to MS Teams", http.StatusUnauthorized
 		}
-	} else {
-		client = p.clientBuilderWithToken(p.GetURL()+"/oauth-redirect", p.getConfiguration().TenantID, p.getConfiguration().ClientID, p.getConfiguration().ClientSecret, token, p.API.LogError)
 	}
 
 	if _, err = client.GetChannelInTeam(msTeamsTeamID, msTeamsChannelID); err != nil {
