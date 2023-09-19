@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-plugin-msteams-sync/server/msteams"
@@ -35,6 +34,11 @@ type Activities struct {
 func NewAPI(p *Plugin, store store.Store) *API {
 	router := mux.NewRouter()
 	api := &API{p: p, router: router, store: store}
+
+	if p.metricsService != nil {
+		// set error counter middleware handler
+		router.Use(api.metricsMiddleware)
+	}
 
 	autocompleteRouter := router.PathPrefix("/autocomplete").Subrouter()
 
@@ -88,7 +92,7 @@ func (a *API) getAvatar(w http.ResponseWriter, r *http.Request) {
 func (a *API) processActivity(w http.ResponseWriter, req *http.Request) {
 	validationToken := req.URL.Query().Get("validationToken")
 	if validationToken != "" {
-		w.Header().Add("Content-Type", "plain/text")
+		w.Header().Add("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte(validationToken))
 		return
@@ -104,20 +108,13 @@ func (a *API) processActivity(w http.ResponseWriter, req *http.Request) {
 
 	a.p.API.LogDebug("Change activity request", "activities", activities)
 	errors := ""
-	refreshedSubscriptions := make(map[string]bool)
 	for _, activity := range activities.Value {
 		if activity.ClientState != a.p.getConfiguration().WebhookSecret {
 			errors += "Invalid webhook secret"
 			continue
 		}
 
-		if !refreshedSubscriptions[activity.SubscriptionID] {
-			refreshedSubscriptions[activity.SubscriptionID] = true
-			a.refreshSubscriptionIfNeeded(activity)
-		}
-
-		err := a.p.activityHandler.Handle(activity)
-		if err != nil {
+		if err := a.p.activityHandler.Handle(activity); err != nil {
 			a.p.API.LogError("Unable to process created activity", "activity", activity, "error", err.Error())
 			errors += err.Error() + "\n"
 		}
@@ -130,24 +127,11 @@ func (a *API) processActivity(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(http.StatusAccepted)
 }
 
-func (a *API) refreshSubscriptionIfNeeded(activity msteams.Activity) {
-	if time.Until(activity.SubscriptionExpirationDateTime) < (5 * time.Minute) {
-		expiresOn, err := a.p.msteamsAppClient.RefreshSubscription(activity.SubscriptionID)
-		if err != nil {
-			a.p.API.LogError("Unable to refresh the subscription", "error", err.Error())
-		} else {
-			if err = a.p.store.UpdateSubscriptionExpiresOn(activity.SubscriptionID, *expiresOn); err != nil {
-				a.p.API.LogError("Unable to store the updated subscription expiration date", "subscriptionID", activity.SubscriptionID, "error", err.Error())
-			}
-		}
-	}
-}
-
 // processLifecycle handles the lifecycle events received from teams subscriptions
 func (a *API) processLifecycle(w http.ResponseWriter, req *http.Request) {
 	validationToken := req.URL.Query().Get("validationToken")
 	if validationToken != "" {
-		w.Header().Add("Content-Type", "plain/text")
+		w.Header().Add("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte(validationToken))
 		return
@@ -168,7 +152,7 @@ func (a *API) processLifecycle(w http.ResponseWriter, req *http.Request) {
 			a.p.API.LogError("Invalid webhook secret received in lifecycle event")
 			continue
 		}
-		a.p.activityHandler.HandleLifecycleEvent(event, a.p.getConfiguration().WebhookSecret, a.p.getConfiguration().EvaluationAPI)
+		a.p.activityHandler.HandleLifecycleEvent(event)
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -479,7 +463,12 @@ func (a *API) oauthRedirectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Add("Content-Type", "text/html")
-	_, _ = w.Write([]byte("<html><body><h1>Your account has been connected</h1><p>You can close this window.</p></body></html>"))
+	connectionMessage := "Your account has been connected"
+	if mmUser.Id == a.p.GetBotUserID() {
+		connectionMessage = "The bot account has been connected"
+	}
+
+	_, _ = w.Write([]byte(fmt.Sprintf("<html><body><h1>%s</h1><p>You can close this window.</p></body></html>", connectionMessage)))
 }
 
 // handleAuthRequired verifies if the provided request is performed by an authorized source.

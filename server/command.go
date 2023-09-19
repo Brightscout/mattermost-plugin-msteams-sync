@@ -194,14 +194,16 @@ func (p *Plugin) executeLinkCommand(args *model.CommandArgs, parameters []string
 		MSTeamsChannelID:    parameters[1],
 		Creator:             args.UserId,
 	}
-	err = p.store.StoreChannelLink(&channelLink)
-	if err != nil {
-		return p.cmdError(args.UserId, args.ChannelId, "Unable to create new link.")
-	}
 
 	channelsSubscription, err := p.msteamsAppClient.SubscribeToChannel(channelLink.MSTeamsTeamID, channelLink.MSTeamsChannelID, p.GetURL()+"/", p.getConfiguration().WebhookSecret)
 	if err != nil {
-		return p.cmdError(args.UserId, args.ChannelId, "Unable to subscribe to the channel: "+err.Error())
+		p.API.LogDebug("Unable to subscribe to the channel", "channelID", channelLink.MattermostChannelID, "error", err.Error())
+		return p.cmdError(args.UserId, args.ChannelId, "Unable to subscribe to the channel")
+	}
+
+	if err = p.store.StoreChannelLink(&channelLink); err != nil {
+		p.API.LogDebug("Unable to create the new link", "error", err.Error())
+		return p.cmdError(args.UserId, args.ChannelId, "Unable to create new link.")
 	}
 
 	err = p.store.SaveChannelSubscription(storemodels.ChannelSubscription{
@@ -234,15 +236,34 @@ func (p *Plugin) executeUnlinkCommand(args *model.CommandArgs) (*model.CommandRe
 		return p.cmdError(args.UserId, args.ChannelId, "Unable to unlink the channel, you have to be a channel admin to unlink it.")
 	}
 
-	if _, err := p.store.GetLinkByChannelID(channel.Id); err != nil {
+	link, err := p.store.GetLinkByChannelID(channel.Id)
+	if err != nil {
+		p.API.LogDebug("Unable to get the link by channel ID", "error", err.Error())
 		return p.cmdError(args.UserId, args.ChannelId, "This Mattermost channel is not linked to any MS Teams channel.")
 	}
 
-	if err := p.store.DeleteLinkByChannelID(channel.Id); err != nil {
+	if err = p.store.DeleteLinkByChannelID(channel.Id); err != nil {
+		p.API.LogDebug("Unable to delete the link by channel ID", "error", err.Error())
 		return p.cmdError(args.UserId, args.ChannelId, "Unable to delete link.")
 	}
 
 	p.sendBotEphemeralPost(args.UserId, args.ChannelId, "The MS Teams channel is no longer linked to this Mattermost channel.")
+
+	subscription, err := p.store.GetChannelSubscriptionByTeamsChannelID(link.MSTeamsChannelID)
+	if err != nil {
+		p.API.LogDebug("Unable to get the subscription by MS Teams channel ID", "error", err.Error())
+		return &model.CommandResponse{}, nil
+	}
+
+	if err = p.store.DeleteSubscription(subscription.SubscriptionID); err != nil {
+		p.API.LogDebug("Unable to delete the subscription from the DB", "subscriptionID", subscription.SubscriptionID, "error", err.Error())
+		return &model.CommandResponse{}, nil
+	}
+
+	if err = p.msteamsAppClient.DeleteSubscription(subscription.SubscriptionID); err != nil {
+		p.API.LogDebug("Unable to delete the subscription on MS Teams", "subscriptionID", subscription.SubscriptionID, "error", err.Error())
+	}
+
 	return &model.CommandResponse{}, nil
 }
 
