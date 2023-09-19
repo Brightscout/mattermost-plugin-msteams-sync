@@ -1247,11 +1247,7 @@ func TestLinkChannels(t *testing.T) {
 				api.On("GetChannel", testutils.GetChannelID()).Return(&model.Channel{
 					Type: model.ChannelTypeOpen,
 				}, nil).Times(1)
-				api.On("GetConfig").Return(&model.Config{
-					ServiceSettings: model.ServiceSettings{
-						SiteURL: model.NewString("/"),
-					},
-				}, nil).Times(2)
+				api.On("GetConfig").Return(&model.Config{ServiceSettings: model.ServiceSettings{SiteURL: model.NewString("/")}}, nil).Times(2)
 				api.On("HasPermissionToChannel", testutils.GetUserID(), testutils.GetChannelID(), model.PermissionManageChannelRoles).Return(true).Times(1)
 			},
 			SetupStore: func(store *storemocks.Store) {
@@ -1272,6 +1268,7 @@ func TestLinkChannels(t *testing.T) {
 		{
 			Name: "LinkChannels: error in unmarshaling payload",
 			SetupPlugin: func(api *plugintest.API) {
+				api.On("GetConfig").Return(&model.Config{ServiceSettings: model.ServiceSettings{SiteURL: model.NewString("/")}}, nil).Times(1)
 				api.On("LogError", "Error occurred while unmarshaling link channels payload.", "Error", "invalid character 'r' looking for beginning of object key string").Times(1)
 			},
 			SetupStore: func(store *storemocks.Store) {
@@ -1287,6 +1284,7 @@ func TestLinkChannels(t *testing.T) {
 		{
 			Name: "LinkChannels: invalid payload",
 			SetupPlugin: func(api *plugintest.API) {
+				api.On("GetConfig").Return(&model.Config{ServiceSettings: model.ServiceSettings{SiteURL: model.NewString("/")}}, nil).Times(1)
 				api.On("LogError", "Invalid channel link payload.", "Error", "mattermost team ID is required").Times(1)
 			},
 			SetupStore: func(store *storemocks.Store) {
@@ -1300,6 +1298,7 @@ func TestLinkChannels(t *testing.T) {
 		{
 			Name: "LinkChannels: error occurred while linking channels",
 			SetupPlugin: func(api *plugintest.API) {
+				api.On("GetConfig").Return(&model.Config{ServiceSettings: model.ServiceSettings{SiteURL: model.NewString("/")}}, nil).Times(1)
 				api.On("GetChannel", testutils.GetChannelID()).Return(nil, &model.AppError{Message: "error occurred while getting channel details"}).Times(1)
 				api.On("LogError", "Unable to get the current channel details.", "ChannelID", testutils.GetChannelID(), "Error", "error occurred while getting channel details").Times(1)
 			},
@@ -1316,7 +1315,7 @@ func TestLinkChannels(t *testing.T) {
 			assert := assert.New(t)
 			plugin := newTestPlugin(t)
 			mockAPI := &plugintest.API{}
-			testutils.GetTeamsTeamID()
+
 			plugin.SetAPI(mockAPI)
 			defer mockAPI.AssertExpectations(t)
 

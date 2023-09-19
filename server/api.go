@@ -184,7 +184,7 @@ func (a *API) autocompleteTeams(w http.ResponseWriter, r *http.Request) {
 	out := []model.AutocompleteListItem{}
 	userID := r.Header.Get(HeaderMattermostUserID)
 
-	teams, _, err := a.p.GetMSTeamsTeamList(userID, r)
+	teams, _, err := a.p.GetMSTeamsTeamList(userID, nil)
 	if err != nil {
 		data, _ := json.Marshal(out)
 		_, _ = w.Write(data)
@@ -217,7 +217,7 @@ func (a *API) autocompleteChannels(w http.ResponseWriter, r *http.Request) {
 	}
 
 	teamID := args[2]
-	channels, _, err := a.p.GetMSTeamsTeamChannels(teamID, userID, r)
+	channels, _, err := a.p.GetMSTeamsTeamChannels(teamID, userID, nil)
 	if err != nil {
 		data, _ := json.Marshal(out)
 		_, _ = w.Write(data)
@@ -370,7 +370,7 @@ func (a *API) getLinkedChannels(w http.ResponseWriter, r *http.Request) {
 
 func (a *API) getMSTeamsTeamList(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get(HeaderMattermostUserID)
-	teams, statusCode, err := a.p.GetMSTeamsTeamList(userID, r)
+	teams, statusCode, err := a.p.GetMSTeamsTeamList(userID, r.Context().Value(ContextClientKey).(msteams.Client))
 	if err != nil {
 		http.Error(w, "Error occurred while fetching the MS Teams teams.", statusCode)
 		return
@@ -405,7 +405,7 @@ func (a *API) getMSTeamsTeamChannels(w http.ResponseWriter, r *http.Request) {
 	pathParams := mux.Vars(r)
 	teamID := pathParams[PathParamTeamID]
 	userID := r.Header.Get(HeaderMattermostUserID)
-	channels, statusCode, err := a.p.GetMSTeamsTeamChannels(teamID, userID, r)
+	channels, statusCode, err := a.p.GetMSTeamsTeamChannels(teamID, userID, r.Context().Value(ContextClientKey).(msteams.Client))
 	if err != nil {
 		http.Error(w, "Error occurred while fetching the MS Teams team channels.", statusCode)
 		return
@@ -445,15 +445,8 @@ func (a *API) linkChannels(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error occurred while unmarshaling link channels payload.", http.StatusBadRequest)
 		return
 	}
-	defer r.Body.Close()
 
-	if body == nil {
-		a.p.API.LogError("Invalid channel link payload.")
-		http.Error(w, "Invalid channel link payload.", http.StatusBadRequest)
-		return
-	}
-
-	if err := body.IsChannelLinkPayloadValid(); err != nil {
+	if err := storemodels.IsChannelLinkPayloadValid(body); err != nil {
 		a.p.API.LogError("Invalid channel link payload.", "Error", err.Error())
 		http.Error(w, "Invalid channel link payload.", http.StatusBadRequest)
 		return

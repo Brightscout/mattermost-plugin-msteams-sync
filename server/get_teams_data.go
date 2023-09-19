@@ -97,17 +97,14 @@ func (p *Plugin) GetMSTeamsChannelDetailsForAllTeams(msTeamsTeamIDsVsChannelsQue
 	return errorsFound
 }
 
-func (p *Plugin) GetMSTeamsTeamList(userID string, r *http.Request) ([]*msteams.Team, int, error) {
-	var client msteams.Client
+func (p *Plugin) GetMSTeamsTeamList(userID string, client msteams.Client) ([]*msteams.Team, int, error) {
 	var err error
-	if r.Context().Value(ContextClientKey) == nil {
+	if client == nil {
 		client, err = p.GetClientForUser(userID)
 		if err != nil {
 			p.API.LogError("Unable to get the client for user", "MMUserID", userID, "Error", err.Error())
 			return nil, http.StatusUnauthorized, err
 		}
-	} else {
-		client = r.Context().Value(ContextClientKey).(msteams.Client)
 	}
 
 	teams, err := client.ListTeams()
@@ -119,17 +116,14 @@ func (p *Plugin) GetMSTeamsTeamList(userID string, r *http.Request) ([]*msteams.
 	return teams, http.StatusOK, nil
 }
 
-func (p *Plugin) GetMSTeamsTeamChannels(teamID, userID string, r *http.Request) ([]*msteams.Channel, int, error) {
-	var client msteams.Client
+func (p *Plugin) GetMSTeamsTeamChannels(teamID, userID string, client msteams.Client) ([]*msteams.Channel, int, error) {
 	var err error
-	if r.Context().Value(ContextClientKey) == nil {
+	if client == nil {
 		client, err = p.GetClientForUser(userID)
 		if err != nil {
 			p.API.LogError("Unable to get the client for user", "MMUserID", userID, "Error", err.Error())
 			return nil, http.StatusUnauthorized, err
 		}
-	} else {
-		client = r.Context().Value(ContextClientKey).(msteams.Client)
 	}
 
 	channels, err := client.ListChannels(teamID)
