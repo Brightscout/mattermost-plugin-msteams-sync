@@ -518,15 +518,15 @@ func (_m *Client) ListSubscriptions() ([]*msteams.Subscription, error) {
 }
 
 // ListTeams provides a mock function with given fields:
-func (_m *Client) ListTeams() ([]msteams.Team, error) {
+func (_m *Client) ListTeams() ([]*msteams.Team, error) {
 	ret := _m.Called()
 
-	var r0 []msteams.Team
-	if rf, ok := ret.Get(0).(func() []msteams.Team); ok {
+	var r0 []*msteams.Team
+	if rf, ok := ret.Get(0).(func() []*msteams.Team); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]msteams.Team)
+			r0 = ret.Get(0).([]*msteams.Team)
 		}
 	}
 

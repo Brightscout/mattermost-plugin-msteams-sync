@@ -19,7 +19,14 @@ import (
 
 const (
 	HeaderMattermostUserID = "Mattermost-User-Id"
+	QueryParamSearchTerm   = "search"
+
+	// Used for storing the token in the request context to pass from one middleware to another
+	// #nosec G101 -- This is a false positive. The below line is not a hardcoded credential
+	ContextClientKey MSTeamsClient = "MS-Teams-Client"
 )
+
+type MSTeamsClient string
 
 type API struct {
 	p      *Plugin
@@ -41,6 +48,7 @@ func NewAPI(p *Plugin, store store.Store) *API {
 	}
 
 	autocompleteRouter := router.PathPrefix("/autocomplete").Subrouter()
+	msTeamsRouter := router.PathPrefix("/msteams").Subrouter()
 
 	router.HandleFunc("/avatar/{userId:.*}", api.getAvatar).Methods(http.MethodGet)
 	router.HandleFunc("/changes", api.processActivity).Methods(http.MethodPost)
@@ -50,6 +58,9 @@ func NewAPI(p *Plugin, store store.Store) *API {
 	router.HandleFunc("/disconnect", api.handleAuthRequired(api.checkUserConnected(api.disconnect))).Methods(http.MethodGet)
 	router.HandleFunc("/linked-channels", api.handleAuthRequired(api.getLinkedChannels)).Methods(http.MethodGet)
 	router.HandleFunc("/oauth-redirect", api.oauthRedirectHandler).Methods(http.MethodGet)
+
+	// MS Teams APIs
+	msTeamsRouter.HandleFunc("/teams", api.handleAuthRequired(api.checkUserConnected(api.getMSTeamsTeamList))).Methods(http.MethodGet)
 
 	// Command autocomplete APIs
 	autocompleteRouter.HandleFunc("/teams", api.autocompleteTeams).Methods(http.MethodGet)
@@ -166,17 +177,8 @@ func (a *API) autocompleteTeams(w http.ResponseWriter, r *http.Request) {
 	out := []model.AutocompleteListItem{}
 	userID := r.Header.Get(HeaderMattermostUserID)
 
-	client, err := a.p.GetClientForUser(userID)
+	teams, _, err := a.p.GetMSTeamsTeamList(userID, r)
 	if err != nil {
-		a.p.API.LogError("Unable to get the client for user", "MMUserID", userID, "Error", err.Error())
-		data, _ := json.Marshal(out)
-		_, _ = w.Write(data)
-		return
-	}
-
-	teams, err := client.ListTeams()
-	if err != nil {
-		a.p.API.LogError("Unable to get the MS Teams teams", "Error", err.Error())
 		data, _ := json.Marshal(out)
 		_, _ = w.Write(data)
 		return
@@ -337,7 +339,7 @@ func (a *API) getLinkedChannels(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		offset, limit := a.p.GetOffsetAndLimit(r)
+		offset, limit := a.p.GetOffsetAndLimit(r.URL.Query())
 		for index := offset; index < offset+limit && index < len(links); index++ {
 			link := links[index]
 			if msTeamsChannelIDsVsNames[link.MSTeamsChannelID] == "" || msTeamsTeamIDsVsNames[link.MSTeamsTeamID] == "" {
@@ -366,6 +368,39 @@ func (a *API) getLinkedChannels(w http.ResponseWriter, r *http.Request) {
 	}
 
 	a.writeJSONArray(w, http.StatusOK, paginatedLinks)
+}
+
+func (a *API) getMSTeamsTeamList(w http.ResponseWriter, r *http.Request) {
+	userID := r.Header.Get(HeaderMattermostUserID)
+	teams, statusCode, err := a.p.GetMSTeamsTeamList(userID, r)
+	if err != nil {
+		http.Error(w, "Error occurred while fetching the MS Teams teams.", statusCode)
+		return
+	}
+
+	sort.Slice(teams, func(i, j int) bool {
+		return fmt.Sprintf("%s_%s", teams[i].DisplayName, teams[i].ID) < fmt.Sprintf("%s_%s", teams[j].DisplayName, teams[j].ID)
+	})
+
+	searchTerm := r.URL.Query().Get(QueryParamSearchTerm)
+	offset, limit := a.p.GetOffsetAndLimit(r.URL.Query())
+	paginatedTeams := []*msteams.Team{}
+	matchCount := 0
+	for _, team := range teams {
+		if len(paginatedTeams) == limit {
+			break
+		}
+
+		if strings.HasPrefix(strings.ToLower(team.DisplayName), strings.ToLower(searchTerm)) {
+			if matchCount >= offset {
+				paginatedTeams = append(paginatedTeams, team)
+			} else {
+				matchCount++
+			}
+		}
+	}
+
+	a.writeJSONArray(w, http.StatusOK, paginatedTeams)
 }
 
 // TODO: Add unit tests
@@ -489,11 +524,17 @@ func (a *API) handleAuthRequired(handleFunc http.HandlerFunc) http.HandlerFunc {
 func (a *API) checkUserConnected(handleFunc http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		mattermostUserID := r.Header.Get(HeaderMattermostUserID)
-		if _, err := a.p.store.GetTokenForMattermostUser(mattermostUserID); err != nil {
+		token, err := a.p.store.GetTokenForMattermostUser(mattermostUserID)
+		if err != nil {
 			a.p.API.LogError("Unable to get the oauth token for the user.", "UserID", mattermostUserID, "Error", err.Error())
 			http.Error(w, "The account is not connected.", http.StatusBadRequest)
 			return
 		}
+
+		client := a.p.clientBuilderWithToken(a.p.GetURL()+"/oauth-redirect", a.p.getConfiguration().TenantID, a.p.getConfiguration().ClientID, a.p.getConfiguration().ClientSecret, token, a.p.API.LogError)
+
+		ctx := context.WithValue(r.Context(), ContextClientKey, client)
+		r = r.Clone(ctx)
 
 		handleFunc(w, r)
 	}
