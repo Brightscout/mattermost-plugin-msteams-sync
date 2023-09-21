@@ -97,16 +97,7 @@ func (p *Plugin) GetMSTeamsChannelDetailsForAllTeams(msTeamsTeamIDsVsChannelsQue
 	return errorsFound
 }
 
-func (p *Plugin) GetMSTeamsTeamList(userID string, client msteams.Client) ([]*msteams.Team, int, error) {
-	var err error
-	if client == nil {
-		client, err = p.GetClientForUser(userID)
-		if err != nil {
-			p.API.LogError("Unable to get the client for user", "MMUserID", userID, "Error", err.Error())
-			return nil, http.StatusUnauthorized, err
-		}
-	}
-
+func (p *Plugin) GetMSTeamsTeamList(client msteams.Client) ([]*msteams.Team, int, error) {
 	teams, err := client.ListTeams()
 	if err != nil {
 		p.API.LogError("Unable to get the MS Teams teams", "Error", err.Error())
@@ -116,16 +107,7 @@ func (p *Plugin) GetMSTeamsTeamList(userID string, client msteams.Client) ([]*ms
 	return teams, http.StatusOK, nil
 }
 
-func (p *Plugin) GetMSTeamsTeamChannels(teamID, userID string, client msteams.Client) ([]*msteams.Channel, int, error) {
-	var err error
-	if client == nil {
-		client, err = p.GetClientForUser(userID)
-		if err != nil {
-			p.API.LogError("Unable to get the client for user", "MMUserID", userID, "Error", err.Error())
-			return nil, http.StatusUnauthorized, err
-		}
-	}
-
+func (p *Plugin) GetMSTeamsTeamChannels(teamID string, client msteams.Client) ([]*msteams.Channel, int, error) {
 	channels, err := client.ListChannels(teamID)
 	if err != nil {
 		p.API.LogError("Unable to get the channels for MS Teams team", "TeamID", teamID, "Error", err.Error())
@@ -175,14 +157,6 @@ func (p *Plugin) LinkChannels(userID, mattermostTeamID, mattermostChannelID, msT
 		return "The Teams channel that you're trying to link is already linked to another Mattermost channel. Please unlink that channel and try again.", http.StatusBadRequest
 	}
 
-	if client == nil {
-		client, err = p.GetClientForUser(userID)
-		if err != nil {
-			p.API.LogError("Unable to get the client for user", "MMUserID", userID, "Error", err.Error())
-			return "Unable to link the channel, looks like your account is not connected to MS Teams", http.StatusUnauthorized
-		}
-	}
-
 	if _, err = client.GetChannelInTeam(msTeamsTeamID, msTeamsChannelID); err != nil {
 		p.API.LogError("Error occurred while getting channel in MS Teams team.", "Error", err.Error())
 		return "MS Teams channel not found or you don't have the permissions to access it.", http.StatusInternalServerError
@@ -215,6 +189,53 @@ func (p *Plugin) LinkChannels(userID, mattermostTeamID, mattermostChannelID, msT
 	}); err != nil {
 		p.API.LogError("Error occurred while saving the channel subscription.", "Error", err.Error())
 		return "Unable to save the subscription in the monitoring system: " + err.Error(), http.StatusInternalServerError
+	}
+
+	return "", http.StatusOK
+}
+
+func (p *Plugin) UnlinkChannels(userID, mattermostChannelID string) (string, int) {
+	channel, appErr := p.API.GetChannel(mattermostChannelID)
+	if appErr != nil {
+		p.API.LogError("Unable to get the current channel details.", "ChannelID", mattermostChannelID, "error", appErr.Message)
+		return "Unable to get the current channel details.", http.StatusInternalServerError
+	}
+
+	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
+		p.API.LogError("Linking/unlinking a direct or group message is not allowed")
+		return "Linking/unlinking a direct or group message is not allowed", http.StatusBadRequest
+	}
+
+	if !p.API.HasPermissionToChannel(userID, mattermostChannelID, model.PermissionManageChannelRoles) {
+		p.API.LogError("Unable to unlink the channel, you have to be atleast a channel admin to unlink it.", "ChannelID", mattermostChannelID)
+		return "Unable to unlink the channel, you have to be atleast a channel admin to unlink it.", http.StatusForbidden
+	}
+
+	link, err := p.store.GetLinkByChannelID(channel.Id)
+	if err != nil {
+		p.API.LogDebug("This Mattermost channel is not linked to any MS Teams channel.", "ChannelID", channel.Id, "error", err.Error())
+		return "This Mattermost channel is not linked to any MS Teams channel.", http.StatusBadRequest
+	}
+
+	if err = p.store.DeleteLinkByChannelID(channel.Id); err != nil {
+		p.API.LogDebug("Unable to delete the link by channel ID", "error", err.Error())
+		return "Unable to delete link.", http.StatusInternalServerError
+	}
+
+	subscription, err := p.store.GetChannelSubscriptionByTeamsChannelID(link.MSTeamsChannelID)
+	if err != nil {
+		p.API.LogDebug("Unable to get the subscription by MS Teams channel ID", "error", err.Error())
+		return "", http.StatusOK
+	}
+
+	if err = p.store.DeleteSubscription(subscription.SubscriptionID); err != nil {
+		p.API.LogDebug("Unable to delete the subscription from the DB", "subscriptionID", subscription.SubscriptionID, "error", err.Error())
+		return "", http.StatusOK
+	}
+
+	if err = p.msteamsAppClient.DeleteSubscription(subscription.SubscriptionID); err != nil {
+		p.API.LogDebug("Unable to delete the subscription on MS Teams", "subscriptionID", subscription.SubscriptionID, "error", err.Error())
+		return "", http.StatusOK
 	}
 
 	return "", http.StatusOK
