@@ -20,13 +20,13 @@ import (
 
 const (
 	HeaderMattermostUserID = "Mattermost-User-Id"
-	PathParamChannelID     = "channel_id"
 
 	// Query params
 	QueryParamSearchTerm = "search"
 
 	// Path params
 	PathParamTeamID = "team_id"
+	PathParamChannelID     = "channel_id"
 
 	// Used for storing the token in the request context to pass from one middleware to another
 	// #nosec G101 -- This is a false positive. The below line is not a hardcoded credential
@@ -66,6 +66,7 @@ func NewAPI(p *Plugin, store store.Store) *API {
 	router.HandleFunc("/connect", api.handleAuthRequired(api.connect)).Methods(http.MethodGet)
 	router.HandleFunc("/disconnect", api.handleAuthRequired(api.checkUserConnected(api.disconnect))).Methods(http.MethodGet)
 	router.HandleFunc("/linked-channels", api.handleAuthRequired(api.getLinkedChannels)).Methods(http.MethodGet)
+	router.HandleFunc("/link-channels", api.handleAuthRequired(api.checkUserConnected(api.linkChannels))).Methods(http.MethodPost)
 	router.HandleFunc("/oauth-redirect", api.oauthRedirectHandler).Methods(http.MethodGet)
 
 	channelsRouter.HandleFunc("/link", api.handleAuthRequired(api.checkUserConnected(api.linkChannels))).Methods(http.MethodPost)
