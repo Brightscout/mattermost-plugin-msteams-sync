@@ -25,8 +25,8 @@ const (
 	QueryParamSearchTerm = "search"
 
 	// Path params
-	PathParamTeamID = "team_id"
-	PathParamChannelID     = "channel_id"
+	PathParamTeamID    = "team_id"
+	PathParamChannelID = "channel_id"
 
 	// Used for storing the token in the request context to pass from one middleware to another
 	// #nosec G101 -- This is a false positive. The below line is not a hardcoded credential
