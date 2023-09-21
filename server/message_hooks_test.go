@@ -833,7 +833,7 @@ func TestUnsetChatReaction(t *testing.T) {
 		{
 			Name: "UnsetChatReaction: Unable to unset the chat reaction",
 			SetupAPI: func(api *plugintest.API) {
-				api.On("LogError", "Error in removing the chat reaction", "emojiName", "mockEmojiName", "error", ": , unable to unset the chat reaction")
+				api.On("LogError", "Error in removing the chat reaction", "emojiName", "mockEmojiName", "error", "unable to unset the chat reaction")
 				api.On("GetChannel", testutils.GetChannelID()).Return(testutils.GetChannel(model.ChannelTypeDirect), nil).Times(1)
 				api.On("GetChannelMembers", testutils.GetChannelID(), 0, math.MaxInt32).Return(testutils.GetChannelMembers(2), nil).Times(1)
 				api.On("GetConfig").Return(&model.Config{ServiceSettings: model.ServiceSettings{SiteURL: model.NewString("/")}}, nil).Times(2)
@@ -844,7 +844,7 @@ func TestUnsetChatReaction(t *testing.T) {
 			},
 			SetupClient: func(client *clientmocks.Client, uclient *clientmocks.Client) {
 				uclient.On("CreateOrGetChatForUsers", mock.AnythingOfType("[]string")).Return(mockChat, nil).Times(1)
-				uclient.On("UnsetChatReaction", testutils.GetChatID(), "mockTeamsMessageID", testutils.GetID(), ":mockEmojiName:").Return(testutils.GetInternalServerAppError("unable to unset the chat reaction")).Times(1)
+				uclient.On("UnsetChatReaction", testutils.GetChatID(), "mockTeamsMessageID", testutils.GetID(), ":mockEmojiName:").Return(errors.New("unable to unset the chat reaction")).Times(1)
 			},
 			ExpectedMessage: "unable to unset the chat reaction",
 		},
@@ -965,7 +965,7 @@ func TestUnsetReaction(t *testing.T) {
 		{
 			Name: "UnsetReaction: Unable to unset the reaction",
 			SetupAPI: func(api *plugintest.API) {
-				api.On("LogError", "Error in removing the reaction", "emojiName", "mockName", "error", ": , unable to unset the reaction")
+				api.On("LogError", "Error in removing the reaction", "emojiName", "mockName", "error", "unable to unset the reaction")
 			},
 			SetupStore: func(store *storemocks.Store) {
 				store.On("GetPostInfoByMattermostID", testutils.GetID()).Return(&storemodels.PostInfo{}, nil).Times(1)
@@ -973,7 +973,7 @@ func TestUnsetReaction(t *testing.T) {
 				store.On("MattermostToTeamsUserID", testutils.GetID()).Return(testutils.GetID(), nil).Once()
 			},
 			SetupClient: func(client *clientmocks.Client, uclient *clientmocks.Client) {
-				uclient.On("UnsetReaction", "mockTeamsTeamID", "mockTeamsChannelID", "", "", testutils.GetID(), ":mockName:").Return(testutils.GetInternalServerAppError("unable to unset the reaction")).Times(1)
+				uclient.On("UnsetReaction", "mockTeamsTeamID", "mockTeamsChannelID", "", "", testutils.GetID(), ":mockName:").Return(errors.New("unable to unset the reaction")).Times(1)
 			},
 			ExpectedMessage: "unable to unset the reaction",
 		},

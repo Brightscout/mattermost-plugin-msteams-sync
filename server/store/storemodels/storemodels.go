@@ -1,6 +1,9 @@
 package storemodels
 
-import "time"
+import (
+	"errors"
+	"time"
+)
 
 type ChannelLink struct {
 	MattermostTeamID      string `json:"mattermostTeamID,omitempty"`
@@ -42,4 +45,23 @@ type ChannelSubscription struct {
 	ChannelID      string
 	ExpiresOn      time.Time
 	Secret         string
+}
+
+func IsChannelLinkPayloadValid(body *ChannelLink) error {
+	if body == nil {
+		return errors.New("invalid body")
+	}
+	if body.MattermostTeamID == "" {
+		return errors.New("mattermost team ID is required")
+	}
+	if body.MattermostChannelID == "" {
+		return errors.New("mattermost channel ID is required")
+	}
+	if body.MSTeamsTeamID == "" {
+		return errors.New("ms teams team ID is required")
+	}
+	if body.MSTeamsChannelID == "" {
+		return errors.New("ms teams channel ID is required")
+	}
+	return nil
 }
