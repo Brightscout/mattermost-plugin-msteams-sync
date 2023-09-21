@@ -197,7 +197,7 @@ func (p *Plugin) LinkChannels(userID, mattermostTeamID, mattermostChannelID, msT
 func (p *Plugin) UnlinkChannels(userID, mattermostChannelID string) (string, int) {
 	channel, appErr := p.API.GetChannel(mattermostChannelID)
 	if appErr != nil {
-		p.API.LogError("Unable to get the current channel details.", "ChannelID", mattermostChannelID, "Error", appErr.Message)
+		p.API.LogError("Unable to get the current channel details.", "ChannelID", mattermostChannelID, "error", appErr.Message)
 		return "Unable to get the current channel details.", http.StatusInternalServerError
 	}
 
@@ -213,29 +213,29 @@ func (p *Plugin) UnlinkChannels(userID, mattermostChannelID string) (string, int
 
 	link, err := p.store.GetLinkByChannelID(channel.Id)
 	if err != nil {
-		p.API.LogError("This Mattermost channel is not linked to any MS Teams channel.", "ChannelID", channel.Id, "Error", err.Error())
+		p.API.LogDebug("This Mattermost channel is not linked to any MS Teams channel.", "ChannelID", channel.Id, "error", err.Error())
 		return "This Mattermost channel is not linked to any MS Teams channel.", http.StatusBadRequest
 	}
 
-	if err := p.store.DeleteLinkByChannelID(channel.Id); err != nil {
-		p.API.LogError("Unable to delete link.", "Error", err.Error())
+	if err = p.store.DeleteLinkByChannelID(channel.Id); err != nil {
+		p.API.LogDebug("Unable to delete the link by channel ID", "error", err.Error())
 		return "Unable to delete link.", http.StatusInternalServerError
 	}
 
 	subscription, err := p.store.GetChannelSubscriptionByTeamsChannelID(link.MSTeamsChannelID)
 	if err != nil {
 		p.API.LogDebug("Unable to get the subscription by MS Teams channel ID", "error", err.Error())
-		return "Unable to get the subscription by MS Teams channel ID", http.StatusInternalServerError
+		return "", http.StatusOK
 	}
 
 	if err = p.store.DeleteSubscription(subscription.SubscriptionID); err != nil {
 		p.API.LogDebug("Unable to delete the subscription from the DB", "subscriptionID", subscription.SubscriptionID, "error", err.Error())
-		return "Unable to delete the subscription from the DB", http.StatusInternalServerError
+		return "", http.StatusOK
 	}
 
 	if err = p.msteamsAppClient.DeleteSubscription(subscription.SubscriptionID); err != nil {
 		p.API.LogDebug("Unable to delete the subscription on MS Teams", "subscriptionID", subscription.SubscriptionID, "error", err.Error())
-		return "Unable to delete the subscription on MS Teams", http.StatusInternalServerError
+		return "", http.StatusOK
 	}
 
 	return "", http.StatusOK
