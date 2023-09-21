@@ -1582,7 +1582,7 @@ func (tc *ClientImpl) ListTeams() ([]*Team, error) {
 	return teams, nil
 }
 
-func (tc *ClientImpl) ListChannels(teamID string) ([]Channel, error) {
+func (tc *ClientImpl) ListChannels(teamID string) ([]*Channel, error) {
 	requestParameters := &teams.ItemChannelsRequestBuilderGetQueryParameters{
 		Select: []string{"displayName", "id", "description"},
 	}
@@ -1599,7 +1599,7 @@ func (tc *ClientImpl) ListChannels(teamID string) ([]Channel, error) {
 		return nil, NormalizeGraphAPIError(err)
 	}
 
-	channels := []Channel{}
+	channels := []*Channel{}
 	err = pageIterator.Iterate(context.Background(), func(c models.Channelable) bool {
 		description := ""
 		if c.GetDescription() != nil {
@@ -1611,7 +1611,7 @@ func (tc *ClientImpl) ListChannels(teamID string) ([]Channel, error) {
 			displayName = *c.GetDisplayName()
 		}
 
-		channels = append(channels, Channel{
+		channels = append(channels, &Channel{
 			DisplayName: displayName,
 			Description: description,
 			ID:          *c.GetId(),
