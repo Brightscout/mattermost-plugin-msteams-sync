@@ -260,7 +260,7 @@ func TestHandleCreatedActivity(t *testing.T) {
 			setupAPI: func(mockAPI *plugintest.API) {
 				mockAPI.On("GetDirectChannel", "mockUserID-1", "mockUserID-2").Return(&model.Channel{Id: testutils.GetChannelID()}, nil).Times(1)
 				mockAPI.On("GetUser", testutils.GetUserID()).Return(testutils.GetUser(model.ChannelAdminRoleId, "test@test.com"), nil).Once()
-				mockAPI.On("LogDebug", "Post generated", "post", mock.Anything).Times(1)
+				mockAPI.On("LogDebug", "Post generated").Times(1)
 				mockAPI.On("LogDebug", "duplicate post").Times(1)
 				mockAPI.On("KVSet", lastReceivedChangeKey, mock.Anything).Return(nil).Once()
 			},
@@ -309,9 +309,9 @@ func TestHandleCreatedActivity(t *testing.T) {
 			setupAPI: func(mockAPI *plugintest.API) {
 				mockAPI.On("GetDirectChannel", "mockUserID-1", "mockUserID-2").Return(&model.Channel{Id: testutils.GetChannelID()}, nil).Times(1)
 				mockAPI.On("GetUser", testutils.GetUserID()).Return(testutils.GetUser(model.ChannelAdminRoleId, "test@test.com"), nil).Once()
-				mockAPI.On("LogDebug", "Post generated", "post", mock.Anything).Times(1)
+				mockAPI.On("LogDebug", "Post generated").Times(1)
 				mockAPI.On("CreatePost", testutils.GetPostFromTeamsMessage()).Return(nil, testutils.GetInternalServerAppError("unable to create the post")).Times(1)
-				mockAPI.On("LogError", "Unable to create post", "post", mock.Anything, "error", mock.Anything).Times(1)
+				mockAPI.On("LogError", "Unable to create post", "Error", mock.Anything).Times(1)
 			},
 			setupStore: func(store *mocksStore.Store) {
 				store.On("MattermostToTeamsUserID", "mock-BotUserID").Return(testutils.GetTeamsUserID(), nil).Times(1)
@@ -358,9 +358,9 @@ func TestHandleCreatedActivity(t *testing.T) {
 			setupAPI: func(mockAPI *plugintest.API) {
 				mockAPI.On("GetDirectChannel", "mockUserID-1", "mockUserID-2").Return(&model.Channel{Id: testutils.GetChannelID()}, nil).Times(1)
 				mockAPI.On("GetUser", testutils.GetUserID()).Return(testutils.GetUser(model.ChannelAdminRoleId, "test@test.com"), nil).Once()
-				mockAPI.On("LogDebug", "Post generated", "post", mock.Anything).Times(1)
+				mockAPI.On("LogDebug", "Post generated").Times(1)
 				mockAPI.On("CreatePost", testutils.GetPostFromTeamsMessage()).Return(testutils.GetPost(testutils.GetChannelID(), testutils.GetUserID()), nil).Times(1)
-				mockAPI.On("LogDebug", "Post created", "post", mock.Anything).Times(1)
+				mockAPI.On("LogDebug", "Post created").Times(1)
 				mockAPI.On("KVSet", lastReceivedChangeKey, mock.Anything).Return(nil).Times(1)
 				mockAPI.On("LogWarn", "Error updating the MSTeams/Mattermost post link metadata", "error", mock.Anything).Times(1)
 			},
@@ -414,9 +414,9 @@ func TestHandleCreatedActivity(t *testing.T) {
 			setupAPI: func(mockAPI *plugintest.API) {
 				mockAPI.On("GetDirectChannel", "mockUserID-1", "mockUserID-2").Return(&model.Channel{Id: testutils.GetChannelID()}, nil).Times(1)
 				mockAPI.On("GetUser", testutils.GetUserID()).Return(testutils.GetUser(model.ChannelAdminRoleId, "test@test.com"), nil).Once()
-				mockAPI.On("LogDebug", "Post generated", "post", mock.Anything).Times(1)
+				mockAPI.On("LogDebug", "Post generated").Times(1)
 				mockAPI.On("CreatePost", testutils.GetPostFromTeamsMessage()).Return(testutils.GetPost(testutils.GetChannelID(), testutils.GetUserID()), nil).Times(1)
-				mockAPI.On("LogDebug", "Post created", "post", mock.Anything).Times(1)
+				mockAPI.On("LogDebug", "Post created").Times(1)
 				mockAPI.On("KVSet", lastReceivedChangeKey, mock.Anything).Return(nil).Times(1)
 			},
 			setupStore: func(store *mocksStore.Store) {
@@ -458,9 +458,9 @@ func TestHandleCreatedActivity(t *testing.T) {
 			},
 			setupAPI: func(mockAPI *plugintest.API) {
 				mockAPI.On("GetUser", testutils.GetUserID()).Return(testutils.GetUser(model.ChannelAdminRoleId, "test@test.com"), nil).Once()
-				mockAPI.On("LogDebug", "Post generated", "post", mock.Anything).Times(1)
+				mockAPI.On("LogDebug", "Post generated").Times(1)
 				mockAPI.On("CreatePost", testutils.GetPostFromTeamsMessage()).Return(testutils.GetPost(testutils.GetChannelID(), testutils.GetUserID()), nil).Times(1)
-				mockAPI.On("LogDebug", "Post created", "post", mock.Anything).Times(1)
+				mockAPI.On("LogDebug", "Post created").Times(1)
 				mockAPI.On("KVSet", lastReceivedChangeKey, mock.Anything).Return(nil).Times(1)
 			},
 			setupStore: func(store *mocksStore.Store) {
@@ -665,6 +665,7 @@ func TestHandleUpdatedActivity(t *testing.T) {
 				p.On("GetAPI").Return(mockAPI).Times(2)
 				p.On("GetStore").Return(store).Times(2)
 				p.On("GetBotUserID").Return("mock-BotUserID").Times(1)
+				p.On("GetSyncDirectMessages").Return(true).Once()
 				mockAPI.On("KVSet", lastReceivedChangeKey, mock.Anything).Return(nil).Times(1)
 			},
 			setupClient: func(client *mocksClient.Client) {
@@ -710,6 +711,7 @@ func TestHandleUpdatedActivity(t *testing.T) {
 				p.On("GetAPI").Return(mockAPI).Times(2)
 				p.On("GetStore").Return(store).Times(3)
 				p.On("GetBotUserID").Return("mock-BotUserID").Times(1)
+				p.On("GetSyncDirectMessages").Return(true).Once()
 				mockAPI.On("KVSet", lastReceivedChangeKey, mock.Anything).Return(nil).Times(1)
 			},
 			setupClient: func(client *mocksClient.Client) {
@@ -760,6 +762,7 @@ func TestHandleUpdatedActivity(t *testing.T) {
 				p.On("GetBotUserID").Return("mock-BotUserID").Times(1)
 				mockAPI.On("KVSet", lastReceivedChangeKey, mock.Anything).Return(nil).Times(1)
 				p.On("GetBotUserID").Return(testutils.GetSenderID()).Times(2)
+				p.On("GetSyncDirectMessages").Return(true).Once()
 			},
 			setupClient: func(client *mocksClient.Client) {
 				client.On("GetChat", testutils.GetChatID()).Return(&msteams.Chat{
@@ -810,7 +813,6 @@ func TestHandleUpdatedActivity(t *testing.T) {
 				p.On("GetBotUserID").Return("mock-BotUserID").Times(1)
 				mockAPI.On("KVSet", lastReceivedChangeKey, mock.Anything).Return(nil).Times(1)
 				p.On("GetBotUserID").Return(testutils.GetSenderID()).Times(2)
-				p.On("GetSyncDirectMessages").Return(true).Times(1)
 			},
 			setupClient: func(client *mocksClient.Client) {
 				client.On("GetMessage", "mockTeamID", testutils.GetChannelID(), testutils.GetMessageID()).Return(&msteams.Message{

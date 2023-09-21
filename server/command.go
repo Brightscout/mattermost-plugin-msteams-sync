@@ -150,7 +150,12 @@ func (p *Plugin) executeLinkCommand(args *model.CommandArgs, parameters []string
 		return p.cmdError(args.UserId, args.ChannelId, "Invalid link command, please pass the MS Teams team id and channel id as parameters.")
 	}
 
-	if errMsg, _ := p.LinkChannels(args.UserId, args.TeamId, args.ChannelId, parameters[0], parameters[1], nil); errMsg != "" {
+	client, err := p.GetClientForUser(args.UserId)
+	if err != nil {
+		return p.cmdError(args.UserId, args.ChannelId, "Unable to link the channel, looks like your account is not connected to MS Teams")
+	}
+
+	if errMsg, _ := p.LinkChannels(args.UserId, args.TeamId, args.ChannelId, parameters[0], parameters[1], client); errMsg != "" {
 		return p.cmdError(args.UserId, args.ChannelId, errMsg)
 	}
 
@@ -164,6 +169,7 @@ func (p *Plugin) executeUnlinkCommand(args *model.CommandArgs) (*model.CommandRe
 	}
 
 	p.sendBotEphemeralPost(args.UserId, args.ChannelId, "The MS Teams channel is no longer linked to this Mattermost channel.")
+
 	return &model.CommandResponse{}, nil
 }
 

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/base32"
@@ -10,6 +9,7 @@ import (
 	"math"
 	"math/big"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -19,10 +19,10 @@ import (
 	pluginapi "github.com/mattermost/mattermost-plugin-api"
 	"github.com/mattermost/mattermost-plugin-api/cluster"
 	"github.com/mattermost/mattermost-plugin-msteams-sync/server/handlers"
+	"github.com/mattermost/mattermost-plugin-msteams-sync/server/metrics"
 	"github.com/mattermost/mattermost-plugin-msteams-sync/server/monitor"
 	"github.com/mattermost/mattermost-plugin-msteams-sync/server/msteams"
 	"github.com/mattermost/mattermost-plugin-msteams-sync/server/store"
-	"github.com/mattermost/mattermost-plugin-msteams-sync/server/store/storemodels"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/pborman/uuid"
@@ -37,6 +37,10 @@ const (
 	clusterMutexKey       = "subscriptions_cluster_mutex"
 	lastReceivedChangeKey = "last_received_change"
 	msteamsUserTypeGuest  = "Guest"
+	syncUsersJobName      = "sync_users"
+
+	metricsExposePort          = ":9094"
+	updateMetricsTaskFrequency = 15 * time.Minute
 )
 
 // Plugin implements the interface expected by the Mattermost server to communicate between the server and plugin processes.
@@ -61,10 +65,13 @@ type Plugin struct {
 	store        store.Store
 	clusterMutex *cluster.Mutex
 	monitor      *monitor.Monitor
+	syncUserJob  *cluster.Job
 
 	activityHandler *handlers.ActivityHandler
 
 	clientBuilderWithToken func(string, string, string, string, *oauth2.Token, func(string, ...any)) msteams.Client
+	metricsService         *metrics.Metrics
+	metricsServer          *metrics.Server
 }
 
 func (p *Plugin) ServeHTTP(_ *plugin.Context, w http.ResponseWriter, r *http.Request) {
@@ -86,6 +93,14 @@ func (p *Plugin) GetSyncDirectMessages() bool {
 
 func (p *Plugin) GetSyncGuestUsers() bool {
 	return p.getConfiguration().SyncGuestUsers
+}
+
+func (p *Plugin) GetMaxSizeForCompleteDownload() int {
+	return p.getConfiguration().MaxSizeForCompleteDownload
+}
+
+func (p *Plugin) GetBufferSizeForStreaming() int {
+	return p.getConfiguration().BufferSizeForFileStreaming
 }
 
 func (p *Plugin) GetBotUserID() string {
@@ -142,6 +157,19 @@ func (p *Plugin) connectTeamsAppClient() error {
 }
 
 func (p *Plugin) start(syncSince *time.Time) {
+	enableMetrics := p.API.GetConfig().MetricsSettings.Enable
+
+	if enableMetrics != nil && *enableMetrics {
+		p.metricsService = metrics.NewMetrics(metrics.InstanceInfo{
+			InstallationID: os.Getenv("MM_CLOUD_INSTALLATION_ID"),
+		})
+
+		// run metrics server to expose data
+		p.runMetricsServer()
+		// run metrics updater recurring task
+		p.runMetricsUpdaterTask(p.store, updateMetricsTaskFrequency)
+	}
+
 	p.activityHandler.Start()
 
 	err := p.connectTeamsAppClient()
@@ -151,20 +179,37 @@ func (p *Plugin) start(syncSince *time.Time) {
 
 	p.monitor = monitor.New(p.msteamsAppClient, p.store, p.API, p.GetURL()+"/", p.getConfiguration().WebhookSecret, p.getConfiguration().EvaluationAPI)
 	if err = p.monitor.Start(); err != nil {
-		p.API.LogError("Unable to start the monitoring system", "error", err)
+		p.API.LogError("Unable to start the monitoring system", "error", err.Error())
 	}
 
 	ctx, stop := context.WithCancel(context.Background())
 	p.stopSubscriptions = stop
 	p.stopContext = ctx
-
-	if p.getConfiguration().SyncUsers > 0 {
-		go p.syncUsersPeriodically(ctx, p.getConfiguration().SyncUsers)
-	}
-
-	go p.startSubscriptions()
 	if syncSince != nil {
 		go p.syncSince(*syncSince)
+	}
+
+	if p.getConfiguration().SyncUsers > 0 {
+		p.API.LogDebug("Starting the sync users job")
+
+		// Close the previous background job if exists.
+		p.stopSyncUsersJob()
+
+		job, jobErr := cluster.Schedule(
+			p.API,
+			syncUsersJobName,
+			cluster.MakeWaitForRoundedInterval(time.Duration(p.getConfiguration().SyncUsers)*time.Minute),
+			p.syncUsersPeriodically,
+		)
+		if jobErr != nil {
+			p.API.LogError("error in scheduling the sync users job", "error", jobErr)
+			return
+		}
+
+		p.syncUserJob = job
+		if sErr := p.store.SetJobStatus(syncUsersJobName, false); sErr != nil {
+			p.API.LogError("error in setting the sync users job status", "error", sErr.Error())
+		}
 	}
 }
 
@@ -173,112 +218,14 @@ func (p *Plugin) syncSince(syncSince time.Time) {
 	p.API.LogDebug("Syncing since", "date", syncSince)
 }
 
-func (p *Plugin) startSubscriptions() {
-	p.clusterMutex.Lock()
-	defer p.clusterMutex.Unlock()
-
-	counter := 0
-	maxRetries := 20
-	for {
-		resp, _ := http.Post(p.GetURL()+"/changes?validationToken=test-alive", "text/html", bytes.NewReader([]byte{}))
-		if resp != nil {
-			resp.Body.Close()
-			if resp.StatusCode == 200 {
-				break
-			}
-		}
-
-		counter++
-		if counter > maxRetries {
-			break
-		}
-		time.Sleep(500 * time.Millisecond)
-	}
-
-	links, err := p.store.ListChannelLinks()
-	if err != nil {
-		p.API.LogError("Unable to list channel links", "error", err)
-		return
-	}
-
-	wg := sync.WaitGroup{}
-	ws := make(chan struct{}, 20)
-
-	wg.Add(1)
-	ws <- struct{}{}
-	go func() {
-		defer wg.Done()
-		chatsSubscription, err := p.msteamsAppClient.SubscribeToChats(p.GetURL()+"/", p.getConfiguration().WebhookSecret, !p.getConfiguration().EvaluationAPI)
-		if err != nil {
-			p.API.LogError("Unable to subscribe to chats", "error", err)
-			// Mark this subscription to be created and retried by the monitor system
-			_ = p.store.SaveGlobalSubscription(storemodels.GlobalSubscription{
-				SubscriptionID: "fake-subscription-id",
-				Type:           "allChats",
-				ExpiresOn:      time.Now(),
-				Secret:         p.getConfiguration().WebhookSecret,
-			})
-			<-ws
-			return
-		}
-		p.API.LogDebug("Subscription to all chats created", "subscriptionID", chatsSubscription.ID)
-
-		err = p.store.SaveGlobalSubscription(storemodels.GlobalSubscription{
-			SubscriptionID: chatsSubscription.ID,
-			Type:           "allChats",
-			ExpiresOn:      chatsSubscription.ExpiresOn,
-			Secret:         p.getConfiguration().WebhookSecret,
-		})
-		if err != nil {
-			p.API.LogError("Unable to save the chats subscription for monitoring system", "error", err)
-			<-ws
-			return
-		}
-		<-ws
-	}()
-
-	for _, link := range links {
-		ws <- struct{}{}
-		wg.Add(1)
-		go func(link storemodels.ChannelLink) {
-			defer wg.Done()
-			channelsSubscription, err := p.msteamsAppClient.SubscribeToChannel(link.MSTeamsTeamID, link.MSTeamsChannelID, p.GetURL()+"/", p.getConfiguration().WebhookSecret)
-			if err != nil {
-				p.API.LogError("Unable to subscribe to channels", "error", err)
-				// Mark this subscription to be created and retried by the monitor system
-				_ = p.store.SaveChannelSubscription(storemodels.ChannelSubscription{
-					SubscriptionID: "fake-subscription-id",
-					TeamID:         link.MSTeamsTeamID,
-					ChannelID:      link.MSTeamsChannelID,
-					ExpiresOn:      time.Now(),
-					Secret:         p.getConfiguration().WebhookSecret,
-				})
-				<-ws
-				return
-			}
-
-			if err = p.store.SaveChannelSubscription(storemodels.ChannelSubscription{
-				SubscriptionID: channelsSubscription.ID,
-				TeamID:         link.MSTeamsTeamID,
-				ChannelID:      link.MSTeamsChannelID,
-				ExpiresOn:      channelsSubscription.ExpiresOn,
-				Secret:         p.getConfiguration().WebhookSecret,
-			}); err != nil {
-				p.API.LogError("Unable to save the channel subscription for monitoring system", "error", err)
-				<-ws
-				return
-			}
-			p.API.LogDebug("Subscription to channel created", "subscriptionID", channelsSubscription.ID, "teamID", link.MSTeamsTeamID, "channelID", link.MSTeamsChannelID)
-			<-ws
-		}(link)
-	}
-	wg.Wait()
-	p.API.LogDebug("Starting subscriptions finished")
-}
-
 func (p *Plugin) stop() {
 	if p.monitor != nil {
 		p.monitor.Stop()
+	}
+	if p.metricsServer != nil {
+		if err := p.metricsServer.Shutdown(); err != nil {
+			p.API.LogWarn("Error shutting down metrics server", "error", err)
+		}
 	}
 	if p.stopSubscriptions != nil {
 		p.stopSubscriptions()
@@ -402,20 +349,37 @@ func (p *Plugin) OnDeactivate() error {
 	return nil
 }
 
-func (p *Plugin) syncUsersPeriodically(ctx context.Context, minutes int) {
+func (p *Plugin) syncUsersPeriodically() {
+	defer func() {
+		if sErr := p.store.SetJobStatus(syncUsersJobName, false); sErr != nil {
+			p.API.LogDebug("Failed to set sync users job running status to false.")
+		}
+	}()
+
+	isStatusUpdated, sErr := p.store.CompareAndSetJobStatus(syncUsersJobName, false, true)
+	if sErr != nil {
+		p.API.LogError("Something went wrong while fetching sync users job status", "Error", sErr.Error())
+		return
+	}
+
+	if !isStatusUpdated {
+		p.API.LogDebug("Sync users job already running")
+		return
+	}
+
+	p.API.LogDebug("Running the Sync Users Job")
 	p.syncUsers()
-	for {
-		select {
-		case <-time.After(time.Duration(minutes) * time.Minute):
-			p.syncUsers()
-		case <-ctx.Done():
-			return
+}
+
+func (p *Plugin) stopSyncUsersJob() {
+	if p.syncUserJob != nil {
+		if err := p.syncUserJob.Close(); err != nil {
+			p.API.LogError("Failed to close background sync users job", "error", err)
 		}
 	}
 }
 
 func (p *Plugin) syncUsers() {
-	p.API.LogDebug("Starting sync user job")
 	msUsers, err := p.msteamsAppClient.ListUsers()
 	if err != nil {
 		p.API.LogError("Unable to list MS Teams users during sync user job", "error", err.Error())
@@ -598,4 +562,33 @@ func getRandomString(characterSet string, length int) string {
 
 func isRemoteUser(user *model.User) bool {
 	return user.RemoteId != nil && *user.RemoteId != "" && strings.HasPrefix(user.Username, "msteams_")
+}
+
+func (p *Plugin) runMetricsServer() {
+	p.API.LogInfo("Starting metrics server", "port", metricsExposePort)
+
+	p.metricsServer = metrics.NewMetricsServer(metricsExposePort, p.metricsService)
+
+	// Run server to expose metrics
+	go func() {
+		err := p.metricsServer.Run()
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			p.API.LogError("Metrics server could not be started", "error", err)
+		}
+	}()
+}
+
+func (p *Plugin) runMetricsUpdaterTask(store store.Store, updateMetricsTaskFrequency time.Duration) {
+	metricsUpdater := func() {
+		stats, err := store.GetStats()
+		if err != nil {
+			p.API.LogError("failed to update computed metrics", "error", err)
+		}
+		p.metricsService.ObserveConnectedUsersTotal(stats.ConnectedUsers)
+		p.metricsService.ObserveSyntheticUsersTotal(stats.SyntheticUsers)
+		p.metricsService.ObserveLinkedChannelsTotal(stats.LinkedChannels)
+	}
+
+	metricsUpdater()
+	model.CreateRecurringTask("metricsUpdater", metricsUpdater, updateMetricsTaskFrequency)
 }
