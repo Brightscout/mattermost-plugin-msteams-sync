@@ -68,7 +68,6 @@ func TestExecuteUnlinkCommand(t *testing.T) {
 				ChannelId: "Mock-ChannelID",
 			},
 			setupAPI: func(api *plugintest.API) {
-				api.On("LogError", "This Mattermost channel is not linked to any MS Teams channel.", "ChannelID", "Mock-ChannelID", "Error", "Error while getting link").Times(1)
 				api.On("GetChannel", "Mock-ChannelID").Return(&model.Channel{
 					Id:   "Mock-ChannelID",
 					Type: model.ChannelTypeOpen,
@@ -93,7 +92,6 @@ func TestExecuteUnlinkCommand(t *testing.T) {
 				ChannelId: "Mock-ChannelID",
 			},
 			setupAPI: func(api *plugintest.API) {
-				api.On("LogError", "Unable to delete link.", "Error", "Error while deleting a link").Times(1)
 				api.On("GetChannel", "Mock-ChannelID").Return(&model.Channel{
 					Id:   "Mock-ChannelID",
 					Type: model.ChannelTypeOpen,

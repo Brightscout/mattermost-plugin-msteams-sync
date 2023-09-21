@@ -1247,11 +1247,7 @@ func TestLinkChannels(t *testing.T) {
 				api.On("GetChannel", testutils.GetChannelID()).Return(&model.Channel{
 					Type: model.ChannelTypeOpen,
 				}, nil).Times(1)
-				api.On("GetConfig").Return(&model.Config{
-					ServiceSettings: model.ServiceSettings{
-						SiteURL: model.NewString("/"),
-					},
-				}, nil).Times(2)
+				api.On("GetConfig").Return(&model.Config{ServiceSettings: model.ServiceSettings{SiteURL: model.NewString("/")}}, nil).Times(2)
 				api.On("HasPermissionToChannel", testutils.GetUserID(), testutils.GetChannelID(), model.PermissionManageChannelRoles).Return(true).Times(1)
 			},
 			SetupStore: func(store *storemocks.Store) {
@@ -1319,6 +1315,7 @@ func TestLinkChannels(t *testing.T) {
 			assert := assert.New(t)
 			plugin := newTestPlugin(t)
 			mockAPI := &plugintest.API{}
+
 			plugin.SetAPI(mockAPI)
 			defer mockAPI.AssertExpectations(t)
 
@@ -1393,6 +1390,7 @@ func TestUnlinkChannels(t *testing.T) {
 			assert := assert.New(t)
 			plugin := newTestPlugin(t)
 			mockAPI := &plugintest.API{}
+
 			plugin.SetAPI(mockAPI)
 			defer mockAPI.AssertExpectations(t)
 
