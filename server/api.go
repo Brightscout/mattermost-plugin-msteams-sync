@@ -373,28 +373,29 @@ func (a *API) getLinkedChannels(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if strings.HasPrefix(strings.ToLower(link.MattermostChannelName), strings.ToLower(searchTerm)) {
-				if matchCount >= offset {
-					channel, appErr := a.p.API.GetChannel(link.MattermostChannelID)
-					if appErr != nil {
-						a.p.API.LogError("Error occurred while getting the channel details", "ChannelID", link.MattermostChannelID, "Error", appErr.Message)
-						http.Error(w, "Error occurred while getting the channel details", http.StatusInternalServerError)
-						return
-					}
-
-					paginatedLinks = append(paginatedLinks, &storemodels.ChannelLink{
-						MattermostTeamID:      link.MattermostTeamID,
-						MattermostChannelID:   link.MattermostChannelID,
-						MSTeamsTeamID:         link.MSTeamsTeamID,
-						MSTeamsChannelID:      link.MSTeamsChannelID,
-						MattermostChannelName: link.MattermostChannelName,
-						MattermostTeamName:    link.MattermostTeamName,
-						MSTeamsChannelName:    msTeamsChannelIDsVsNames[link.MSTeamsChannelID],
-						MSTeamsTeamName:       msTeamsTeamIDsVsNames[link.MSTeamsTeamID],
-						MattermostChannelType: string(channel.Type),
-					})
-				} else {
+				if matchCount < offset {
 					matchCount++
+					continue
 				}
+
+				channel, appErr := a.p.API.GetChannel(link.MattermostChannelID)
+				if appErr != nil {
+					a.p.API.LogError("Error occurred while getting the channel details", "ChannelID", link.MattermostChannelID, "Error", appErr.Message)
+					http.Error(w, "Error occurred while getting the channel details", http.StatusInternalServerError)
+					return
+				}
+
+				paginatedLinks = append(paginatedLinks, &storemodels.ChannelLink{
+					MattermostTeamID:      link.MattermostTeamID,
+					MattermostChannelID:   link.MattermostChannelID,
+					MSTeamsTeamID:         link.MSTeamsTeamID,
+					MSTeamsChannelID:      link.MSTeamsChannelID,
+					MattermostChannelName: link.MattermostChannelName,
+					MattermostTeamName:    link.MattermostTeamName,
+					MSTeamsChannelName:    msTeamsChannelIDsVsNames[link.MSTeamsChannelID],
+					MSTeamsTeamName:       msTeamsTeamIDsVsNames[link.MSTeamsTeamID],
+					MattermostChannelType: string(channel.Type),
+				})
 			}
 		}
 	}
