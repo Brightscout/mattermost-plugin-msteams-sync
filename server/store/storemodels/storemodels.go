@@ -47,17 +47,20 @@ type ChannelSubscription struct {
 	Secret         string
 }
 
-func (c *ChannelLink) IsChannelLinkPayloadValid() error {
-	if c.MattermostTeamID == "" {
+func IsChannelLinkPayloadValid(body *ChannelLink) error {
+	if body == nil {
+		return errors.New("invalid body")
+	}
+	if body.MattermostTeamID == "" {
 		return errors.New("mattermost team ID is required")
 	}
-	if c.MattermostChannelID == "" {
+	if body.MattermostChannelID == "" {
 		return errors.New("mattermost channel ID is required")
 	}
-	if c.MSTeamsTeamID == "" {
+	if body.MSTeamsTeamID == "" {
 		return errors.New("ms teams team ID is required")
 	}
-	if c.MSTeamsChannelID == "" {
+	if body.MSTeamsChannelID == "" {
 		return errors.New("ms teams channel ID is required")
 	}
 	return nil

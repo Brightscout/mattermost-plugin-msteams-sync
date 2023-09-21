@@ -408,7 +408,11 @@ func TestProcessLifecycle(t *testing.T) {
 			SetupAPI:    func(api *plugintest.API) {},
 			SetupClient: func(client *clientmocks.Client, uclient *clientmocks.Client) {},
 			SetupStore: func(store *storemocks.Store) {
-				store.On("GetSubscriptionType", "mockID").Return("allChats", nil)
+				store.On("GetChannelSubscription", "mockID").Return(&storemodels.ChannelSubscription{
+					TeamID:    testutils.GetTeamsTeamID(),
+					ChannelID: testutils.GetMSTeamsChannelID(),
+				}, nil).Once()
+				store.On("GetLinkByMSTeamsChannelID", testutils.GetTeamsTeamID(), testutils.GetMSTeamsChannelID()).Return(nil, nil).Once()
 			},
 			RequestBody: `{
 				"Value": [{
@@ -427,7 +431,11 @@ func TestProcessLifecycle(t *testing.T) {
 				client.On("RefreshSubscription", "mockID").Return(&newTime, nil)
 			},
 			SetupStore: func(store *storemocks.Store) {
-				store.On("GetSubscriptionType", "mockID").Return("allChats", nil)
+				store.On("GetChannelSubscription", "mockID").Return(&storemodels.ChannelSubscription{
+					TeamID:    testutils.GetTeamsTeamID(),
+					ChannelID: testutils.GetMSTeamsChannelID(),
+				}, nil).Once()
+				store.On("GetLinkByMSTeamsChannelID", testutils.GetTeamsTeamID(), testutils.GetMSTeamsChannelID()).Return(nil, nil).Once()
 				store.On("UpdateSubscriptionExpiresOn", "mockID", newTime).Return(nil)
 			},
 			RequestBody: `{
@@ -832,8 +840,10 @@ func TestDisconnect(t *testing.T) {
 		ExpectedStatusCode int
 	}{
 		{
-			Name:        "Disconnect: user successfully disconnected",
-			SetupPlugin: func(api *plugintest.API) {},
+			Name: "Disconnect: user successfully disconnected",
+			SetupPlugin: func(api *plugintest.API) {
+				api.On("GetConfig").Return(&model.Config{ServiceSettings: model.ServiceSettings{SiteURL: model.NewString("/")}}, nil).Times(1)
+			},
 			SetupStore: func(store *storemocks.Store) {
 				store.On("GetTokenForMattermostUser", testutils.GetUserID()).Return(&oauth2.Token{}, nil).Times(1)
 				store.On("MattermostToTeamsUserID", testutils.GetUserID()).Return(testutils.GetID(), nil).Times(1)
@@ -845,6 +855,7 @@ func TestDisconnect(t *testing.T) {
 		{
 			Name: "Disconnect: could not find the Teams user ID",
 			SetupPlugin: func(api *plugintest.API) {
+				api.On("GetConfig").Return(&model.Config{ServiceSettings: model.ServiceSettings{SiteURL: model.NewString("/")}}, nil).Times(1)
 				api.On("LogError", "Unable to get Teams user ID from Mattermost user ID.", "UserID", testutils.GetUserID(), "Error", "could not find the Teams user ID").Once()
 			},
 			SetupStore: func(store *storemocks.Store) {
@@ -869,6 +880,7 @@ func TestDisconnect(t *testing.T) {
 		{
 			Name: "Disconnect: error occurred while setting the user info",
 			SetupPlugin: func(api *plugintest.API) {
+				api.On("GetConfig").Return(&model.Config{ServiceSettings: model.ServiceSettings{SiteURL: model.NewString("/")}}, nil).Times(1)
 				api.On("LogError", "Error occurred while disconnecting the user.", "UserID", testutils.GetUserID(), "Error", "error occurred while setting the user info").Once()
 			},
 			SetupStore: func(store *storemocks.Store) {
@@ -920,7 +932,7 @@ func TestGetLinkedChannels(t *testing.T) {
 		ExpectedStatusCode int
 	}{
 		{
-			Name: "TestGetLinkedChannels: linked channels listed successfully",
+			Name: "GetLinkedChannels: linked channels listed successfully",
 			SetupPlugin: func(api *plugintest.API) {
 				api.On("HasPermissionToChannel", testutils.GetUserID(), testutils.GetChannelID(), model.PermissionCreatePost).Return(true).Times(1)
 				api.On("GetChannel", testutils.GetChannelID()).Return(&model.Channel{}, nil).Times(1)
@@ -931,24 +943,24 @@ func TestGetLinkedChannels(t *testing.T) {
 				}, nil).Times(1)
 			},
 			SetupClient: func(c *clientmocks.Client) {
-				c.On("GetChannelsInTeam", testutils.GetTeamID(), fmt.Sprintf("id in ('%s')", testutils.GetChannelID())).Return([]*msteams.Channel{
+				c.On("GetChannelsInTeam", testutils.GetTeamsTeamID(), fmt.Sprintf("id in ('%s')", testutils.GetTeamsChannelID())).Return([]*msteams.Channel{
 					{
-						ID:          testutils.GetChannelID(),
+						ID:          testutils.GetTeamsChannelID(),
 						DisplayName: "mock-name",
 					},
 				}, nil).Times(1)
-				c.On("GetTeams", fmt.Sprintf("id in ('%s')", testutils.GetTeamID())).Return([]*msteams.Team{
+				c.On("GetTeams", fmt.Sprintf("id in ('%s')", testutils.GetTeamsTeamID())).Return([]*msteams.Team{
 					{
-						ID:          testutils.GetTeamID(),
+						ID:          testutils.GetTeamsTeamID(),
 						DisplayName: "mock-name",
 					},
 				}, nil).Times(1)
 			},
-			ExpectedResult:     `[{"mattermostTeamID":"pqoeurndhroajdemq4nfmw","mattermostChannelID":"bnqnzipmnir4zkkj95ggba5pde","msTeamsTeamID":"pqoeurndhroajdemq4nfmw","msTeamsChannelID":"bnqnzipmnir4zkkj95ggba5pde","msTeamsTeamName":"mock-name","msTeamsChannelName":"mock-name"}]`,
+			ExpectedResult:     `[{"mattermostTeamID":"pqoeurndhroajdemq4nfmw","mattermostChannelID":"bnqnzipmnir4zkkj95ggba5pde","msTeamsTeamID":"test-teams-team-qplsnwere9nurernidte","msTeamsChannelID":"test-teams-channel","msTeamsTeamName":"mock-name","msTeamsChannelName":"mock-name"}]`,
 			ExpectedStatusCode: http.StatusOK,
 		},
 		{
-			Name: "TestGetLinkedChannels: error occurred while getting the linked channels",
+			Name: "GetLinkedChannels: error occurred while getting the linked channels",
 			SetupPlugin: func(api *plugintest.API) {
 				api.On("LogError", "Error occurred while getting the linked channels", "Error", "error occurred while getting the linked channels").Times(1)
 			},
@@ -960,7 +972,7 @@ func TestGetLinkedChannels(t *testing.T) {
 			ExpectedStatusCode: http.StatusInternalServerError,
 		},
 		{
-			Name: "TestGetLinkedChannels: error occurred while getting the MS Teams teams details",
+			Name: "GetLinkedChannels: error occurred while getting the MS Teams teams details",
 			SetupPlugin: func(api *plugintest.API) {
 				api.On("HasPermissionToChannel", testutils.GetUserID(), testutils.GetChannelID(), model.PermissionCreatePost).Return(true).Times(1)
 				api.On("LogDebug", "Unable to get the MS Teams teams details", "Error", "error occurred while getting the MS Teams teams details")
@@ -971,14 +983,14 @@ func TestGetLinkedChannels(t *testing.T) {
 				}, nil).Times(1)
 			},
 			SetupClient: func(c *clientmocks.Client) {
-				c.On("GetChannelsInTeam", testutils.GetTeamID(), fmt.Sprintf("id in ('%s')", testutils.GetChannelID())).Return([]*msteams.Channel{}, nil).Times(1)
-				c.On("GetTeams", fmt.Sprintf("id in ('%s')", testutils.GetTeamID())).Return(nil, errors.New("error occurred while getting the MS Teams teams details")).Times(1)
+				c.On("GetChannelsInTeam", testutils.GetTeamsTeamID(), fmt.Sprintf("id in ('%s')", testutils.GetTeamsChannelID())).Return([]*msteams.Channel{}, nil).Times(1)
+				c.On("GetTeams", fmt.Sprintf("id in ('%s')", testutils.GetTeamsTeamID())).Return(nil, errors.New("error occurred while getting the MS Teams teams details")).Times(1)
 			},
 			ExpectedResult:     "Unable to get the MS Teams teams details\n",
 			ExpectedStatusCode: http.StatusInternalServerError,
 		},
 		{
-			Name: "TestGetLinkedChannels: error occurred while getting channel details",
+			Name: "GetLinkedChannels: error occurred while getting channel details",
 			SetupPlugin: func(api *plugintest.API) {
 				api.On("HasPermissionToChannel", testutils.GetUserID(), testutils.GetChannelID(), model.PermissionCreatePost).Return(true).Times(1)
 				api.On("GetChannel", testutils.GetChannelID()).Return(nil, &model.AppError{
@@ -992,15 +1004,15 @@ func TestGetLinkedChannels(t *testing.T) {
 				}, nil).Times(1)
 			},
 			SetupClient: func(c *clientmocks.Client) {
-				c.On("GetChannelsInTeam", testutils.GetTeamID(), fmt.Sprintf("id in ('%s')", testutils.GetChannelID())).Return([]*msteams.Channel{
+				c.On("GetChannelsInTeam", testutils.GetTeamsTeamID(), fmt.Sprintf("id in ('%s')", testutils.GetTeamsChannelID())).Return([]*msteams.Channel{
 					{
-						ID:          testutils.GetChannelID(),
+						ID:          testutils.GetTeamsChannelID(),
 						DisplayName: "mock-name",
 					},
 				}, nil).Times(1)
-				c.On("GetTeams", fmt.Sprintf("id in ('%s')", testutils.GetTeamID())).Return([]*msteams.Team{
+				c.On("GetTeams", fmt.Sprintf("id in ('%s')", testutils.GetTeamsTeamID())).Return([]*msteams.Team{
 					{
-						ID:          testutils.GetTeamID(),
+						ID:          testutils.GetTeamsTeamID(),
 						DisplayName: "mock-name",
 					},
 				}, nil).Times(1)
@@ -1055,7 +1067,7 @@ func TestGetMSTeamsTeamList(t *testing.T) {
 		ExpectedStatusCode int
 	}{
 		{
-			Name:        "TestGetMSTeamsTeamList: MS Teams team listed successfully",
+			Name:        "GetMSTeamsTeamList: MS Teams team listed successfully",
 			SetupPlugin: func(api *plugintest.API) {},
 			SetupStore: func(store *storemocks.Store) {
 				store.On("GetTokenForMattermostUser", testutils.GetUserID()).Return(&oauth2.Token{}, nil).Times(1)
@@ -1078,7 +1090,7 @@ func TestGetMSTeamsTeamList(t *testing.T) {
 			ExpectedStatusCode: http.StatusOK,
 		},
 		{
-			Name: "TestGetMSTeamsTeamList: error occurred while getting MS Teams teams",
+			Name: "GetMSTeamsTeamList: error occurred while getting MS Teams teams",
 			SetupPlugin: func(api *plugintest.API) {
 				api.On("LogError", "Unable to get the MS Teams teams", "Error", "error occurred while getting MS Teams teams").Times(1)
 			},
@@ -1141,7 +1153,7 @@ func TestGetMSTeamsTeamChannels(t *testing.T) {
 		ExpectedStatusCode int
 	}{
 		{
-			Name: "TestGetMSTeamsTeamChannels: MS Teams team channels listed successfully",
+			Name: "GetMSTeamsTeamChannels: MS Teams team channels listed successfully",
 			SetupPlugin: func(api *plugintest.API) {
 				api.On("GetConfig").Return(&model.Config{ServiceSettings: model.ServiceSettings{SiteURL: model.NewString("/")}}, nil).Times(1)
 			},
@@ -1167,7 +1179,7 @@ func TestGetMSTeamsTeamChannels(t *testing.T) {
 			ExpectedStatusCode: http.StatusOK,
 		},
 		{
-			Name: "TestGetMSTeamsTeamChannels: error occurred while getting MS Teams team channels",
+			Name: "GetMSTeamsTeamChannels: error occurred while getting MS Teams team channels",
 			SetupPlugin: func(api *plugintest.API) {
 				api.On("GetConfig").Return(&model.Config{ServiceSettings: model.ServiceSettings{SiteURL: model.NewString("/")}}, nil).Times(1)
 				api.On("LogError", "Unable to get the channels for MS Teams team", "TeamID", testutils.GetTeamsTeamID(), "Error", "error occurred while getting MS Teams team channels").Times(1)
@@ -1260,6 +1272,7 @@ func TestLinkChannels(t *testing.T) {
 		{
 			Name: "LinkChannels: error in unmarshaling payload",
 			SetupPlugin: func(api *plugintest.API) {
+				api.On("GetConfig").Return(&model.Config{ServiceSettings: model.ServiceSettings{SiteURL: model.NewString("/")}}, nil).Times(1)
 				api.On("LogError", "Error occurred while unmarshaling link channels payload.", "Error", "invalid character 'r' looking for beginning of object key string").Times(1)
 			},
 			SetupStore: func(store *storemocks.Store) {
@@ -1275,6 +1288,7 @@ func TestLinkChannels(t *testing.T) {
 		{
 			Name: "LinkChannels: invalid payload",
 			SetupPlugin: func(api *plugintest.API) {
+				api.On("GetConfig").Return(&model.Config{ServiceSettings: model.ServiceSettings{SiteURL: model.NewString("/")}}, nil).Times(1)
 				api.On("LogError", "Invalid channel link payload.", "Error", "mattermost team ID is required").Times(1)
 			},
 			SetupStore: func(store *storemocks.Store) {
@@ -1288,6 +1302,7 @@ func TestLinkChannels(t *testing.T) {
 		{
 			Name: "LinkChannels: error occurred while linking channels",
 			SetupPlugin: func(api *plugintest.API) {
+				api.On("GetConfig").Return(&model.Config{ServiceSettings: model.ServiceSettings{SiteURL: model.NewString("/")}}, nil).Times(1)
 				api.On("GetChannel", testutils.GetChannelID()).Return(nil, &model.AppError{Message: "error occurred while getting channel details"}).Times(1)
 				api.On("LogError", "Unable to get the current channel details.", "ChannelID", testutils.GetChannelID(), "Error", "error occurred while getting channel details").Times(1)
 			},
@@ -1304,7 +1319,6 @@ func TestLinkChannels(t *testing.T) {
 			assert := assert.New(t)
 			plugin := newTestPlugin(t)
 			mockAPI := &plugintest.API{}
-			testutils.GetTeamsTeamID()
 			plugin.SetAPI(mockAPI)
 			defer mockAPI.AssertExpectations(t)
 
@@ -1313,7 +1327,7 @@ func TestLinkChannels(t *testing.T) {
 			test.SetupClient(plugin.clientBuilderWithToken("", "", "", "", nil, nil).(*clientmocks.Client))
 
 			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodPost, "/link-channels", bytes.NewBufferString(test.Body))
+			r := httptest.NewRequest(http.MethodPost, "/channels/link", bytes.NewBufferString(test.Body))
 			r.Header.Add(HeaderMattermostUserID, testutils.GetUserID())
 
 			plugin.ServeHTTP(nil, w, r)
@@ -1336,22 +1350,27 @@ func TestUnlinkChannels(t *testing.T) {
 		Name               string
 		SetupPlugin        func(*plugintest.API)
 		SetupStore         func(*storemocks.Store)
+		SetupClient        func(*clientmocks.Client)
 		ExpectedResult     string
 		ExpectedStatusCode int
 	}{
 		{
 			Name: "UnlinkChannels: channels unlinked successfully",
 			SetupPlugin: func(api *plugintest.API) {
-				api.On("GetChannel", testutils.GetChannelID()).Return(&model.Channel{
-					Id:   testutils.GetChannelID(),
-					Type: model.ChannelTypeOpen,
-				}, nil).Times(1)
+				api.On("GetChannel", testutils.GetChannelID()).Return(testutils.GetChannel(model.ChannelTypeOpen), nil).Times(1)
 				api.On("HasPermissionToChannel", testutils.GetUserID(), testutils.GetChannelID(), model.PermissionManageChannelRoles).Return(true).Times(1)
 			},
 			SetupStore: func(store *storemocks.Store) {
 				store.On("GetTokenForMattermostUser", testutils.GetUserID()).Return(&oauth2.Token{}, nil).Times(1)
-				store.On("GetLinkByChannelID", testutils.GetChannelID()).Return(nil, nil).Once()
+				store.On("GetLinkByChannelID", testutils.GetChannelID()).Return(testutils.GetChannelLink(), nil).Once()
 				store.On("DeleteLinkByChannelID", testutils.GetChannelID()).Return(nil).Times(1)
+				store.On("GetChannelSubscriptionByTeamsChannelID", testutils.GetTeamsChannelID()).Return(&storemodels.ChannelSubscription{
+					SubscriptionID: testutils.GetID(),
+				}, nil).Times(1)
+				store.On("DeleteSubscription", testutils.GetID()).Return(nil).Times(1)
+			},
+			SetupClient: func(c *clientmocks.Client) {
+				c.On("DeleteSubscription", testutils.GetID()).Return(nil).Times(1)
 			},
 			ExpectedResult:     "Channel unlinked successfully",
 			ExpectedStatusCode: http.StatusOK,
@@ -1360,11 +1379,12 @@ func TestUnlinkChannels(t *testing.T) {
 			Name: "UnlinkChannels: error occurred while unlinking channels",
 			SetupPlugin: func(api *plugintest.API) {
 				api.On("GetChannel", testutils.GetChannelID()).Return(nil, &model.AppError{Message: "error occurred while unlinking channels"}).Times(1)
-				api.On("LogError", "Unable to get the current channel details.", "ChannelID", testutils.GetChannelID(), "Error", "error occurred while unlinking channels").Times(1)
+				api.On("LogError", "Unable to get the current channel details.", "ChannelID", testutils.GetChannelID(), "error", "error occurred while unlinking channels").Times(1)
 			},
 			SetupStore: func(store *storemocks.Store) {
 				store.On("GetTokenForMattermostUser", testutils.GetUserID()).Return(&oauth2.Token{}, nil).Times(1)
 			},
+			SetupClient:        func(c *clientmocks.Client) {},
 			ExpectedResult:     "Unable to get the current channel details.\n",
 			ExpectedStatusCode: http.StatusInternalServerError,
 		},
@@ -1373,15 +1393,15 @@ func TestUnlinkChannels(t *testing.T) {
 			assert := assert.New(t)
 			plugin := newTestPlugin(t)
 			mockAPI := &plugintest.API{}
-			testutils.GetTeamsTeamID()
 			plugin.SetAPI(mockAPI)
 			defer mockAPI.AssertExpectations(t)
 
 			test.SetupPlugin(mockAPI)
 			test.SetupStore(plugin.store.(*storemocks.Store))
+			test.SetupClient(plugin.msteamsAppClient.(*clientmocks.Client))
 
 			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/unlink-channels/%s", testutils.GetChannelID()), nil)
+			r := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/channels/%s/unlink", testutils.GetChannelID()), nil)
 			r.Header.Add(HeaderMattermostUserID, testutils.GetUserID())
 
 			plugin.ServeHTTP(nil, w, r)

@@ -8,7 +8,6 @@ import (
 	"runtime/debug"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-plugin-msteams-sync/server/msteams"
@@ -21,20 +20,20 @@ import (
 
 const (
 	HeaderMattermostUserID = "Mattermost-User-Id"
-	PathParamChannelID     = "channel_id"
 
 	// Query params
 	QueryParamSearchTerm = "search"
 
 	// Path params
-	PathParamTeamID = "team_id"
+	PathParamTeamID    = "team_id"
+	PathParamChannelID = "channel_id"
 
 	// Used for storing the token in the request context to pass from one middleware to another
 	// #nosec G101 -- This is a false positive. The below line is not a hardcoded credential
-	ContextTokenKey MSTeamsOAuthToken = "MS-Teams-Oauth-Token"
+	ContextClientKey MSTeamsClient = "MS-Teams-Client"
 )
 
-type MSTeamsOAuthToken string
+type MSTeamsClient string
 
 type API struct {
 	p      *Plugin
@@ -51,8 +50,14 @@ func NewAPI(p *Plugin, store store.Store) *API {
 	router.Use(p.WithRecovery)
 	api := &API{p: p, router: router, store: store}
 
+	if p.metricsService != nil {
+		// set error counter middleware handler
+		router.Use(api.metricsMiddleware)
+	}
+
 	autocompleteRouter := router.PathPrefix("/autocomplete").Subrouter()
 	msTeamsRouter := router.PathPrefix("/msteams").Subrouter()
+	channelsRouter := router.PathPrefix("/channels").Subrouter()
 
 	router.HandleFunc("/avatar/{userId:.*}", api.getAvatar).Methods(http.MethodGet)
 	router.HandleFunc("/changes", api.processActivity).Methods(http.MethodPost)
@@ -62,8 +67,10 @@ func NewAPI(p *Plugin, store store.Store) *API {
 	router.HandleFunc("/disconnect", api.handleAuthRequired(api.checkUserConnected(api.disconnect))).Methods(http.MethodGet)
 	router.HandleFunc("/linked-channels", api.handleAuthRequired(api.getLinkedChannels)).Methods(http.MethodGet)
 	router.HandleFunc("/link-channels", api.handleAuthRequired(api.checkUserConnected(api.linkChannels))).Methods(http.MethodPost)
-	router.HandleFunc(fmt.Sprintf("/unlink-channels/{%s}", PathParamChannelID), api.handleAuthRequired(api.checkUserConnected(api.unlinkChannels))).Methods(http.MethodDelete)
 	router.HandleFunc("/oauth-redirect", api.oauthRedirectHandler).Methods(http.MethodGet)
+
+	channelsRouter.HandleFunc("/link", api.handleAuthRequired(api.checkUserConnected(api.linkChannels))).Methods(http.MethodPost)
+	channelsRouter.HandleFunc(fmt.Sprintf("/{%s}/unlink", PathParamChannelID), api.handleAuthRequired(api.unlinkChannels)).Methods(http.MethodDelete)
 
 	// MS Teams APIs
 	msTeamsRouter.HandleFunc("/teams", api.handleAuthRequired(api.checkUserConnected(api.getMSTeamsTeamList))).Methods(http.MethodGet)
@@ -110,7 +117,7 @@ func (a *API) getAvatar(w http.ResponseWriter, r *http.Request) {
 func (a *API) processActivity(w http.ResponseWriter, req *http.Request) {
 	validationToken := req.URL.Query().Get("validationToken")
 	if validationToken != "" {
-		w.Header().Add("Content-Type", "plain/text")
+		w.Header().Add("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte(validationToken))
 		return
@@ -126,20 +133,13 @@ func (a *API) processActivity(w http.ResponseWriter, req *http.Request) {
 
 	a.p.API.LogDebug("Change activity request", "activities", activities)
 	errors := ""
-	refreshedSubscriptions := make(map[string]bool)
 	for _, activity := range activities.Value {
 		if activity.ClientState != a.p.getConfiguration().WebhookSecret {
 			errors += "Invalid webhook secret"
 			continue
 		}
 
-		if !refreshedSubscriptions[activity.SubscriptionID] {
-			refreshedSubscriptions[activity.SubscriptionID] = true
-			a.refreshSubscriptionIfNeeded(activity)
-		}
-
-		err := a.p.activityHandler.Handle(activity)
-		if err != nil {
+		if err := a.p.activityHandler.Handle(activity); err != nil {
 			a.p.API.LogError("Unable to process created activity", "activity", activity, "error", err.Error())
 			errors += err.Error() + "\n"
 		}
@@ -152,24 +152,11 @@ func (a *API) processActivity(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(http.StatusAccepted)
 }
 
-func (a *API) refreshSubscriptionIfNeeded(activity msteams.Activity) {
-	if time.Until(activity.SubscriptionExpirationDateTime) < (5 * time.Minute) {
-		expiresOn, err := a.p.msteamsAppClient.RefreshSubscription(activity.SubscriptionID)
-		if err != nil {
-			a.p.API.LogError("Unable to refresh the subscription", "error", err.Error())
-		} else {
-			if err = a.p.store.UpdateSubscriptionExpiresOn(activity.SubscriptionID, *expiresOn); err != nil {
-				a.p.API.LogError("Unable to store the updated subscription expiration date", "subscriptionID", activity.SubscriptionID, "error", err.Error())
-			}
-		}
-	}
-}
-
 // processLifecycle handles the lifecycle events received from teams subscriptions
 func (a *API) processLifecycle(w http.ResponseWriter, req *http.Request) {
 	validationToken := req.URL.Query().Get("validationToken")
 	if validationToken != "" {
-		w.Header().Add("Content-Type", "plain/text")
+		w.Header().Add("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte(validationToken))
 		return
@@ -190,7 +177,7 @@ func (a *API) processLifecycle(w http.ResponseWriter, req *http.Request) {
 			a.p.API.LogError("Invalid webhook secret received in lifecycle event")
 			continue
 		}
-		a.p.activityHandler.HandleLifecycleEvent(event, a.p.getConfiguration().WebhookSecret, a.p.getConfiguration().EvaluationAPI)
+		a.p.activityHandler.HandleLifecycleEvent(event)
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -204,7 +191,15 @@ func (a *API) autocompleteTeams(w http.ResponseWriter, r *http.Request) {
 	out := []model.AutocompleteListItem{}
 	userID := r.Header.Get(HeaderMattermostUserID)
 
-	teams, _, err := a.p.GetMSTeamsTeamList(userID, r)
+	client, err := a.p.GetClientForUser(userID)
+	if err != nil {
+		a.p.API.LogError("Unable to get the client for user", "MMUserID", userID, "Error", err.Error())
+		data, _ := json.Marshal(out)
+		_, _ = w.Write(data)
+		return
+	}
+
+	teams, _, err := a.p.GetMSTeamsTeamList(client)
 	if err != nil {
 		data, _ := json.Marshal(out)
 		_, _ = w.Write(data)
@@ -236,8 +231,16 @@ func (a *API) autocompleteChannels(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	client, err := a.p.GetClientForUser(userID)
+	if err != nil {
+		a.p.API.LogError("Unable to get the client for user", "MMUserID", userID, "Error", err.Error())
+		data, _ := json.Marshal(out)
+		_, _ = w.Write(data)
+		return
+	}
+
 	teamID := args[2]
-	channels, _, err := a.p.GetMSTeamsTeamChannels(teamID, userID, r)
+	channels, _, err := a.p.GetMSTeamsTeamChannels(teamID, client)
 	if err != nil {
 		data, _ := json.Marshal(out)
 		_, _ = w.Write(data)
@@ -400,8 +403,7 @@ func (a *API) getLinkedChannels(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) getMSTeamsTeamList(w http.ResponseWriter, r *http.Request) {
-	userID := r.Header.Get(HeaderMattermostUserID)
-	teams, statusCode, err := a.p.GetMSTeamsTeamList(userID, r)
+	teams, statusCode, err := a.p.GetMSTeamsTeamList(r.Context().Value(ContextClientKey).(msteams.Client))
 	if err != nil {
 		http.Error(w, "Error occurred while fetching the MS Teams teams.", statusCode)
 		return
@@ -435,8 +437,7 @@ func (a *API) getMSTeamsTeamList(w http.ResponseWriter, r *http.Request) {
 func (a *API) getMSTeamsTeamChannels(w http.ResponseWriter, r *http.Request) {
 	pathParams := mux.Vars(r)
 	teamID := pathParams[PathParamTeamID]
-	userID := r.Header.Get(HeaderMattermostUserID)
-	channels, statusCode, err := a.p.GetMSTeamsTeamChannels(teamID, userID, r)
+	channels, statusCode, err := a.p.GetMSTeamsTeamChannels(teamID, r.Context().Value(ContextClientKey).(msteams.Client))
 	if err != nil {
 		http.Error(w, "Error occurred while fetching the MS Teams team channels.", statusCode)
 		return
@@ -476,21 +477,14 @@ func (a *API) linkChannels(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error occurred while unmarshaling link channels payload.", http.StatusBadRequest)
 		return
 	}
-	defer r.Body.Close()
 
-	if body == nil {
-		a.p.API.LogError("Invalid channel link payload.")
-		http.Error(w, "Invalid channel link payload.", http.StatusBadRequest)
-		return
-	}
-
-	if err := body.IsChannelLinkPayloadValid(); err != nil {
+	if err := storemodels.IsChannelLinkPayloadValid(body); err != nil {
 		a.p.API.LogError("Invalid channel link payload.", "Error", err.Error())
 		http.Error(w, "Invalid channel link payload.", http.StatusBadRequest)
 		return
 	}
 
-	if errMsg, statusCode := a.p.LinkChannels(userID, body.MattermostTeamID, body.MattermostChannelID, body.MSTeamsTeamID, body.MSTeamsChannelID, r.Context().Value(ContextTokenKey).(*oauth2.Token)); errMsg != "" {
+	if errMsg, statusCode := a.p.LinkChannels(userID, body.MattermostTeamID, body.MattermostChannelID, body.MSTeamsTeamID, body.MSTeamsChannelID, r.Context().Value(ContextClientKey).(msteams.Client)); errMsg != "" {
 		http.Error(w, errMsg, statusCode)
 		return
 	}
@@ -621,7 +615,12 @@ func (a *API) oauthRedirectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Add("Content-Type", "text/html")
-	_, _ = w.Write([]byte("<html><body><h1>Your account has been connected</h1><p>You can close this window.</p></body></html>"))
+	connectionMessage := "Your account has been connected"
+	if mmUser.Id == a.p.GetBotUserID() {
+		connectionMessage = "The bot account has been connected"
+	}
+
+	_, _ = w.Write([]byte(fmt.Sprintf("<html><body><h1>%s</h1><p>You can close this window.</p></body></html>", connectionMessage)))
 }
 
 // handleAuthRequired verifies if the provided request is performed by an authorized source.
@@ -649,7 +648,9 @@ func (a *API) checkUserConnected(handleFunc http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), ContextTokenKey, token)
+		client := a.p.clientBuilderWithToken(a.p.GetURL()+"/oauth-redirect", a.p.getConfiguration().TenantID, a.p.getConfiguration().ClientID, a.p.getConfiguration().ClientSecret, token, a.p.API.LogError)
+
+		ctx := context.WithValue(r.Context(), ContextClientKey, client)
 		r = r.Clone(ctx)
 
 		handleFunc(w, r)

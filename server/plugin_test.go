@@ -14,7 +14,7 @@ import (
 	storemocks "github.com/mattermost/mattermost-plugin-msteams-sync/server/store/mocks"
 	"github.com/mattermost/mattermost-plugin-msteams-sync/server/store/storemodels"
 	"github.com/mattermost/mattermost-plugin-msteams-sync/server/testutils"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	"github.com/microsoftgraph/msgraph-sdk-go/models"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -60,7 +60,8 @@ func newTestPlugin(t *testing.T) *Plugin {
 	}
 	config := model.Config{}
 	config.SetDefaults()
-	plugin.API.(*plugintest.API).On("KVGet", lastReceivedChangeKey).Return([]byte{}, nil)
+	plugin.API.(*plugintest.API).On("KVGet", "cron_monitoring_system").Return(nil, nil).Times(1)
+	plugin.API.(*plugintest.API).On("KVGet", lastReceivedChangeKey).Return([]byte{}, nil).Times(1)
 	plugin.API.(*plugintest.API).On("GetServerVersion").Return("7.8.0")
 	plugin.API.(*plugintest.API).On("GetBundlePath").Return("./dist", nil)
 	plugin.API.(*plugintest.API).On("Conn", true).Return("connection-id", nil)
@@ -69,11 +70,14 @@ func newTestPlugin(t *testing.T) *Plugin {
 	plugin.API.(*plugintest.API).On("RegisterCommand", mock.Anything).Return(nil).Times(1)
 	plugin.API.(*plugintest.API).On("LogDebug", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	plugin.API.(*plugintest.API).On("KVList", 0, 1000000000).Return([]string{}, nil).Times(1)
+	plugin.API.(*plugintest.API).On("KVSetWithOptions", "mutex_cron_monitoring_system", []byte{0x1}, model.PluginKVSetOptions{Atomic: true, ExpireInSeconds: 15}).Return(true, nil).Times(1)
+	plugin.API.(*plugintest.API).On("KVSetWithOptions", "cron_monitoring_system", mock.Anything, model.PluginKVSetOptions{ExpireInSeconds: 0}).Return(true, nil).Times(1)
+	plugin.API.(*plugintest.API).On("KVSetWithOptions", "mutex_cron_monitoring_system", []byte(nil), model.PluginKVSetOptions{ExpireInSeconds: 0}).Return(true, nil).Times(1)
 	plugin.API.(*plugintest.API).On("KVSetWithOptions", "mutex_subscriptions_cluster_mutex", []byte{0x1}, model.PluginKVSetOptions{Atomic: true, ExpireInSeconds: 15}).Return(true, nil).Times(1)
-	plugin.API.(*plugintest.API).On("KVSetWithOptions", "mutex_subscriptions_cluster_mutex", []byte(nil), model.PluginKVSetOptions{Atomic: false, ExpireInSeconds: 0}).Return(true, nil).Times(1)
+	plugin.API.(*plugintest.API).On("KVSetWithOptions", "mutex_subscriptions_cluster_mutex", []byte(nil), model.PluginKVSetOptions{ExpireInSeconds: 0}).Return(true, nil).Times(1)
 	plugin.API.(*plugintest.API).On("KVSetWithOptions", "mutex_mmi_bot_ensure", []byte{0x1}, model.PluginKVSetOptions{Atomic: true, ExpireInSeconds: 15}).Return(true, nil).Times(1)
-	plugin.API.(*plugintest.API).On("KVSetWithOptions", "mutex_mmi_bot_ensure", []byte(nil), model.PluginKVSetOptions{Atomic: false, ExpireInSeconds: 0}).Return(true, nil).Times(1)
-	plugin.API.(*plugintest.API).On("GetConfig").Return(&model.Config{ServiceSettings: model.ServiceSettings{SiteURL: model.NewString("/")}}, nil).Times(1)
+	plugin.API.(*plugintest.API).On("KVSetWithOptions", "mutex_mmi_bot_ensure", []byte(nil), model.PluginKVSetOptions{ExpireInSeconds: 0}).Return(true, nil).Times(1)
+	plugin.API.(*plugintest.API).On("GetConfig").Return(&model.Config{ServiceSettings: model.ServiceSettings{SiteURL: model.NewString("/")}}, nil).Times(2)
 	plugin.API.(*plugintest.API).On("GetPluginStatus", pluginID).Return(&model.PluginStatus{PluginId: pluginID, PluginPath: getPluginPathForTest()}, nil)
 	plugin.API.(*plugintest.API).Test(t)
 
@@ -179,8 +183,8 @@ func TestMessageHasBeenPostedNewMessageWithFailureSending(t *testing.T) {
 	plugin.store.(*storemocks.Store).On("GetTokenForMattermostUser", "user-id").Return(&oauth2.Token{}, nil).Times(1)
 	clientMock := plugin.clientBuilderWithToken("", "", "", "", nil, nil)
 	clientMock.(*mocks.Client).On("SendMessageWithAttachments", "ms-team-id", "ms-channel-id", "", "<p>message</p>\n", []*msteams.Attachment(nil), []models.ChatMessageMentionable{}).Return(nil, errors.New("Unable to send the message"))
-	plugin.API.(*plugintest.API).On("LogWarn", "Error creating post on MS Teams", "error", "Unable to send the message").Return(nil)
-	plugin.API.(*plugintest.API).On("LogError", "Unable to handle message sent", "error", "Unable to send the message").Return(nil)
+	plugin.API.(*plugintest.API).On("LogError", "Error creating post on MS Teams", "error", "Unable to send the message").Return(nil)
+	plugin.API.(*plugintest.API).On("LogWarn", "Unable to handle message sent", "error", "Unable to send the message").Return(nil)
 
 	plugin.MessageHasBeenPosted(nil, &post)
 }
@@ -438,6 +442,7 @@ func TestStart(t *testing.T) {
 		Name        string
 		SetupAPI    func(*plugintest.API)
 		SetupClient func(*mocks.Client)
+		SetupStore  func(*storemocks.Store)
 	}{
 		{
 			Name: "Start: Unable to connect to the app client",
@@ -448,6 +453,7 @@ func TestStart(t *testing.T) {
 			SetupClient: func(client *mocks.Client) {
 				client.On("Connect").Return(errors.New("unable to connect to the app client")).Times(1)
 			},
+			SetupStore: func(s *storemocks.Store) {},
 		},
 		{
 			Name: "Start: Valid",
@@ -457,9 +463,15 @@ func TestStart(t *testing.T) {
 						SiteURL: &mockSiteURL,
 					},
 				})
+				api.On("LogError", "Unable to start the monitoring system", "error", "error in setting job status").Return()
 			},
 			SetupClient: func(client *mocks.Client) {
 				client.On("Connect").Return(nil).Times(1)
+			},
+			SetupStore: func(s *storemocks.Store) {
+				s.On("SetJobStatus", "monitoring_system", false).Return(errors.New("error in setting job status"))
+				s.On("CompareAndSetJobStatus", "monitoring_system", false, true).Return(false, nil)
+				s.On("DeleteFakeSubscriptions").Return(nil).Times(1)
 			},
 		},
 	} {
@@ -469,7 +481,9 @@ func TestStart(t *testing.T) {
 			p.clusterMutex = mutex
 			test.SetupAPI(p.API.(*plugintest.API))
 			test.SetupClient(p.msteamsAppClient.(*mocks.Client))
+			test.SetupStore(p.store.(*storemocks.Store))
 			p.start(nil)
+			time.Sleep(5 * time.Second)
 		})
 	}
 }
