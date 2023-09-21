@@ -197,7 +197,7 @@ func (a *API) autocompleteTeams(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teams, _, err := a.p.GetMSTeamsTeamList(userID, client)
+	teams, _, err := a.p.GetMSTeamsTeamList(client)
 	if err != nil {
 		data, _ := json.Marshal(out)
 		_, _ = w.Write(data)
@@ -237,7 +237,7 @@ func (a *API) autocompleteChannels(w http.ResponseWriter, r *http.Request) {
 	}
 
 	teamID := args[2]
-	channels, _, err := a.p.GetMSTeamsTeamChannels(teamID, userID, client)
+	channels, _, err := a.p.GetMSTeamsTeamChannels(teamID, client)
 	if err != nil {
 		data, _ := json.Marshal(out)
 		_, _ = w.Write(data)
@@ -389,8 +389,7 @@ func (a *API) getLinkedChannels(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) getMSTeamsTeamList(w http.ResponseWriter, r *http.Request) {
-	userID := r.Header.Get(HeaderMattermostUserID)
-	teams, statusCode, err := a.p.GetMSTeamsTeamList(userID, r.Context().Value(ContextClientKey).(msteams.Client))
+	teams, statusCode, err := a.p.GetMSTeamsTeamList(r.Context().Value(ContextClientKey).(msteams.Client))
 	if err != nil {
 		http.Error(w, "Error occurred while fetching the MS Teams teams.", statusCode)
 		return
@@ -424,8 +423,7 @@ func (a *API) getMSTeamsTeamList(w http.ResponseWriter, r *http.Request) {
 func (a *API) getMSTeamsTeamChannels(w http.ResponseWriter, r *http.Request) {
 	pathParams := mux.Vars(r)
 	teamID := pathParams[PathParamTeamID]
-	userID := r.Header.Get(HeaderMattermostUserID)
-	channels, statusCode, err := a.p.GetMSTeamsTeamChannels(teamID, userID, r.Context().Value(ContextClientKey).(msteams.Client))
+	channels, statusCode, err := a.p.GetMSTeamsTeamChannels(teamID, r.Context().Value(ContextClientKey).(msteams.Client))
 	if err != nil {
 		http.Error(w, "Error occurred while fetching the MS Teams team channels.", statusCode)
 		return

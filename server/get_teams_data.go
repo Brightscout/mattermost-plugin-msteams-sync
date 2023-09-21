@@ -97,7 +97,7 @@ func (p *Plugin) GetMSTeamsChannelDetailsForAllTeams(msTeamsTeamIDsVsChannelsQue
 	return errorsFound
 }
 
-func (p *Plugin) GetMSTeamsTeamList(userID string, client msteams.Client) ([]*msteams.Team, int, error) {
+func (p *Plugin) GetMSTeamsTeamList(client msteams.Client) ([]*msteams.Team, int, error) {
 	teams, err := client.ListTeams()
 	if err != nil {
 		p.API.LogError("Unable to get the MS Teams teams", "Error", err.Error())
@@ -107,7 +107,7 @@ func (p *Plugin) GetMSTeamsTeamList(userID string, client msteams.Client) ([]*ms
 	return teams, http.StatusOK, nil
 }
 
-func (p *Plugin) GetMSTeamsTeamChannels(teamID, userID string, client msteams.Client) ([]*msteams.Channel, int, error) {
+func (p *Plugin) GetMSTeamsTeamChannels(teamID string, client msteams.Client) ([]*msteams.Channel, int, error) {
 	channels, err := client.ListChannels(teamID)
 	if err != nil {
 		p.API.LogError("Unable to get the channels for MS Teams team", "TeamID", teamID, "Error", err.Error())
