@@ -956,7 +956,7 @@ func TestGetLinkedChannels(t *testing.T) {
 					},
 				}, nil).Times(1)
 			},
-			ExpectedResult:     `[{"mattermostTeamID":"pqoeurndhroajdemq4nfmw","mattermostChannelID":"bnqnzipmnir4zkkj95ggba5pde","msTeamsTeamID":"testteam-team-team-team-testteamtest","msTeamsChannelID":"test-teams-channel","msTeamsTeamName":"mock-name","msTeamsChannelName":"mock-name"}]`,
+			ExpectedResult:     `[{"mattermostTeamID":"pqoeurndhroajdemq4nfmw","mattermostChannelID":"bnqnzipmnir4zkkj95ggba5pde","msTeamsTeamID":"test-teams-team-qplsnwere9nurernidte","msTeamsChannelID":"test-teams-channel","msTeamsTeamName":"mock-name","msTeamsChannelName":"mock-name"}]`,
 			ExpectedStatusCode: http.StatusOK,
 		},
 		{

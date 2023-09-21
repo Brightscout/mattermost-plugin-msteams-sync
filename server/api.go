@@ -193,6 +193,7 @@ func (a *API) autocompleteTeams(w http.ResponseWriter, r *http.Request) {
 
 	client, err := a.p.GetClientForUser(userID)
 	if err != nil {
+		a.p.API.LogError("Unable to get the client for user", "MMUserID", userID, "Error", err.Error())
 		data, _ := json.Marshal(out)
 		_, _ = w.Write(data)
 		return
@@ -232,6 +233,7 @@ func (a *API) autocompleteChannels(w http.ResponseWriter, r *http.Request) {
 
 	client, err := a.p.GetClientForUser(userID)
 	if err != nil {
+		a.p.API.LogError("Unable to get the client for user", "MMUserID", userID, "Error", err.Error())
 		data, _ := json.Marshal(out)
 		_, _ = w.Write(data)
 		return

@@ -152,6 +152,7 @@ func (p *Plugin) executeLinkCommand(args *model.CommandArgs, parameters []string
 
 	client, err := p.GetClientForUser(args.UserId)
 	if err != nil {
+		p.API.LogError("Unable to get the client for user", "MMUserID", args.UserId, "Error", err.Error())
 		return p.cmdError(args.UserId, args.ChannelId, "Unable to link the channel, looks like your account is not connected to MS Teams")
 	}
 
