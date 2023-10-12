@@ -73,7 +73,7 @@
           "key": "syncUsers",
           "display_name": "Sync users",
           "type": "number",
-          "help_text": "Set the number of minutes between users sync (Leave it empty to disable users sync)",
+          "help_text": "Set the no. of minutes between users sync (Leave it empty to disable users sync)",
           "default": 0
         },{
           "key": "syncGuestUsers",
