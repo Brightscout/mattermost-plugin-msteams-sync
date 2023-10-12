@@ -47,6 +47,12 @@ jobs:
         env:
           TERM: dumb
 
+      - name: Changelog
+        uses: scottbrenner/generate-changelog-action@master
+        id: Changelog
+        env:
+          REPO: ${{ github.repository }}
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -58,11 +64,6 @@ jobs:
           draft: false
           prerelease: false
         
-      - name: Changelog
-        uses: scottbrenner/generate-changelog-action@master
-        id: Changelog
-        env:
-          REPO: ${{ github.repository }}
 
       - name: Upload Release Assets
         uses: actions/upload-release-asset@v1
