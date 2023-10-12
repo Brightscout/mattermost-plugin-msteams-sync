@@ -52,6 +52,10 @@ jobs:
         id: Changelog
         env:
           REPO: ${{ github.repository }}
+        with:
+          package-dir: ../../webapp/package.json
+          from-tag: v1.0.4 
+          to-tag: v1.1.2
 
       - name: Create Release
         id: create_release
