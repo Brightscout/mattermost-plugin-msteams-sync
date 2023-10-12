@@ -53,7 +53,7 @@ jobs:
         env:
           REPO: ${{ github.repository }}
         with:
-          package-dir: ../../webapp/package.json
+          package-dir: ../../webapp
           from-tag: v1.0.4 
           to-tag: v1.1.2
 
