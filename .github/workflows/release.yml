@@ -42,7 +42,7 @@ jobs:
           TERM: dumb
       - name: ci/publish-release
         run: |
-          gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --generate-notes *.tar.gz
+          gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-start-tag 1.1.2 *.tar.gz
         working-directory: dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
