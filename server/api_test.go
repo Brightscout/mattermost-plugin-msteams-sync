@@ -1796,7 +1796,7 @@ func TestWhitelistUser(t *testing.T) {
 			ExpectedStatusCode: http.StatusInternalServerError,
 		},
 		{
-			Name:        "WhitelistUser: user present in whitelist",
+			Name:        "WhitelistUser: user is not present in whitelist",
 			SetupPlugin: func(api *plugintest.API) {},
 			SetupStore: func(store *storemocks.Store) {
 				store.On("IsUserPresentInWhitelist", testutils.GetUserID()).Return(false, nil).Times(1)
