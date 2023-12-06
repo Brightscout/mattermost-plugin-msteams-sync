@@ -10,6 +10,11 @@ type ConnectData = {
     connectUrl: string;
 }
 
+type WebsocketEventParams = {
+    event: string,
+    data: Record<string, string>,
+}
+
 type WhitelistUserResponse= {
     presentInWhitelist: boolean
 }
