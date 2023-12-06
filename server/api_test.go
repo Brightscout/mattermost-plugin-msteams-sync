@@ -825,8 +825,10 @@ func TestNeedsConnect(t *testing.T) {
 			ExpectedResult: "{\"canSkip\":false,\"connected\":true,\"needsConnect\":false,\"username\":\"\"}",
 		},
 		{
-			Name:        "NeedsConnect: Unable to get the client",
-			SetupPlugin: func(api *plugintest.API) {},
+			Name: "NeedsConnect: Unable to get the client",
+			SetupPlugin: func(api *plugintest.API) {
+				api.On("LogError", "Unable to get client for user", "error", "not connected user").Once()
+			},
 			SetupStore: func(store *storemocks.Store) {
 				store.On("GetTokenForMattermostUser", testutils.GetID()).Return(nil, nil).Times(1)
 			},
@@ -843,6 +845,7 @@ func TestNeedsConnect(t *testing.T) {
 						Id: "mockTeam",
 					},
 				}, nil)
+				api.On("LogError", "Unable to get client for user", "error", "not connected user").Once()
 			},
 			SetupStore: func(store *storemocks.Store) {
 				store.On("GetTokenForMattermostUser", testutils.GetID()).Return(nil, nil).Times(1)
@@ -861,6 +864,7 @@ func TestNeedsConnect(t *testing.T) {
 						Id: "mockTeamID",
 					},
 				}, nil)
+				api.On("LogError", "Unable to get client for user", "error", "not connected user").Once()
 			},
 			SetupStore: func(store *storemocks.Store) {
 				store.On("GetTokenForMattermostUser", testutils.GetID()).Return(nil, nil).Times(1)
