@@ -12,7 +12,7 @@ import EnforceConnectedAccountModal from 'components/enforceConnectedAccountModa
 import MSTeamsAppManifestSetting from 'components/appManifestSetting';
 import ListConnectedUsers from 'components/getConnectedUsersSetting';
 
-import {RHSTitle} from 'components';
+import {RhsTitle} from 'components';
 
 import manifest from './manifest';
 
@@ -32,7 +32,7 @@ export default class Plugin {
 
         registry.registerAdminConsoleCustomSetting('appManifestDownload', MSTeamsAppManifestSetting);
         registry.registerAdminConsoleCustomSetting('ConnectedUsersReportDownload', ListConnectedUsers);
-        const {_, toggleRHSPlugin} = registry.registerRightHandSidebarComponent(Rhs, <RHSTitle/>);
+        const {_, toggleRHSPlugin} = registry.registerRightHandSidebarComponent(Rhs, <RhsTitle/>);
 
         // TODO: update icons later
         registry.registerChannelHeaderButtonAction(

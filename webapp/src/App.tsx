@@ -7,7 +7,7 @@ import usePluginApi from 'hooks/usePluginApi';
 import 'styles/main.scss';
 
 /**
- * This is main App component for plugin
+ * This is the main App component for the plugin
  * @returns {JSX.Element}
  */
 const App = (): JSX.Element => {

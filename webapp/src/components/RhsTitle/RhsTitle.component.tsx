@@ -2,7 +2,7 @@ import React from 'react';
 
 import Constants from 'constants/index';
 
-export const RHSTitle = () => (
+export const RhsTitle = () => (
     <span className='d-flex gap-8 items-center'>
         <img
             width={24}

@@ -1,1 +1,1 @@
-export * from './RHSTitle';
+export * from './RhsTitle';

@@ -11,10 +11,12 @@ const Rhs = (): JSX.Element => {
 
     const {presentInWhitelist} = data as WhitelistUserResponse;
 
-    return (
-        presentInWhitelist ?
-            <>{'MS Teams Sync plugin'}</> : <>{'User Not present in Whitelist'}</>
-    );
+    return (<>
+        {
+            presentInWhitelist ?
+                'MS Teams Sync plugin' : 'User Not present in Whitelist'
+        }
+    </>);
 };
 
 export default Rhs;
