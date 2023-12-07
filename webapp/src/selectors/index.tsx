@@ -1,4 +1,4 @@
-import {ApiRequestCompletionState, ConnectedState, NeedsConnectState, ReduxState, SnackbarState} from 'types/common/store.d';
+import {ApiRequestCompletionState, ConnectedState, ReduxState, SnackbarState} from 'types/common/store.d';
 
 const getPluginState = (state: ReduxState) => state['plugins-com.mattermost.msteams-sync'];
 
