@@ -12,7 +12,6 @@ import {closeAlert} from 'reducers/snackbar';
 import {alertTimeout} from 'constants/common.constants';
 
 import {SnackbarColor} from './Snackbar.types';
-import './Snackbar.styles.scss';
 
 export const Snackbar = () => {
     const dispatch = useDispatch();
@@ -28,9 +27,11 @@ export const Snackbar = () => {
                 // Hide the snackbar after 4 seconds
                 handleClose();
             }, alertTimeout);
-        } else {
-            clearTimeout(timeId.current);
         }
+
+        return () => {
+            clearTimeout(timeId.current);
+        };
     }, [isOpen]);
 
     const snackbarColorMap: Record<SnackbarColor, string> = {
@@ -41,7 +42,7 @@ export const Snackbar = () => {
 
     return (
         <div
-            className={`absolute bottom-20 right-20 left-20 py-8 px-12 rounded-4 d-flex gap-8 items-center justify-between elevation-2 msteams-sync-rhs__snackbar ${isOpen ? 'msteams-sync-rhs__snackbar--show' : 'msteams-sync-rhs__snackbar--hide'}`}
+            className={'absolute bottom-20 right-20 left-20 py-8 px-12 rounded-4 d-flex gap-8 items-center justify-between elevation-2 msteams-sync-rhs__snackbar'}
             style={{
                 backgroundColor: snackbarColorMap[severity],
             }}

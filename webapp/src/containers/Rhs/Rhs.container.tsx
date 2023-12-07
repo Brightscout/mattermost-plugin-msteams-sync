@@ -4,7 +4,7 @@ import {pluginApiServiceConfigs} from 'constants/apiService.constant';
 
 import usePluginApi from 'hooks/usePluginApi';
 
-import {getConnectedState} from 'selectors';
+import {getConnectedState, getSnackbarState} from 'selectors';
 
 import {Snackbar} from 'components';
 
@@ -15,6 +15,8 @@ import {LinkedChannels} from './views/LinkedChannels';
 export const Rhs = () => {
     const {state, getApiState} = usePluginApi();
     const {connected} = getConnectedState(state);
+
+    const {isOpen} = getSnackbarState(state);
 
     const {data} = getApiState(pluginApiServiceConfigs.whitelistUser.apiServiceName);
     const {data: linkedChannels} = getApiState(pluginApiServiceConfigs.getLinkedChannels.apiServiceName);
@@ -41,7 +43,7 @@ export const Rhs = () => {
                     getRhsView() :
                     <>{'MS Teams Sync plugin'}</>
             }
-            <Snackbar/>
+            {isOpen && <Snackbar/>}
         </>
     );
 };
