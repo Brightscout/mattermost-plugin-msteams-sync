@@ -4,7 +4,7 @@ import {Button} from '@brightscout/mattermost-ui-library';
 
 import {useDispatch} from 'react-redux';
 
-import {connectAccountFeatures, connectAccountMsg, connectButtonText, listTitle} from 'constants/connectAccount.constants';
+import {connectAccountFeatures, connectAccountMsg, connectAccountSuccessfulMsg, connectAccountUnsuccessfulMsg, connectButtonText, listTitle} from 'constants/connectAccount.constants';
 import {Icon, IconName} from 'components';
 import usePluginApi from 'hooks/usePluginApi';
 import {pluginApiServiceConfigs} from 'constants/apiService.constant';
@@ -25,13 +25,13 @@ export const ConnectAccount = () => {
     useApiRequestCompletionState({
         serviceName: pluginApiServiceConfigs.connect.apiServiceName,
         handleError: () => {
-            showAlert({message: 'Account could not be connected.', severity: 'error'});
+            showAlert({message: connectAccountUnsuccessfulMsg, severity: 'error'});
         },
     });
 
     useEffect(() => {
         if (connected && !isAlreadyConnected) {
-            showAlert({message: 'Your account is connected successfully'});
+            showAlert({message: connectAccountSuccessfulMsg});
             dispatch(setConnected({connected, msteamsUserId, username, isAlreadyConnected: true}));
         }
     }, [connected, isAlreadyConnected]);

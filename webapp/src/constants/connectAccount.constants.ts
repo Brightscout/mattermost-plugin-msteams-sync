@@ -4,6 +4,10 @@ export const listTitle = 'With your connected Microsoft Teams account, you will 
 
 export const connectButtonText = 'Connect Account';
 
+export const connectAccountSuccessfulMsg = 'Your account is connected successfully';
+
+export const connectAccountUnsuccessfulMsg = 'Account could not be connected.';
+
 export const connectAccountFeatures = [
     {
         icon: 'user',

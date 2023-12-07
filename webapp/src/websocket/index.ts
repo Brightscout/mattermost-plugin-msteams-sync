@@ -7,8 +7,7 @@ import {setConnected} from '../reducers/connectedState';
 export function handleConnect(store: Store<GlobalState, Action<Record<string, unknown>>>) {
     return (msg: WebsocketEventParams) => {
         const {data} = msg;
-        const username = data.username;
-        const msteamsUserId = data.msteamsUserId;
+        const {username, msteamsUserId} = data;
         store.dispatch(setConnected({connected: true, username, msteamsUserId, isAlreadyConnected: false}) as Action);
     };
 }
