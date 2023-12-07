@@ -1,10 +1,8 @@
-import {Button} from '@brightscout/mattermost-ui-library';
-
 import React, {useCallback, useEffect} from 'react';
-
 import {useDispatch} from 'react-redux';
 
-import {Icon} from 'components';
+import {Button} from '@brightscout/mattermost-ui-library';
+
 import usePluginApi from 'hooks/usePluginApi';
 import {pluginApiServiceConfigs} from 'constants/apiService.constant';
 import useDialog from 'hooks/useDialog';

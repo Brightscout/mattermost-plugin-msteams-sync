@@ -31,8 +31,3 @@ type ChannelLinkData = {
     mattermostChannelName: string,
     mattermostChannelType: string,
 }
-
-type WebsocketEventParams = {
-    event: string,
-    data: Record<string, string>,
-}

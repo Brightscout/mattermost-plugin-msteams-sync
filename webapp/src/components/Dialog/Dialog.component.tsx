@@ -1,13 +1,13 @@
 import React from 'react';
+import {useDispatch} from 'react-redux';
 
 import {Dialog as MMDialog, LinearProgress, DialogProps} from '@brightscout/mattermost-ui-library';
-import {useDispatch} from 'react-redux';
 
 import usePluginApi from 'hooks/usePluginApi';
 import {getDialogState} from 'selectors';
 import {closeDialog} from 'reducers/dialog';
 
-export const Dialog = ({onCloseHandler, onSubmitHandler}:Pick<DialogProps, 'onCloseHandler' | 'onSubmitHandler'>) => {
+export const Dialog = ({onCloseHandler, onSubmitHandler}: Pick<DialogProps, 'onCloseHandler' | 'onSubmitHandler'>) => {
     const dispatch = useDispatch();
     const {state} = usePluginApi();
     const {show, title, description, destructive, primaryButtonText, isLoading} = getDialogState(state);

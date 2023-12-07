@@ -4,4 +4,3 @@ export * from './WarningCard';
 export * from './LinkedChannelCard';
 export * from './Snackbar';
 export * from './Dialog';
-export * from './Spinner';
