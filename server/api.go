@@ -387,10 +387,10 @@ func (a *API) autocompleteChannels(w http.ResponseWriter, r *http.Request) {
 
 func (a *API) needsConnect(w http.ResponseWriter, r *http.Request) {
 	response := map[string]interface{}{
-		"canSkip":      a.p.getConfiguration().AllowSkipConnectUsers,
-		"needsConnect": false,
-		"connected":    false,
-		"username":     "",
+		"canSkip":       a.p.getConfiguration().AllowSkipConnectUsers,
+		"needsConnect":  false,
+		"connected":     false,
+		"username":      "",
 		"msteamsUserId": "",
 	}
 
@@ -785,7 +785,7 @@ func (a *API) oauthRedirectHandler(w http.ResponseWriter, r *http.Request) {
 	a.p.API.PublishWebSocketEvent(
 		"connect",
 		map[string]interface{}{
-			"username": msteamsUser.DisplayName,
+			"username":      msteamsUser.DisplayName,
 			"msteamsUserId": msteamsUser.ID,
 		},
 		&model.WebsocketBroadcast{UserId: mmUserID},
