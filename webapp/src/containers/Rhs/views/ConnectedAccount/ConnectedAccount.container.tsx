@@ -37,7 +37,7 @@ export const ConnectedAccount = () => {
             dispatch(setConnected({connected: false, username: '', msteamsUserId: '', isAlreadyConnected: false}));
             hideDialog();
             showAlert({
-                message: 'Your account has been disconnected',
+                message: 'Your account has been disconnected.',
             });
         },
         handleError: () => {
@@ -51,7 +51,7 @@ export const ConnectedAccount = () => {
 
     useEffect(() => {
         if (connected && !isAlreadyConnected) {
-            showAlert({message: 'Your account is connected successfully'});
+            showAlert({message: 'Your account is connected successfully.'});
             dispatch(setConnected({connected, msteamsUserId, username, isAlreadyConnected: true}));
         }
     }, [connected, isAlreadyConnected]);
@@ -91,7 +91,7 @@ export const ConnectedAccount = () => {
                     >{'Disconnect'}</Button>
                 </div>
             </div>
-            <div className='d-flex items-center justify-center flex-1 flex-column px-40'>
+            <div className='d-flex align-items-center justify-center flex-1 flex-column px-40'>
                 {/* NOTE: Part of Phase-II */}
                 {/* <Icon iconName='noChannels'/>
                 <h3 className='my-0 lh-28 wt-600 text-center'>{'There are no linked channels yet'}</h3> */}

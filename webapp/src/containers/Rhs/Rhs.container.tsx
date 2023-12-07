@@ -26,12 +26,15 @@ export const Rhs = () => {
     const {data: linkedChannels} = getApiState(pluginApiServiceConfigs.getLinkedChannels.apiServiceName);
 
     const {presentInWhitelist} = data as WhitelistUserResponse;
-    const isAnyChannelLinked = useMemo(() => Boolean((linkedChannels as ChannelLinkData[])?.length), [linkedChannels]);
+
+    // NOTE: Commented out on purpose.This is part of Phase-II
+    // const isAnyChannelLinked = useMemo(() => Boolean((linkedChannels as ChannelLinkData[])?.length), [linkedChannels]);
+    const isAnyChannelLinked = false;
 
     const getRhsView = useCallback(() => {
         if (isRhsLoading) {
             return (
-                <div className='absolute d-flex items-center justify-center w-full h-full'>
+                <div className='absolute d-flex align-items-center justify-center w-full h-full'>
                     <Spinner size='xl'/>
                 </div>
             );
@@ -56,7 +59,7 @@ export const Rhs = () => {
         <>
             {
                 presentInWhitelist ?
-                    getRhsView() : <>{'MS Teams Sync plugin'}</>
+                    getRhsView() : 'MS Teams Sync plugin'
             }
             {isOpen && <Snackbar/>}
         </>
