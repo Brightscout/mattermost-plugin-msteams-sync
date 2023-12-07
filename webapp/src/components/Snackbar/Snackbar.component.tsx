@@ -35,19 +35,16 @@ export const Snackbar = () => {
     }, [isOpen]);
 
     const snackbarColorMap: Record<SnackbarColor, string> = {
-        error: 'var(--error-text)',
-        default: 'var(--center-channel-color)',
-        success: 'var(--online-indicator)',
+        error: 'bg-error',
+        default: 'bg-default',
+        success: 'bg-success',
     };
 
     return (
         <div
-            className={'absolute bottom-20 right-20 left-20 py-8 px-12 rounded-4 d-flex gap-8 items-center justify-between elevation-2 msteams-sync-rhs__snackbar'}
-            style={{
-                backgroundColor: snackbarColorMap[severity],
-            }}
+            className={`fixed bottom-20 right-20 left-20 py-8 px-12 rounded-4 d-flex gap-8 align-items-center justify-between elevation-2 msteams-sync-rhs__snackbar ${snackbarColorMap[severity]}`}
         >
-            <div className='d-flex items-center gap-8'>
+            <div className='d-flex align-items-center gap-8'>
                 <Icon
                     iconName='warning'
                     className='icon-white icon-16'
