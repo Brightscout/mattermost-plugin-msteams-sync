@@ -34,8 +34,7 @@ export const Rhs = () => {
 
     return (
         presentInWhitelist ?
-            getRhsView() :
+            <LinkedChannels/> :
             <>{'MS Teams Sync plugin'}</>
-
     );
 };
