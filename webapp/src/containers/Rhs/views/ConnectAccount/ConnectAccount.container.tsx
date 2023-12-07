@@ -4,7 +4,7 @@ import {Button} from '@brightscout/mattermost-ui-library';
 
 import {useDispatch} from 'react-redux';
 
-import {connectAccountFeatures, connectAccountMsg, connectAccountSuccessfulMsg, connectAccountUnsuccessfulMsg, connectButtonText, listTitle} from 'constants/connectAccount.constants';
+import Constants from 'constants/connectAccount.constants';
 import {Icon, IconName} from 'components';
 import usePluginApi from 'hooks/usePluginApi';
 import {pluginApiServiceConfigs} from 'constants/apiService.constant';
@@ -25,13 +25,13 @@ export const ConnectAccount = () => {
     useApiRequestCompletionState({
         serviceName: pluginApiServiceConfigs.connect.apiServiceName,
         handleError: () => {
-            showAlert({message: connectAccountUnsuccessfulMsg, severity: 'error'});
+            showAlert({message: Constants.connectAccountUnsuccessfulMsg, severity: 'error'});
         },
     });
 
     useEffect(() => {
         if (connected && !isAlreadyConnected) {
-            showAlert({message: connectAccountSuccessfulMsg});
+            showAlert({message: Constants.connectAccountSuccessfulMsg});
             dispatch(setConnected({connected, msteamsUserId, username, isAlreadyConnected: true}));
         }
     }, [connected, isAlreadyConnected]);
@@ -44,15 +44,15 @@ export const ConnectAccount = () => {
                         width={218}
                         iconName='connectAccount'
                     />
-                    <h2 className='text-center wt-600 my-0'>{connectAccountMsg}</h2>
+                    <h2 className='text-center wt-600 my-0'>{Constants.connectAccountMsg}</h2>
                 </div>
-                <Button onClick={connectAccount}>{connectButtonText}</Button>
+                <Button onClick={connectAccount}>{Constants.connectButtonText}</Button>
             </div>
             <hr className='w-full my-32'/>
             <div className='d-flex flex-column gap-24'>
-                <h5 className='my-0 wt-600'>{listTitle}</h5>
+                <h5 className='my-0 wt-600'>{Constants.listTitle}</h5>
                 <ul className='my-0 px-0 d-flex flex-column gap-20'>
-                    {connectAccountFeatures.map(({icon, text}) => (
+                    {Constants.connectAccountFeatures.map(({icon, text}) => (
                         <li
                             className='d-flex gap-16 align-items-start'
                             key={icon}
