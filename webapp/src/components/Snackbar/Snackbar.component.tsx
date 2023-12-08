@@ -17,7 +17,7 @@ export const Snackbar = () => {
     const dispatch = useDispatch();
     const {state} = usePluginApi();
     const timeId = useRef(0);
-    const {isOpen, message, severity} = getSnackbarState(state);
+    const {isOpen, message, severity, icon} = getSnackbarState(state);
 
     const handleClose = () => dispatch(closeAlert());
 
@@ -46,7 +46,7 @@ export const Snackbar = () => {
         >
             <div className='d-flex align-items-center gap-8'>
                 <Icon
-                    iconName='warning'
+                    iconName={icon}
                     className='icon-white icon-16'
                 />
                 <h5 className='my-0 lh-24 wt-600 text-white'>{message}</h5>

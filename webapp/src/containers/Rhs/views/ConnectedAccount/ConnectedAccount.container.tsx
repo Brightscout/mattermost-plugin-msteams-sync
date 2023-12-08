@@ -44,6 +44,7 @@ export const ConnectedAccount = () => {
             showAlert({
                 message: 'Error occurred while disconnecting the user.',
                 severity: 'error',
+                icon: 'warning',
             });
             hideDialog();
         },
@@ -84,6 +85,7 @@ export const ConnectedAccount = () => {
                         onClick={() => showDialog({
                             destructive: true,
                             primaryButtonText: 'Disconnect',
+                            secondaryButtonText: 'Cancel',
                             description: 'Are you sure you want to disconnect your Microsoft Teams Account? You will no longer be able to send and receive messages to Microsoft Teams users from Mattermost.',
                             isLoading: false,
                             title: 'Disconnect Microsoft Teams Account',
