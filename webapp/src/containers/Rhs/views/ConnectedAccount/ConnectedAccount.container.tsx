@@ -44,7 +44,6 @@ export const ConnectedAccount = () => {
             showAlert({
                 message: 'Error occurred while disconnecting the user.',
                 severity: 'error',
-                icon: 'warning',
             });
             hideDialog();
         },

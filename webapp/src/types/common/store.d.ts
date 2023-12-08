@@ -32,10 +32,9 @@ type SnackbarState = {
     severity: SnackbarColor;
     message: string;
     isOpen: boolean;
-    icon: IconName;
 };
 
-type SnackbarActionPayload = Pick<SnackbarState, 'message' | 'severity' | 'icon'>;
+type SnackbarActionPayload = Pick<SnackbarState, 'message' | 'severity'>;
 
 type DialogState = Pick<DialogProps, 'destructive' | 'description' | 'show' | 'primaryButtonText' | 'secondaryButtonText' | 'title'> & {
     isLoading?: boolean

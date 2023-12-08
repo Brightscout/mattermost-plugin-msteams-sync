@@ -20,7 +20,7 @@ export const ConnectAccount = () => {
     useApiRequestCompletionState({
         serviceName: pluginApiServiceConfigs.connect.apiServiceName,
         handleError: () => {
-            showAlert({message: Constants.connectAccountUnsuccessfulMsg, severity: 'error', icon: 'warning'});
+            showAlert({message: Constants.connectAccountUnsuccessfulMsg, severity: 'error'});
         },
     });
 

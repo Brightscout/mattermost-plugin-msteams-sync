@@ -6,7 +6,6 @@ const initialState: SnackbarState = {
     message: '',
     severity: 'default',
     isOpen: false,
-    icon: 'tick',
 };
 
 export const snackbarSlice = createSlice({
@@ -17,7 +16,6 @@ export const snackbarSlice = createSlice({
             state.message = payload.message;
             state.severity = payload.severity;
             state.isOpen = true;
-            state.icon = payload.icon;
         },
         closeAlert: (state) => {
             state.isOpen = false;

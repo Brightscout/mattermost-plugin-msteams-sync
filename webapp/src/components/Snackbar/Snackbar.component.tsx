@@ -3,7 +3,7 @@ import {useDispatch} from 'react-redux';
 
 import {Button} from '@brightscout/mattermost-ui-library';
 
-import {Icon} from 'components/Icon';
+import {Icon, IconName} from 'components/Icon';
 
 import {getSnackbarState} from 'selectors';
 
@@ -17,7 +17,7 @@ export const Snackbar = () => {
     const dispatch = useDispatch();
     const {state} = usePluginApi();
     const timeId = useRef(0);
-    const {isOpen, message, severity, icon} = getSnackbarState(state);
+    const {isOpen, message, severity} = getSnackbarState(state);
 
     const handleClose = () => dispatch(closeAlert());
 
@@ -40,13 +40,19 @@ export const Snackbar = () => {
         success: 'bg-success',
     };
 
+    const snackbarIconMap: Record<SnackbarColor, IconName> = {
+        error: 'warning',
+        default: 'tick',
+        success: 'tick',
+    };
+
     return (
         <div
             className={`fixed bottom-20 right-20 left-20 py-8 px-12 rounded-4 d-flex gap-8 align-items-center justify-between elevation-2 msteams-sync-rhs__snackbar ${snackbarColorMap[severity]}`}
         >
             <div className='d-flex align-items-center gap-8'>
                 <Icon
-                    iconName={icon}
+                    iconName={snackbarIconMap[severity]}
                     className='icon-white icon-16'
                 />
                 <h5 className='my-0 lh-24 wt-600 text-white'>{message}</h5>
