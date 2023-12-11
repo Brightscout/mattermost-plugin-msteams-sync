@@ -15,7 +15,7 @@ exports[`Connected Account View should render correctly 1`] = `
             style="height: 32px; width: 32px; border-radius: 50%;"
           >
             <img
-              src="http://localhost/plugins/com.mattermost.msteams-sync/avatar/06e7db55-18e5-4f62-ac5f-4a21999c83e4"
+              src="http://localhost/plugins/com.mattermost.msteams-sync/avatar/mock_msteams_user_id"
               style="border-radius: 50%;"
             />
           </div>
@@ -27,7 +27,7 @@ exports[`Connected Account View should render correctly 1`] = `
               <span
                 class="wt-600"
               >
-                Saurabh Sharma
+                John Doe
               </span>
             </h5>
             <button
@@ -55,7 +55,7 @@ exports[`Connected Account View should render correctly 1`] = `
           style="height: 32px; width: 32px; border-radius: 50%;"
         >
           <img
-            src="http://localhost/plugins/com.mattermost.msteams-sync/avatar/06e7db55-18e5-4f62-ac5f-4a21999c83e4"
+            src="http://localhost/plugins/com.mattermost.msteams-sync/avatar/mock_msteams_user_id"
             style="border-radius: 50%;"
           />
         </div>
@@ -67,7 +67,7 @@ exports[`Connected Account View should render correctly 1`] = `
             <span
               class="wt-600"
             >
-              Saurabh Sharma
+              John Doe
             </span>
           </h5>
           <button

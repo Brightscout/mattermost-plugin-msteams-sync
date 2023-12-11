@@ -16,23 +16,20 @@ import {ConnectedAccount} from './ConnectedAccount.container';
 let tree: RenderResult;
 
 describe('Connected Account View', () => {
-
     beforeEach(() => {
         tree = render(<ConnectedAccount/>);
-    })
+    });
 
     it('should render correctly', () => {
         expect(tree).toMatchSnapshot();
     });
 
     it('should render disconnect account button', () => {
-
         const disconnectButton = tree.getByText('Disconnect');
         expect(disconnectButton).toBeVisible();
     });
 
     it('should display the name of connected user correctly', () => {
-
         const usernameContainer = tree.getByText('Connected as');
         const username = tree.getByText(getConnectedState(mockTestState as ReduxState).username);
 
@@ -41,7 +38,6 @@ describe('Connected Account View', () => {
     });
 
     it('should dispatch action on clicking disconnect', async () => {
-
         const disconnectButton = tree.getByText('Disconnect');
 
         await userEvent.click(disconnectButton);

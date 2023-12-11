@@ -4,7 +4,7 @@ import reducer, {showDialog, closeDialog} from 'reducers/dialog';
 
 import {DialogState} from 'types/common/store.d';
 
-const initialState:DialogState = {
+const initialState: DialogState = {
     description: '',
     destructive: false,
     isLoading: false,

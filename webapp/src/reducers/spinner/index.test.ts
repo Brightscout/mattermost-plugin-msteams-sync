@@ -2,7 +2,7 @@ import {Action} from 'redux';
 
 import reducer, {setIsRhsLoading} from 'reducers/spinner';
 
-const initialState:{isRhsLoading: boolean} = {
+const initialState: {isRhsLoading: boolean} = {
     isRhsLoading: false,
 };
 
