@@ -152,7 +152,7 @@ export const Rhs = () => {
     // Get different states of rhs
     const getRhsView = useCallback(() => {
         // Show spinner in the rhs during loading
-        if (isRhsLoading ||  (firstRender && isLoading)) {
+        if (isRhsLoading || (firstRender && isLoading)) {
             return (
                 <div className='absolute d-flex align-items-center justify-center w-full h-full'>
                     <Spinner size='xl'/>
@@ -161,7 +161,7 @@ export const Rhs = () => {
         }
 
         // Rhs state when user is disconnected and no linked channels are present
-        if (!connected && !Boolean(totalLinkedChannels.length) && !searchLinkedChannelsText && !isLoading) {
+        if (!connected && !totalLinkedChannels.length && !searchLinkedChannelsText && !isLoading) {
             return (
                 <div className='p-24 d-flex flex-column overflow-y-auto'>
                     <div className='flex-1 d-flex flex-column gap-16 align-items-center my-16'>
@@ -253,7 +253,7 @@ export const Rhs = () => {
                     />
                 )}
                 {/* State when user is connected, but no linked channels are present. */}
-                {!Boolean(totalLinkedChannels.length) && !isLoading && !searchLinkedChannelsText && !previousState?.searchLinkedChannelsText && (
+                {!totalLinkedChannels.length && !isLoading && !searchLinkedChannelsText && !previousState?.searchLinkedChannelsText && (
                     <div className='d-flex align-items-center justify-center flex-1 flex-column px-40'>
                         {<>
                             <Icon iconName='noChannels'/>
