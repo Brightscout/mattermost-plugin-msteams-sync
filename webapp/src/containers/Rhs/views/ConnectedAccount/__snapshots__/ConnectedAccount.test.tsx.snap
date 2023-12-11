@@ -31,7 +31,7 @@ exports[`Connected Account View should render correctly 1`] = `
               </span>
             </h5>
             <button
-              class="sc-kEqXSa eNdikz mm-button p-0 lh-16"
+              class="sc-kEqXSa fSZMRH mm-button p-0 lh-16"
               width="fit-content"
             >
               Disconnect
@@ -71,7 +71,7 @@ exports[`Connected Account View should render correctly 1`] = `
             </span>
           </h5>
           <button
-            class="sc-kEqXSa eNdikz mm-button p-0 lh-16"
+            class="sc-kEqXSa fSZMRH mm-button p-0 lh-16"
             width="fit-content"
           >
             Disconnect
