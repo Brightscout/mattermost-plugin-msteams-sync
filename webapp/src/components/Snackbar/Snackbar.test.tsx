@@ -3,15 +3,13 @@ import React from 'react';
 import {render, RenderResult} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import useAlert from 'hooks/useAlert';
-import {mockTestState} from 'tests/mockState';
 import {mockDispatch} from 'tests/setup';
 
 import {Snackbar} from './Snackbar.component';
 
 let tree: RenderResult;
 
-describe('Snackbar', () => {
+describe('Snackbar component', () => {
     beforeEach(() => {
         tree = render(<Snackbar/>);
     });

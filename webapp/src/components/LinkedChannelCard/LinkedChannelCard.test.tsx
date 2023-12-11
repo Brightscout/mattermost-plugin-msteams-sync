@@ -15,7 +15,7 @@ const linkedChannelCardProps: LinkedChannelCardProps = {
 
 let tree: RenderResult;
 
-describe('Linked Channel Card', () => {
+describe('Linked Channel Card component', () => {
     beforeEach(() => {
         tree = render(<LinkedChannelCard {...linkedChannelCardProps}/>);
     });

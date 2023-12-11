@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Rhs Title Should render correctly 1`] = `
+exports[`Rhs Title component Should render correctly 1`] = `
 {
   "asFragment": [Function],
   "baseElement": <body>

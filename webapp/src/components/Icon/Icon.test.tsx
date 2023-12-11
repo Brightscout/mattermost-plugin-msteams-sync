@@ -4,7 +4,6 @@ import {render, RenderResult} from '@testing-library/react';
 
 import {Icon} from './Icon.component';
 import {IconProps} from './Icon.types';
-import {IconMap} from './Icon.map';
 
 const iconProps: IconProps = {
     iconName: 'close',

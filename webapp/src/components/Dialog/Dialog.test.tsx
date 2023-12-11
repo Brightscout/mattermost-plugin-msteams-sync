@@ -3,8 +3,6 @@ import React from 'react';
 import {render, RenderResult} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import {DialogProps, LinearProgress} from '@brightscout/mattermost-ui-library';
-
 import {Dialog} from './Dialog.component';
 
 const onCloseHandler = jest.fn();
@@ -17,7 +15,7 @@ const dialogProps = {
 
 let tree: RenderResult;
 
-describe('Dialog', () => {
+describe('Dialog component', () => {
     beforeEach(() => {
         tree = render(<Dialog {...dialogProps}/>);
     });

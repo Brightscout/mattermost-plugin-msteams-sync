@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Snackbar Should render correctly 1`] = `
+exports[`Snackbar component Should render correctly 1`] = `
 {
   "asFragment": [Function],
   "baseElement": <body>
@@ -35,7 +35,7 @@ exports[`Snackbar Should render correctly 1`] = `
           </h5>
         </div>
         <button
-          class="sc-kEqXSa fqyUZN mm-button snackbar__close"
+          class="sc-kEqXSa bjmVZZ mm-button snackbar__close"
           width="fit-content"
         >
           <span
@@ -90,7 +90,7 @@ exports[`Snackbar Should render correctly 1`] = `
         </h5>
       </div>
       <button
-        class="sc-kEqXSa fqyUZN mm-button snackbar__close"
+        class="sc-kEqXSa bjmVZZ mm-button snackbar__close"
         width="fit-content"
       >
         <span

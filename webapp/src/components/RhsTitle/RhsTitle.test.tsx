@@ -6,7 +6,7 @@ import {RhsTitle} from './RhsTitle.component';
 
 let tree: RenderResult;
 
-describe('Rhs Title', () => {
+describe('Rhs Title component', () => {
     beforeEach(() => {
         tree = render(<RhsTitle/>);
     });

@@ -6,15 +6,15 @@ import userEvent from '@testing-library/user-event';
 import {WarningCard} from './WarningCard.component';
 import {WarningCardProps} from './WarningCard.types';
 
-const onConnect = jest.fn();
+const onMockConnect = jest.fn();
 
 const warningCardProps: WarningCardProps = {
-    onConnect,
+    onConnect: onMockConnect,
 };
 
 let tree: RenderResult;
 
-describe('Warning Channel', () => {
+describe('Warning Card component', () => {
     beforeEach(() => {
         tree = render(<WarningCard {...warningCardProps}/>);
     });
@@ -27,6 +27,6 @@ describe('Warning Channel', () => {
         expect(tree.getAllByRole('button').length).toEqual(1);
 
         userEvent.click(tree.getAllByRole('button')[0]);
-        expect(onConnect).toHaveBeenCalledTimes(1);
+        expect(onMockConnect).toHaveBeenCalledTimes(1);
     });
 });

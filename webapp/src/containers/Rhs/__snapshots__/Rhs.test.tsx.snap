@@ -36,7 +36,7 @@ exports[`RHS view should render correctly 1`] = `
               </span>
             </h5>
             <button
-              class="sc-kEqXSa eNdikz mm-button p-0 lh-16"
+              class="sc-kEqXSa fSZMRH mm-button p-0 lh-16"
               width="fit-content"
             >
               Disconnect
@@ -77,7 +77,7 @@ exports[`RHS view should render correctly 1`] = `
           </h5>
         </div>
         <button
-          class="sc-kEqXSa fqyUZN mm-button snackbar__close"
+          class="sc-kEqXSa bjmVZZ mm-button snackbar__close"
           width="fit-content"
         >
           <span
@@ -105,7 +105,7 @@ exports[`RHS view should render correctly 1`] = `
     />
     <div
       aria-modal="true"
-      class="fade sc-fFSPTT huYLjr mm-dialog disconnect-dialog modal show"
+      class="fade sc-fFSPTT eBIuuG mm-dialog disconnect-dialog modal show"
       role="dialog"
       style="display: block;"
       tabindex="-1"
@@ -154,7 +154,7 @@ exports[`RHS view should render correctly 1`] = `
               </div>
             </div>
             <div
-              class="sc-dlMDgC dEUhfl"
+              class="sc-dlMDgC fWGLyT"
             >
               <button
                 class="sc-kEqXSa cwanGm mm-button "
@@ -201,7 +201,7 @@ exports[`RHS view should render correctly 1`] = `
             </span>
           </h5>
           <button
-            class="sc-kEqXSa eNdikz mm-button p-0 lh-16"
+            class="sc-kEqXSa fSZMRH mm-button p-0 lh-16"
             width="fit-content"
           >
             Disconnect
@@ -242,7 +242,7 @@ exports[`RHS view should render correctly 1`] = `
         </h5>
       </div>
       <button
-        class="sc-kEqXSa fqyUZN mm-button snackbar__close"
+        class="sc-kEqXSa bjmVZZ mm-button snackbar__close"
         width="fit-content"
       >
         <span

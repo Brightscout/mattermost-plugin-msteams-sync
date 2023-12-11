@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Warning Channel Should render correctly 1`] = `
+exports[`Warning Card component Should render correctly 1`] = `
 {
   "asFragment": [Function],
   "baseElement": <body>

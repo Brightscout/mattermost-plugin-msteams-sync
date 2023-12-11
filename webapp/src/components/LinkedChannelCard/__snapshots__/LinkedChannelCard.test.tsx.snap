@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Linked Channel Card Should render correctly 1`] = `
+exports[`Linked Channel Card component Should render correctly 1`] = `
 {
   "asFragment": [Function],
   "baseElement": <body>
