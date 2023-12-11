@@ -10,3 +10,7 @@ type UnlinkChannelParams = {
 type SearchLinkedChannelParams = PaginationQueryParams & {
     search?: string;
 }
+
+type SearchMSChannelsParams = SearchLinkedChannelParams & {
+    teamId: string;
+}

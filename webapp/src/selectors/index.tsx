@@ -1,4 +1,4 @@
-import {ApiRequestCompletionState, ConnectedState, DialogState, ReduxState, SnackbarState} from 'types/common/store.d';
+import {ApiRequestCompletionState, ConnectedState, DialogState, ModalState, ReduxState, SnackbarState} from 'types/common/store.d';
 
 const getPluginState = (state: ReduxState) => state['plugins-com.mattermost.msteams-sync'];
 
@@ -11,3 +11,7 @@ export const getSnackbarState = (state: ReduxState): SnackbarState => getPluginS
 export const getDialogState = (state: ReduxState): DialogState => getPluginState(state).dialogSlice;
 
 export const getIsRhsLoading = (state: ReduxState): {isRhsLoading: boolean} => getPluginState(state).rhsLoadingSlice;
+
+export const getCurrentTeam = (state: ReduxState): string => state.entities.teams.currentTeamId;
+
+export const getLinkModalState = (state: ReduxState): ModalState => getPluginState(state).linkModalSlice;
