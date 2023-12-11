@@ -22,11 +22,8 @@ const App = (): JSX.Element => {
     const {makeApiRequestWithCompletionStatus, getApiState} = usePluginApi();
 
     useEffect(() => {
-        const linkedChannelsParams: SearchLinkedChannelParams = {page: defaultPage, per_page: defaultPerPage};
-
         makeApiRequestWithCompletionStatus(pluginApiServiceConfigs.whitelistUser.apiServiceName);
         makeApiRequestWithCompletionStatus(pluginApiServiceConfigs.needsConnect.apiServiceName);
-        makeApiRequestWithCompletionStatus(pluginApiServiceConfigs.getLinkedChannels.apiServiceName, linkedChannelsParams);
     }, []);
 
     const {data: needsConnectData, isLoading} = getApiState(pluginApiServiceConfigs.needsConnect.apiServiceName);
