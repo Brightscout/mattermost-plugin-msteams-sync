@@ -107,7 +107,7 @@ export const Rhs = () => {
         makeApiRequestWithCompletionStatus(pluginApiServiceConfigs.getLinkedChannels.apiServiceName, linkedChannelsParams);
     }, [paginationQueryParams]);
 
-    // Update connected reducer and show alert on successful connection of the user
+    // Update connected state and show alert on successful connection of the user
     useEffect(() => {
         if (connected && !isAlreadyConnected) {
             showAlert({message: 'Your account is connected successfully.', severity: 'default'});
@@ -261,19 +261,21 @@ export const Rhs = () => {
                         </>}
                     </div>
                 )}
-                {/* State when user is conected and linked channels are present. */}
+                {/* State when user is connected and linked channels are present. */}
                 {((Boolean(totalLinkedChannels.length) || isLoading || searchLinkedChannelsText || previousState?.searchLinkedChannelsText) && !firstRender) && (
                     <>
-                        <h4 className='font-16 lh-24 my-0 p-20 wt-600'>{channelListTitle}</h4>
-                        <div className='p-20 pt-0 my-0'>
-                            <Input
-                                iconName='MagnifyingGlass'
-                                label='Search for a channel'
-                                fullWidth={true}
-                                value={searchLinkedChannelsText}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchLinkedChannelsText(e.target.value)}
-                                onClose={() => setSearchLinkedChannelsText('')}
-                            />
+                        <div className='lh-24 p-20 d-flex flex-column gap-16'>
+                            <h4 className='font-16 my-0 wt-600'>{channelListTitle}</h4>
+                            <div>
+                                <Input
+                                    iconName='MagnifyingGlass'
+                                    label='Search for a channel'
+                                    fullWidth={true}
+                                    value={searchLinkedChannelsText}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchLinkedChannelsText(e.target.value)}
+                                    onClose={() => setSearchLinkedChannelsText('')}
+                                />
+                            </div>
                         </div>
                         {/* Show a spinner while searching for a specific linked channel. */}
                         {isLoading && !paginationQueryParams.page ? (

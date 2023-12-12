@@ -17,18 +17,18 @@ export const LinkedChannelCard = ({msTeamsChannelName, msTeamsTeamName, mattermo
         </div>
         <div className='d-flex flex-column gap-6 msteams-linked-channel__body'>
             <div className='d-flex gap-8 align-items-center'>
-                {mattermostChannelType === MMConstants.PRIVATE_CHANNEL ? <Icon iconName='lock'/> : <Icon iconName='globe'/>}
+                <Icon iconName={mattermostChannelType === MMConstants.PRIVATE_CHANNEL ? 'lock' : 'globe'}/>
                 <Tooltip
                     placement='left'
                     text={mattermostChannelName}
                 >
-                    <h5 className='my-0 msteams-linked-channel__body-values'>{mattermostChannelName}</h5>
+                    <h5 className='my-0 msteams-linked-channel__entity-label'>{mattermostChannelName}</h5>
                 </Tooltip>
                 <Tooltip
                     placement='left'
                     text={mattermostTeamName}
                 >
-                    <h5 className='my-0 opacity-6 msteams-linked-channel__body-values'>{mattermostTeamName}</h5>
+                    <h5 className='my-0 opacity-6 msteams-linked-channel__entity-label'>{mattermostTeamName}</h5>
                 </Tooltip>
             </div>
             <div className='d-flex gap-8 align-items-center'>
@@ -37,13 +37,13 @@ export const LinkedChannelCard = ({msTeamsChannelName, msTeamsTeamName, mattermo
                     placement='left'
                     text={msTeamsChannelName}
                 >
-                    <h5 className='my-0 msteams-linked-channel__body-values'>{msTeamsChannelName}</h5>
+                    <h5 className='my-0 msteams-linked-channel__entity-label'>{msTeamsChannelName}</h5>
                 </Tooltip>
                 <Tooltip
                     placement='left'
                     text={msTeamsTeamName}
                 >
-                    <h5 className='my-0 opacity-6 msteams-linked-channel__body-values'>{msTeamsTeamName}</h5>
+                    <h5 className='my-0 opacity-6 msteams-linked-channel__entity-label'>{msTeamsTeamName}</h5>
                 </Tooltip>
             </div>
         </div>
