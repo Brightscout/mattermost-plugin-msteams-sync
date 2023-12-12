@@ -1,23 +1,34 @@
 import React, {useEffect} from 'react';
+import {Action, Store} from 'redux';
 import {useDispatch} from 'react-redux';
 
+// eslint-disable-next-line import/no-unresolved
+import {PluginRegistry} from 'types/mattermost-webapp';
+
+import {GlobalState} from 'mattermost-redux/types/store';
+
+import {RhsTitle} from 'components';
+
+import {pluginApiServiceConfigs} from 'constants/apiService.constant';
+import {defaultPage, defaultPerPage, pluginTitle} from 'constants/common.constants';
+import {iconUrl} from 'constants/illustrations.constants';
+
+import {Rhs} from 'containers';
+
+import useApiRequestCompletionState from 'hooks/useApiRequestCompletionState';
 import usePluginApi from 'hooks/usePluginApi';
 
-//global styles
-import {pluginApiServiceConfigs} from 'constants/apiService.constant';
-import useApiRequestCompletionState from 'hooks/useApiRequestCompletionState';
-
 import {setConnected} from 'reducers/connectedState';
-import {defaultPage, defaultPerPage} from 'constants/common.constants';
 import {setIsRhsLoading} from 'reducers/spinner';
 
+// global styles
 import 'styles/main.scss';
 
 /**
  * This is the main App component for the plugin
  * @returns {JSX.Element}
  */
-const App = (): JSX.Element => {
+const App = ({registry, store}:{registry: PluginRegistry, store: Store<GlobalState, Action<Record<string, unknown>>>}): JSX.Element => {
     const dispatch = useDispatch();
     const {makeApiRequestWithCompletionStatus, getApiState} = usePluginApi();
 
@@ -35,11 +46,33 @@ const App = (): JSX.Element => {
         dispatch(setIsRhsLoading(isLoading));
     }, [isLoading]);
 
+    const {data: whitelistUserData} = getApiState(pluginApiServiceConfigs.whitelistUser.apiServiceName);
+
     useApiRequestCompletionState({
         serviceName: pluginApiServiceConfigs.needsConnect.apiServiceName,
         handleSuccess: () => {
             const data = needsConnectData as NeedsConnectData;
             dispatch(setConnected({connected: data.connected, username: data.username, msteamsUserId: data.msteamsUserId, isAlreadyConnected: data.connected}));
+        },
+    });
+
+    useApiRequestCompletionState({
+        serviceName: pluginApiServiceConfigs.whitelistUser.apiServiceName,
+        handleSuccess: () => {
+            const {presentInWhitelist} = whitelistUserData as WhitelistUserResponse;
+            if (presentInWhitelist) {
+                const {_, toggleRHSPlugin} = registry.registerRightHandSidebarComponent(Rhs, <RhsTitle/>);
+                registry.registerChannelHeaderButtonAction(
+                    <img
+                        width={24}
+                        height={24}
+                        src={iconUrl}
+                        style={{filter: 'grayscale(1)'}}
+                    />, () => store.dispatch(toggleRHSPlugin), null, pluginTitle);
+                if (registry.registerAppBarComponent) {
+                    registry.registerAppBarComponent(iconUrl, () => store.dispatch(toggleRHSPlugin), pluginTitle);
+                }
+            }
         },
     });
 
