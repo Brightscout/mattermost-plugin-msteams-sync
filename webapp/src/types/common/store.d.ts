@@ -7,6 +7,7 @@ import {DialogProps} from '@brightscout/mattermost-ui-library';
 import {ModalProps} from '@brightscout/mattermost-ui-library/build/components/Modal';
 
 import {SnackbarColor} from 'components/Snackbar/Snackbar.types';
+import {IconName} from 'components';
 
 type PluginState = RootState<{ [x: string]: QueryDefinition<void, BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError, {}, FetchBaseQueryMeta>, never, void, 'msTeamsPluginApi'>; }, never, 'msTeamsPluginApi'>
 
@@ -37,7 +38,7 @@ type SnackbarState = {
 
 type SnackbarActionPayload = Pick<SnackbarState, 'message' | 'severity'>;
 
-type DialogState = Pick<DialogProps, 'destructive' | 'description' | 'show' | 'primaryButtonText' | 'title'> & {
+type DialogState = Pick<DialogProps, 'destructive' | 'description' | 'show' | 'primaryButtonText' | 'secondaryButtonText' | 'title'> & {
     isLoading?: boolean
 }
 
