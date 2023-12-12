@@ -4,9 +4,9 @@ import {useDispatch} from 'react-redux';
 
 import {Button, Input, Spinner} from '@brightscout/mattermost-ui-library';
 
-import {Icon, IconName, LinkedChannelCard, Snackbar, WarningCard} from 'components';
+import {Dialog, Icon, IconName, LinkChannelModal, LinkedChannelCard, Snackbar, WarningCard} from 'components';
 import {pluginApiServiceConfigs} from 'constants/apiService.constant';
-import {debounceFunctionTimeLimit, defaultPage, defaultPerPage} from 'constants/common.constants';
+import {DialogsIds, debounceFunctionTimeLimit, defaultPage, defaultPerPage} from 'constants/common.constants';
 import Constants from 'constants/connectAccount.constants';
 import {channelListTitle, noMoreChannelsText} from 'constants/linkedChannels.constants';
 import useApiRequestCompletionState from 'hooks/useApiRequestCompletionState';
@@ -14,11 +14,13 @@ import useAlert from 'hooks/useAlert';
 import useDialog from 'hooks/useDialog';
 import usePluginApi from 'hooks/usePluginApi';
 import usePreviousState from 'hooks/usePreviousState';
-import {getConnectedState, getIsRhsLoading, getSnackbarState} from 'selectors';
+import {getConnectedState, getIsRhsLoading, getLinkModalState, getRefetchState, getSnackbarState} from 'selectors';
 import {setConnected} from 'reducers/connectedState';
 import utils from 'utils';
 
 import './Rhs.styles.scss';
+import {hideLinkModal, showLinkModal} from 'reducers/linkModal';
+import {resetRefetch} from 'reducers/refetchState';
 
 export const Rhs = () => {
     const {makeApiRequestWithCompletionStatus, getApiState, state} = usePluginApi();
@@ -67,16 +69,13 @@ export const Rhs = () => {
     ), [totalLinkedChannels]);
 
     // Show disconnect dialog component
-    const {DialogComponent, showDialog, hideDialog} = useDialog({
-        onSubmitHandler: disconnectUser,
-        onCloseHandler: () => {
-            hideDialog();
-        },
-    });
+    const {DialogComponent, showDialog, hideDialog} = useDialog(DialogsIds.disconnect);
 
     const {isRhsLoading} = getIsRhsLoading(state);
     const {isOpen} = getSnackbarState(state);
+    const {refetch} = getRefetchState(state);
     const {data} = getApiState(pluginApiServiceConfigs.whitelistUser.apiServiceName);
+
     const {presentInWhitelist} = data as WhitelistUserResponse;
     const {data: linkedChannels, isLoading} = getApiState(pluginApiServiceConfigs.getLinkedChannels.apiServiceName, getLinkedChannelsParams as SearchLinkedChannelParams);
 
@@ -148,6 +147,13 @@ export const Rhs = () => {
             hideDialog();
         },
     });
+
+    useEffect(() => {
+        if (refetch) {
+            resetStates();
+            dispatch(resetRefetch());
+        }
+    }, [refetch]);
 
     // Get different states of rhs
     const getRhsView = useCallback(() => {
@@ -236,7 +242,10 @@ export const Rhs = () => {
                                 })}
                             >{'Disconnect'}</Button>
                         </div>
-                        <DialogComponent/>
+                        <DialogComponent
+                            onSubmitHandler={disconnectUser}
+                            onCloseHandler={hideDialog}
+                        />
                     </div>
                 ) : (
                     <div className='p-20 d-flex flex-column gap-20'>
@@ -255,16 +264,28 @@ export const Rhs = () => {
                 {/* State when user is connected, but no linked channels are present. */}
                 {!totalLinkedChannels.length && !isLoading && !searchLinkedChannelsText && !previousState?.searchLinkedChannelsText && (
                     <div className='d-flex align-items-center justify-center flex-1 flex-column px-40'>
-                        {<>
-                            <Icon iconName='noChannels'/>
-                            <h3 className='my-0 lh-28 wt-600 text-center'>{'There are no linked channels yet'}</h3>
-                        </>}
+                        <Icon iconName='noChannels'/>
+                        <h3 className='my-0 lh-28 wt-600 text-center'>{'There are no linked channels yet'}</h3>
+                        <Button
+                            className='mt-16'
+                            onClick={() => dispatch(showLinkModal())}
+                        >{'Link a Channel'}</Button>
                     </div>
                 )}
                 {/* State when user is conected and linked channels are present. */}
                 {((Boolean(totalLinkedChannels.length) || isLoading || searchLinkedChannelsText || previousState?.searchLinkedChannelsText) && !firstRender) && (
                     <>
-                        <h4 className='font-16 lh-24 my-0 p-20 wt-600'>{channelListTitle}</h4>
+                        <div className='d-flex justify-between align-items-center p-20'>
+                            <h4 className='font-16 lh-24 my-0 wt-600'>{channelListTitle}</h4>
+                            {/* TODO: Replace with Add icon after ui lib version bump */}
+                            {connected && (
+                                <Button
+                                    iconName='Unlink'
+                                    size='sm'
+                                    onClick={() => dispatch(showLinkModal())}
+                                >{'Add'}</Button>
+                            )}
+                        </div>
                         <div className='p-20 pt-0 my-0'>
                             <Input
                                 iconName='MagnifyingGlass'
@@ -322,6 +343,7 @@ export const Rhs = () => {
                     getRhsView() : 'MS Teams Sync plugin'
             }
             {isOpen && <Snackbar/>}
+            {<LinkChannelModal onClose={() => dispatch(hideLinkModal())}/>}
         </>
     );
 };

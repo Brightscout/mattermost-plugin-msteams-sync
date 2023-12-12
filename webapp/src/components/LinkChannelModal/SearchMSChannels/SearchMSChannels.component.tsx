@@ -75,6 +75,10 @@ export const SearchMSChannels = ({setChannel, teamId}: SearchMSChannelProps) => 
                     suggestions.push({
                         label: channel.DisplayName,
                         value: channel.ID,
+                        secondaryLabel: channel.ID,
+
+                        // TODO: Replace with msteams icon
+                        icon: 'Pin',
                     });
                 }
                 setSearchSuggestions(suggestions);
@@ -83,8 +87,6 @@ export const SearchMSChannels = ({setChannel, teamId}: SearchMSChannelProps) => 
         },
         handleError: () => {
             dispatch(setLinkModalLoading(false));
-
-            // TODO: Handle this error
         },
     });
 
@@ -98,6 +100,7 @@ export const SearchMSChannels = ({setChannel, teamId}: SearchMSChannelProps) => 
                 searchValue={searchTerm}
                 setSearchValue={handleSearch}
                 onClearInput={handleClearInput}
+                secondaryLabelPosition='inline'
                 optionsLoading={searchSuggestionsLoading}
                 disabled={!teamId}
             />

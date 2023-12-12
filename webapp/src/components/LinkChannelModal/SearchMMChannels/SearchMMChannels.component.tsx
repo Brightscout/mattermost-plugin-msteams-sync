@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
 
 import {Client4} from 'mattermost-redux/client';
+import {channels as MMChannelTypes} from 'mattermost-redux/types';
 
 import {ListItemType, MMSearch} from '@brightscout/mattermost-ui-library';
 
@@ -14,6 +15,9 @@ import {debounceFunctionTimeLimit} from 'constants/common.constants';
 
 import {setLinkModalLoading} from 'reducers/linkModal';
 
+import usePluginApi from 'hooks/usePluginApi';
+import {getCurrentTeam} from 'selectors';
+
 import {SearchMMChannelProps} from './SearchMMChannels.types';
 
 export const SearchMMChannels = ({
@@ -21,7 +25,9 @@ export const SearchMMChannels = ({
     teamId,
 }: SearchMMChannelProps) => {
     const dispatch = useDispatch();
+    const {state} = usePluginApi();
     const [searchTerm, setSearchTerm] = useState<string>('');
+    const {teams} = getCurrentTeam(state);
 
     const [searchSuggestions, setSearchSuggestions] = useState<ListItemType[]>([]);
     const [suggestionsLoading, setSuggestionsLoading] = useState<boolean>(false);
@@ -34,20 +40,21 @@ export const SearchMMChannels = ({
         if (searchFor && teamId) {
             setSuggestionsLoading(true);
             dispatch(setLinkModalLoading(true));
-            Client4.autocompleteChannelsForSearch(teamId, searchFor).
+            Client4.searchAllChannels(searchFor).
                 then((channels) => {
-                    const suggestions = [];
-                    for (const channel of channels) {
+                    const suggestions:ListItemType[] = [];
+                    for (const channel of channels as MMChannelTypes.Channel[]) {
                         suggestions.push({
                             label: channel.display_name,
                             value: channel.id,
+                            secondaryLabel: teams[channel.team_id].display_name,
+                            icon: channel.type === 'P' ? 'Lock' : 'Globe',
                         });
                     }
                     setSearchSuggestions(suggestions);
                     setSuggestionsLoading(false);
                     dispatch(setLinkModalLoading(false));
                 }).catch((err) => {
-                // TODO: Handle error here
                     setSuggestionsLoading(false);
                     dispatch(setLinkModalLoading(true));
                 });
@@ -90,6 +97,7 @@ export const SearchMMChannels = ({
                 fullWidth={true}
                 label='Search Mattermost channels'
                 items={searchSuggestions}
+                secondaryLabelPosition='inline'
                 onSelect={handleChannelSelect}
                 searchValue={searchTerm}
                 setSearchValue={handleSearch}

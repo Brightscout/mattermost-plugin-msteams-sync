@@ -35,4 +35,9 @@ export const pluginApiServiceConfigs: Record<PluginApiServiceName, PluginApiServ
         method: 'GET',
         apiServiceName: 'searchMSChannels',
     },
+    linkChannels: {
+        path: '/link-channels',
+        method: 'POST',
+        apiServiceName: 'linkChannels',
+    },
 };

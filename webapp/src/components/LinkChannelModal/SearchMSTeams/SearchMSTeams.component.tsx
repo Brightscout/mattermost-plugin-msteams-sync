@@ -68,6 +68,9 @@ export const SearchMSTeams = ({setMsTeam}: {setMsTeam: React.Dispatch<React.SetS
                     suggestions.push({
                         label: team.DisplayName,
                         value: team.ID,
+
+                        // TODO: Replace with msteams icon
+                        icon: 'Pin',
                     });
                 }
                 setSearchSuggestions(suggestions);

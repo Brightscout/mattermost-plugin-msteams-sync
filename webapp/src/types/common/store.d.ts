@@ -39,10 +39,19 @@ type SnackbarState = {
 type SnackbarActionPayload = Pick<SnackbarState, 'message' | 'severity'>;
 
 type DialogState = Pick<DialogProps, 'destructive' | 'description' | 'show' | 'primaryButtonText' | 'secondaryButtonText' | 'title'> & {
-    isLoading?: boolean
+    isLoading?: boolean,
+}
+
+type AppDialogs = {
+    dialogId: string;
+    state: DialogState;
 }
 
 type ModalState = {
     show?: boolean;
     isLoading?: boolean;
 }
+
+type RefetchState = {
+    refetch: boolean;
+};

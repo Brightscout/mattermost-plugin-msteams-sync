@@ -1,32 +1,21 @@
 import {PayloadAction, createSlice} from '@reduxjs/toolkit';
 
-import {DialogState} from 'types/common/store.d';
+import {AppDialogs, DialogState} from 'types/common/store.d';
 
-const initialState: DialogState = {
-    description: '',
-    destructive: false,
-    show: false,
-    primaryButtonText: '',
-    secondaryButtonText: '',
-    isLoading: false,
-    title: '',
-};
+const initialState: Record<string, DialogState> = {};
 
 export const dialogSlice = createSlice({
     name: 'dialogSlice',
     initialState,
     reducers: {
-        showDialog: (state, {payload}: PayloadAction<DialogState>) => {
-            state.show = true;
-            state.description = payload.description;
-            state.destructive = payload.destructive;
-            state.isLoading = payload.isLoading;
-            state.primaryButtonText = payload.primaryButtonText;
-            state.secondaryButtonText = payload.secondaryButtonText;
-            state.title = payload.title;
+        showDialog: (state, {payload}: PayloadAction<AppDialogs>) => {
+            state[payload.dialogId] = {
+                show: true,
+                ...payload.state,
+            };
         },
-        closeDialog: (state) => {
-            state.show = false;
+        closeDialog: (state, {payload}: PayloadAction<string>) => {
+            state[payload].show = false;
         },
 
     },

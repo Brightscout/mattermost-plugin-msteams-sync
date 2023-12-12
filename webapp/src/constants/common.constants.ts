@@ -8,8 +8,6 @@ export const defaultPage = 0;
 
 export const defaultPerPage = 20;
 
-export const debounceFunctionTimeLimit = 500;
-
 // Severity used in alert component
 export const alertSeverity: Record<SnackbarColor, SnackbarColor> = {
     success: 'success',
@@ -20,3 +18,8 @@ export const alertSeverity: Record<SnackbarColor, SnackbarColor> = {
 export const alertTimeout = 4000;
 
 export const debounceFunctionTimeLimit = 300;
+
+export const DialogsIds = {
+    retryLink: 'dialog-retry-link',
+    disconnect: 'dialog-disconnect',
+};

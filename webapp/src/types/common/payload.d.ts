@@ -14,3 +14,11 @@ type SearchLinkedChannelParams = PaginationQueryParams & {
 type SearchMSChannelsParams = SearchLinkedChannelParams & {
     teamId: string;
 }
+
+type LinkChannelsPayload = {
+    mattermostTeamID: string,
+    mattermostChannelID: string,
+    msTeamsTeamID: string,
+    msTeamsChannelID: string,
+}
+
