@@ -892,7 +892,7 @@ func (a *API) getConnectedUsersFile(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (a *API) rhsEnabled(w http.ResponseWriter, r *http.Request) {
+func (a *API) rhsEnabled(w http.ResponseWriter, _ *http.Request) {
 	response := map[string]bool{
 		"rhsEnabled": a.p.getConfiguration().EnableRHS,
 	}
