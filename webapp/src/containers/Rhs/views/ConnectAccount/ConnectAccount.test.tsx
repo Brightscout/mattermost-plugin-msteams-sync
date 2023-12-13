@@ -14,17 +14,17 @@ describe('Connect Account View', () => {
         tree = render(<ConnectAccount/>);
     });
 
-    it('should render correctly', () => {
+    it('Should render correctly', () => {
         expect(tree).toMatchSnapshot();
     });
 
-    it('should render connect account button', () => {
+    it('Should render connect account button', () => {
         const connectButton = tree.getByText('Connect Account');
 
         expect(connectButton).toBeVisible();
     });
 
-    it('should dispatch an action when button is clicked', async () => {
+    it('Should dispatch an action when button is clicked', async () => {
         const connectButton = tree.getByText('Connect Account');
 
         await userEvent.click(connectButton);

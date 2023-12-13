@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Linked Channels View should render correctly 1`] = `
+exports[`Linked Channels View Should render correctly 1`] = `
 {
   "asFragment": [Function],
   "baseElement": <body>

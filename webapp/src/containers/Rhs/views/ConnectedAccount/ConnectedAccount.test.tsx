@@ -20,16 +20,16 @@ describe('Connected Account View', () => {
         tree = render(<ConnectedAccount/>);
     });
 
-    it('should render correctly', () => {
+    it('Should render correctly', () => {
         expect(tree).toMatchSnapshot();
     });
 
-    it('should render disconnect account button', () => {
+    it('Should render disconnect account button', () => {
         const disconnectButton = tree.getByText('Disconnect');
         expect(disconnectButton).toBeVisible();
     });
 
-    it('should display the name of connected user correctly', () => {
+    it('Should display the name of connected user correctly', () => {
         const usernameContainer = tree.getByText('Connected as');
         const username = tree.getByText(getConnectedState(mockTestState as ReduxState).username);
 
@@ -37,7 +37,7 @@ describe('Connected Account View', () => {
         expect(username).toBeVisible();
     });
 
-    it('should dispatch action on clicking disconnect', async () => {
+    it('Should dispatch action on clicking disconnect', async () => {
         const disconnectButton = tree.getByText('Disconnect');
 
         await userEvent.click(disconnectButton);
