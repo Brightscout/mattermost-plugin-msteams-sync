@@ -10,10 +10,10 @@ export const pluginApiServiceConfigs: Record<PluginApiServiceName, PluginApiServ
         method: 'GET',
         apiServiceName: 'needsConnect',
     },
-    whitelistUser: {
-        path: '/whitelist-user',
+    rhsEnabled: {
+        path: '/rhs-enabled',
         method: 'GET',
-        apiServiceName: 'whitelistUser',
+        apiServiceName: 'rhsEnabled',
     },
     getLinkedChannels: {
         path: '/linked-channels',

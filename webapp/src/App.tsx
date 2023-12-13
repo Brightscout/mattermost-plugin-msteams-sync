@@ -7,7 +7,7 @@ import {GlobalState} from 'mattermost-redux/types/store';
 import {RhsTitle} from 'components';
 
 import {pluginApiServiceConfigs} from 'constants/apiService.constant';
-import {defaultPage, defaultPerPage, pluginTitle} from 'constants/common.constants';
+import {defaultPage, defaultPerPage, pluginTitle, rhsButtonId} from 'constants/common.constants';
 import {iconUrl} from 'constants/illustrations.constants';
 
 import {Rhs} from 'containers';
@@ -28,11 +28,10 @@ import 'styles/main.scss';
 const App = ({registry, store}:{registry: PluginRegistry, store: Store<GlobalState, Action<Record<string, unknown>>>}): JSX.Element => {
     const dispatch = useDispatch();
     const {makeApiRequestWithCompletionStatus, getApiState} = usePluginApi();
-
     useEffect(() => {
         const linkedChannelsParams: SearchLinkedChannelParams = {page: defaultPage, per_page: defaultPerPage};
 
-        makeApiRequestWithCompletionStatus(pluginApiServiceConfigs.whitelistUser.apiServiceName);
+        makeApiRequestWithCompletionStatus(pluginApiServiceConfigs.rhsEnabled.apiServiceName);
         makeApiRequestWithCompletionStatus(pluginApiServiceConfigs.needsConnect.apiServiceName);
         makeApiRequestWithCompletionStatus(pluginApiServiceConfigs.getLinkedChannels.apiServiceName, linkedChannelsParams);
     }, []);
@@ -43,7 +42,7 @@ const App = ({registry, store}:{registry: PluginRegistry, store: Store<GlobalSta
         dispatch(setIsRhsLoading(isLoading));
     }, [isLoading]);
 
-    const {data: whitelistUserData} = getApiState(pluginApiServiceConfigs.whitelistUser.apiServiceName);
+    const {data: rhsEnabledData} = getApiState(pluginApiServiceConfigs.rhsEnabled.apiServiceName);
 
     useApiRequestCompletionState({
         serviceName: pluginApiServiceConfigs.needsConnect.apiServiceName,
@@ -54,14 +53,21 @@ const App = ({registry, store}:{registry: PluginRegistry, store: Store<GlobalSta
     });
 
     useApiRequestCompletionState({
-        serviceName: pluginApiServiceConfigs.whitelistUser.apiServiceName,
+        serviceName: pluginApiServiceConfigs.rhsEnabled.apiServiceName,
         handleSuccess: () => {
-            const {presentInWhitelist} = whitelistUserData as WhitelistUserResponse;
+            const {rhsEnabled} = rhsEnabledData as RhsEnabledResponse;
+            const rhsButtonData = localStorage.getItem(rhsButtonId);
+            if (rhsButtonData) {
+                const data = JSON.parse(rhsButtonData);
+                registry.unregisterComponent(data.headerId);
+                registry.unregisterComponent(data.appBarId);
+                localStorage.removeItem(rhsButtonId);
+            }
 
-            // Register the channel header button and app bar if the user is a whitelist user
-            if (presentInWhitelist) {
+            if (rhsEnabled) {
+                let appBarId;
                 const {_, toggleRHSPlugin} = registry.registerRightHandSidebarComponent(Rhs, <RhsTitle/>);
-                registry.registerChannelHeaderButtonAction(
+                const headerId = registry.registerChannelHeaderButtonAction(
                     <img
                         width={24}
                         height={24}
@@ -70,8 +76,12 @@ const App = ({registry, store}:{registry: PluginRegistry, store: Store<GlobalSta
                     />, () => store.dispatch(toggleRHSPlugin), null, pluginTitle);
 
                 if (registry.registerAppBarComponent) {
-                    registry.registerAppBarComponent(iconUrl, () => store.dispatch(toggleRHSPlugin), pluginTitle);
+                    appBarId = registry.registerAppBarComponent(iconUrl, () => store.dispatch(toggleRHSPlugin), pluginTitle);
                 }
+                localStorage.setItem(rhsButtonId, JSON.stringify({
+                    headerId,
+                    appBarId,
+                }));
             }
         },
     });

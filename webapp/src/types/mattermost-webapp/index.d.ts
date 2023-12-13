@@ -7,6 +7,7 @@ interface PluginRegistry {
     registerAppBarComponent(iconUrl: string, action: () => void, tooltipText: string)
     registerReducer(reducer)
     registerWebSocketEventHandler(event: string, handler: (msg: WebsocketEventParams) => void)
+    unregisterComponent(id: string)
 
     // Add more if needed from https://developers.mattermost.com/extend/plugins/webapp/reference
 }
