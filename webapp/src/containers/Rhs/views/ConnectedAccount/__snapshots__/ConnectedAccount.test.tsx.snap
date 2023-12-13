@@ -1,0 +1,216 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Connected Account View Should render correctly 1`] = `
+{
+  "asFragment": [Function],
+  "baseElement": <body
+    class="modal-open"
+    style="padding-right: 0px;"
+  >
+    <div
+      aria-hidden="true"
+    >
+      <div
+        class="flex-1 msteams-sync-rhs d-flex flex-column"
+      >
+        <div
+          class="py-12 px-20 border-y-1 d-flex gap-8"
+        >
+          <div
+            style="height: 32px; width: 32px; border-radius: 50%;"
+          >
+            <img
+              src="http://localhost/plugins/com.mattermost.msteams-sync/avatar/mock_msteams_user_id"
+              style="border-radius: 50%;"
+            />
+          </div>
+          <div>
+            <h5
+              class="my-0 font-12 lh-16"
+            >
+              Connected as 
+              <span
+                class="wt-600"
+              >
+                John Doe
+              </span>
+            </h5>
+            <button
+              class="sc-kEqXSa fSZMRH mm-button p-0 lh-16"
+              width="fit-content"
+            >
+              Disconnect
+            </button>
+          </div>
+        </div>
+        <div
+          class="d-flex align-items-center justify-center flex-1 flex-column px-40"
+        />
+      </div>
+    </div>
+    <div
+      class="fade modal-backdrop show"
+    />
+    <div
+      aria-modal="true"
+      class="fade sc-fFSPTT eBIuuG mm-dialog disconnect-dialog modal show"
+      role="dialog"
+      style="display: block;"
+      tabindex="-1"
+    >
+      <div
+        class="modal-dialog"
+      >
+        <div
+          class="modal-content"
+        >
+          <div
+            class="sc-bkbkJK cHKkeq"
+          >
+            <h2
+              class="sc-dIvrsQ iMFmGO"
+            >
+              mockTitle
+            </h2>
+            <button
+              class="sc-fKgJPI dGklgm"
+            >
+              <div
+                class="sc-bdnxRM dOvjAb mm-icon"
+                size="20"
+              >
+                <reactcomponent />
+              </div>
+            </button>
+          </div>
+          <div
+            class="sc-iemWCZ lnrLZX"
+          >
+            
+            <div
+              class="sc-bCwfaz fFyvgR"
+            >
+              <div
+                class="mm-linearProgress  linear_loader  progress"
+              >
+                <div
+                  aria-valuemax="100"
+                  aria-valuemin="0"
+                  class="progress-bar"
+                  role="progressbar"
+                />
+              </div>
+            </div>
+            <div
+              class="sc-dlMDgC fWGLyT"
+            >
+              <button
+                class="sc-kEqXSa cwanGm mm-button "
+                width="fit-content"
+              >
+                Close
+              </button>
+              
+            </div>
+          </div>
+          <div
+            class="sc-kfYoZR gFGGdr"
+          />
+        </div>
+      </div>
+    </div>
+  </body>,
+  "container": <div
+    aria-hidden="true"
+  >
+    <div
+      class="flex-1 msteams-sync-rhs d-flex flex-column"
+    >
+      <div
+        class="py-12 px-20 border-y-1 d-flex gap-8"
+      >
+        <div
+          style="height: 32px; width: 32px; border-radius: 50%;"
+        >
+          <img
+            src="http://localhost/plugins/com.mattermost.msteams-sync/avatar/mock_msteams_user_id"
+            style="border-radius: 50%;"
+          />
+        </div>
+        <div>
+          <h5
+            class="my-0 font-12 lh-16"
+          >
+            Connected as 
+            <span
+              class="wt-600"
+            >
+              John Doe
+            </span>
+          </h5>
+          <button
+            class="sc-kEqXSa fSZMRH mm-button p-0 lh-16"
+            width="fit-content"
+          >
+            Disconnect
+          </button>
+        </div>
+      </div>
+      <div
+        class="d-flex align-items-center justify-center flex-1 flex-column px-40"
+      />
+    </div>
+  </div>,
+  "debug": [Function],
+  "findAllByAltText": [Function],
+  "findAllByDisplayValue": [Function],
+  "findAllByLabelText": [Function],
+  "findAllByPlaceholderText": [Function],
+  "findAllByRole": [Function],
+  "findAllByTestId": [Function],
+  "findAllByText": [Function],
+  "findAllByTitle": [Function],
+  "findByAltText": [Function],
+  "findByDisplayValue": [Function],
+  "findByLabelText": [Function],
+  "findByPlaceholderText": [Function],
+  "findByRole": [Function],
+  "findByTestId": [Function],
+  "findByText": [Function],
+  "findByTitle": [Function],
+  "getAllByAltText": [Function],
+  "getAllByDisplayValue": [Function],
+  "getAllByLabelText": [Function],
+  "getAllByPlaceholderText": [Function],
+  "getAllByRole": [Function],
+  "getAllByTestId": [Function],
+  "getAllByText": [Function],
+  "getAllByTitle": [Function],
+  "getByAltText": [Function],
+  "getByDisplayValue": [Function],
+  "getByLabelText": [Function],
+  "getByPlaceholderText": [Function],
+  "getByRole": [Function],
+  "getByTestId": [Function],
+  "getByText": [Function],
+  "getByTitle": [Function],
+  "queryAllByAltText": [Function],
+  "queryAllByDisplayValue": [Function],
+  "queryAllByLabelText": [Function],
+  "queryAllByPlaceholderText": [Function],
+  "queryAllByRole": [Function],
+  "queryAllByTestId": [Function],
+  "queryAllByText": [Function],
+  "queryAllByTitle": [Function],
+  "queryByAltText": [Function],
+  "queryByDisplayValue": [Function],
+  "queryByLabelText": [Function],
+  "queryByPlaceholderText": [Function],
+  "queryByRole": [Function],
+  "queryByTestId": [Function],
+  "queryByText": [Function],
+  "queryByTitle": [Function],
+  "rerender": [Function],
+  "unmount": [Function],
+}
+`;
