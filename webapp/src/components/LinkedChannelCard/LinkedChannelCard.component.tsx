@@ -8,7 +8,7 @@ import {Icon} from 'components/Icon';
 import {pluginApiServiceConfigs} from 'constants/apiService.constant';
 import usePluginApi from 'hooks/usePluginApi';
 import useApiRequestCompletionState from 'hooks/useApiRequestCompletionState';
-import {showAlert} from 'reducers/snackbar';
+import useAlert from 'hooks/useAlert';
 import {refetch} from 'reducers/refetchState';
 
 import {LinkedChannelCardProps} from './LinkedChannelCard.types';
@@ -24,6 +24,7 @@ export const LinkedChannelCard = ({msTeamsChannelName, msTeamsTeamName, mattermo
 
     const {makeApiRequestWithCompletionStatus, getApiState} = usePluginApi();
     const dispatch = useDispatch();
+    const showAlert = useAlert();
 
     const {isLoading} = getApiState(pluginApiServiceConfigs.unlinkChannel.apiServiceName, unlinkChannelParams as UnlinkChannelParams);
 
