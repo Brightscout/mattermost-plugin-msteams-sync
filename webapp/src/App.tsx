@@ -57,6 +57,7 @@ const App = ({registry, store}:{registry: PluginRegistry, store: Store<GlobalSta
         serviceName: pluginApiServiceConfigs.whitelistUser.apiServiceName,
         handleSuccess: () => {
             const {presentInWhitelist} = whitelistUserData as WhitelistUserResponse;
+
             // Register the channel header button and app bar if the user is a whitelist user
             if (presentInWhitelist) {
                 const {_, toggleRHSPlugin} = registry.registerRightHandSidebarComponent(Rhs, <RhsTitle/>);
