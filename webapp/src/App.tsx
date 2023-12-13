@@ -68,6 +68,7 @@ const App = ({registry, store}:{registry: PluginRegistry, store: Store<GlobalSta
                         src={iconUrl}
                         style={{filter: 'grayscale(1)'}}
                     />, () => store.dispatch(toggleRHSPlugin), null, pluginTitle);
+
                 if (registry.registerAppBarComponent) {
                     registry.registerAppBarComponent(iconUrl, () => store.dispatch(toggleRHSPlugin), pluginTitle);
                 }
