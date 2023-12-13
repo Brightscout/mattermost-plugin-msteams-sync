@@ -36,7 +36,7 @@ exports[`Linked Channel Card component Should render correctly 1`] = `
           </span>
         </div>
         <div
-          class="d-flex flex-column gap-6"
+          class="d-flex flex-column gap-6 msteams-linked-channel__body"
         >
           <div
             class="d-flex gap-8 align-items-center"
@@ -59,12 +59,12 @@ exports[`Linked Channel Card component Should render correctly 1`] = `
               </svg>
             </span>
             <h5
-              class="my-0"
+              class="my-0 msteams-linked-channel__entity-label"
             >
               mockMattermostChannelName
             </h5>
             <h5
-              class="my-0 opacity-6"
+              class="my-0 opacity-6 msteams-linked-channel__entity-label"
             >
               mockMattermostTeamName
             </h5>
@@ -163,12 +163,12 @@ exports[`Linked Channel Card component Should render correctly 1`] = `
               </svg>
             </span>
             <h5
-              class="my-0"
+              class="my-0 msteams-linked-channel__entity-label"
             >
               mockMSTeamsChannelName
             </h5>
             <h5
-              class="my-0 opacity-6"
+              class="my-0 opacity-6 msteams-linked-channel__entity-label"
             >
               mockMSTeamsTeamName
             </h5>
@@ -209,7 +209,7 @@ exports[`Linked Channel Card component Should render correctly 1`] = `
         </span>
       </div>
       <div
-        class="d-flex flex-column gap-6"
+        class="d-flex flex-column gap-6 msteams-linked-channel__body"
       >
         <div
           class="d-flex gap-8 align-items-center"
@@ -232,12 +232,12 @@ exports[`Linked Channel Card component Should render correctly 1`] = `
             </svg>
           </span>
           <h5
-            class="my-0"
+            class="my-0 msteams-linked-channel__entity-label"
           >
             mockMattermostChannelName
           </h5>
           <h5
-            class="my-0 opacity-6"
+            class="my-0 opacity-6 msteams-linked-channel__entity-label"
           >
             mockMattermostTeamName
           </h5>
@@ -336,12 +336,12 @@ exports[`Linked Channel Card component Should render correctly 1`] = `
             </svg>
           </span>
           <h5
-            class="my-0"
+            class="my-0 msteams-linked-channel__entity-label"
           >
             mockMSTeamsChannelName
           </h5>
           <h5
-            class="my-0 opacity-6"
+            class="my-0 opacity-6 msteams-linked-channel__entity-label"
           >
             mockMSTeamsTeamName
           </h5>
