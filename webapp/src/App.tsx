@@ -57,6 +57,8 @@ const App = ({registry, store}:{registry: PluginRegistry, store: Store<GlobalSta
         handleSuccess: () => {
             const {rhsEnabled} = rhsEnabledData as RhsEnabledResponse;
             const rhsButtonData = localStorage.getItem(rhsButtonId);
+
+            // Unregister registered components and remove data present in the local storage.
             if (rhsButtonData) {
                 const data = JSON.parse(rhsButtonData);
                 registry.unregisterComponent(data.headerId);
@@ -64,6 +66,7 @@ const App = ({registry, store}:{registry: PluginRegistry, store: Store<GlobalSta
                 localStorage.removeItem(rhsButtonId);
             }
 
+            // Register the right hand sidebar component, channel header button and app bar if the rhs is enabled.
             if (rhsEnabled) {
                 let appBarId;
                 const {_, toggleRHSPlugin} = registry.registerRightHandSidebarComponent(Rhs, <RhsTitle/>);
@@ -78,6 +81,12 @@ const App = ({registry, store}:{registry: PluginRegistry, store: Store<GlobalSta
                 if (registry.registerAppBarComponent) {
                     appBarId = registry.registerAppBarComponent(iconUrl, () => store.dispatch(toggleRHSPlugin), pluginTitle);
                 }
+
+                /**
+                 * Store data in local storage to avoid extra registration of the above components.
+                 * This was needed as on the load of the app, the plugin re-registers the above components, and multiple rhs buttons were becoming visible.
+                 * We avoid this by keeping registered component id in local storage, unregistering on the load of the plugin (if registered previously), and registering them again.
+                */
                 localStorage.setItem(rhsButtonId, JSON.stringify({
                     headerId,
                     appBarId,
