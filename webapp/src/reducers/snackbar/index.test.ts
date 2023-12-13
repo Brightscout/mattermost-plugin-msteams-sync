@@ -11,11 +11,11 @@ const initialState: SnackbarState = {
 };
 
 describe('Snackbar state reducer', () => {
-    it('should return the initial state', () => {
+    it('Should return the initial state', () => {
         expect(reducer(initialState, {} as Action)).toEqual(initialState);
     });
 
-    it('should handle `showAlert`', () => {
+    it('Should handle `showAlert`', () => {
         const expectedState: SnackbarState = {isOpen: true, message: 'Custom Message', severity: 'error'};
 
         expect(reducer(initialState, showAlert({
@@ -24,7 +24,7 @@ describe('Snackbar state reducer', () => {
         }))).toEqual(expectedState);
     });
 
-    it('should handle `closeAlert`', () => {
+    it('Should handle `closeAlert`', () => {
         const expectedState: SnackbarState = {...initialState, isOpen: false};
 
         expect(reducer({...initialState, isOpen: true}, closeAlert())).toEqual(expectedState);

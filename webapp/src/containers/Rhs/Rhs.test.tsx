@@ -11,11 +11,11 @@ describe('RHS view', () => {
         tree = render(<Rhs/>);
     });
 
-    it('should render correctly', () => {
+    it('Should render correctly', () => {
         expect(tree).toMatchSnapshot();
     });
 
-    it('should render disconnect account button', () => {
+    it('Should render disconnect account button', () => {
         const disconnectButton = tree.getByText('Disconnect');
         expect(disconnectButton).toBeVisible();
     });

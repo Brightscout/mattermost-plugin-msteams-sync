@@ -14,17 +14,17 @@ const initialState: DialogState = {
 };
 
 describe('Dialog State reducer', () => {
-    it('should return the initial state', () => {
+    it('Should return the initial state', () => {
         expect(reducer({}, {} as Action)).toEqual({});
     });
 
-    it('should handle `showDialog`', () => {
+    it('Should handle `showDialog`', () => {
         const expectedState: DialogState = {show: true, description: 'description', primaryButtonText: 'Done', title: 'Title'};
 
         expect(reducer(initialState, showDialog({show: true, description: 'description', primaryButtonText: 'Done', title: 'Title'}))).toEqual(expectedState);
     });
 
-    it('should handle `closeDialog`', () => {
+    it('Should handle `closeDialog`', () => {
         const expectedState: DialogState = {...initialState, show: false};
 
         expect(reducer({...initialState, show: true}, closeDialog())).toEqual(expectedState);

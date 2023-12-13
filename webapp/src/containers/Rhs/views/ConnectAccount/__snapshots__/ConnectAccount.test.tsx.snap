@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Connect Account View should render correctly 1`] = `
+exports[`Connect Account View Should render correctly 1`] = `
 {
   "asFragment": [Function],
   "baseElement": <body>

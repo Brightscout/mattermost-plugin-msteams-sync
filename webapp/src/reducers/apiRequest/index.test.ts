@@ -9,17 +9,17 @@ const initialState: ApiRequestCompletionState = {
 };
 
 describe('API request completion reducer', () => {
-    it('should return the initial state', () => {
+    it('Should return the initial state', () => {
         expect(reducer(initialState, {} as Action)).toEqual(initialState);
     });
 
-    it('should handle `setApiRequestCompletionState`', () => {
+    it('Should handle `setApiRequestCompletionState`', () => {
         const expectedState: ApiRequestCompletionState = {requests: ['getLinkedChannels']};
 
         expect(reducer(initialState, setApiRequestCompletionState('getLinkedChannels'))).toEqual(expectedState);
     });
 
-    it('should handle `resetApiRequestCompletionState`', () => {
+    it('Should handle `resetApiRequestCompletionState`', () => {
         const expectedState: ApiRequestCompletionState = {requests: ['connect', 'getLinkedChannels']};
 
         expect(reducer({requests: ['connect', 'getLinkedChannels', 'disconnectUser']}, resetApiRequestCompletionState('disconnectUser'))).toEqual(expectedState);

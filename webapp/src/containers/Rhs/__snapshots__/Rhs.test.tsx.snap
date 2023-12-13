@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`RHS view should render correctly 1`] = `
+exports[`RHS view Should render correctly 1`] = `
 {
   "asFragment": [Function],
   "baseElement": <body

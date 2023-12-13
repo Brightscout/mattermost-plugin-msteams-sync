@@ -7,11 +7,11 @@ const initialState: {isRhsLoading: boolean} = {
 };
 
 describe('Spinner state reducer', () => {
-    it('should return the initial state', () => {
+    it('Should return the initial state', () => {
         expect(reducer(initialState, {} as Action)).toEqual(initialState);
     });
 
-    it('should handle `setIsRhsLoading`', () => {
+    it('Should handle `setIsRhsLoading`', () => {
         const expectedState: {isRhsLoading: boolean} = {isRhsLoading: true};
 
         expect(reducer(initialState, setIsRhsLoading(true))).toEqual(expectedState);

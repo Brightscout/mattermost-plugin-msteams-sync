@@ -12,11 +12,11 @@ const initialState: ConnectedState = {
 };
 
 describe('Connected State reducer', () => {
-    it('should return the initial state', () => {
+    it('Should return the initial state', () => {
         expect(reducer(initialState, {} as Action)).toEqual(initialState);
     });
 
-    it('should handle `setConnected`', () => {
+    it('Should handle `setConnected`', () => {
         const expectedState: ConnectedState = {...initialState, connected: true, username: 'john doe', msteamsUserId: '1234'};
 
         expect(reducer(initialState, setConnected({connected: true, username: 'john doe', msteamsUserId: '1234', isAlreadyConnected: false}))).toEqual(expectedState);
