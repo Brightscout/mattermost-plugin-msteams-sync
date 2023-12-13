@@ -2,25 +2,24 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import {useDispatch} from 'react-redux';
 
-import {Button, Input, Spinner} from '@brightscout/mattermost-ui-library';
+import {Button, Input, Spinner, Dialog, LinearProgress} from '@brightscout/mattermost-ui-library';
 
-import {Dialog, Icon, IconName, LinkChannelModal, LinkedChannelCard, Snackbar, WarningCard} from 'components';
+import {Icon, IconName, LinkChannelModal, LinkedChannelCard, Snackbar, WarningCard} from 'components';
 import {pluginApiServiceConfigs} from 'constants/apiService.constant';
-import {DialogsIds, debounceFunctionTimeLimit, defaultPage, defaultPerPage} from 'constants/common.constants';
+import {debounceFunctionTimeLimit, defaultPage, defaultPerPage} from 'constants/common.constants';
 import Constants from 'constants/connectAccount.constants';
 import {channelListTitle, noMoreChannelsText} from 'constants/linkedChannels.constants';
 import useApiRequestCompletionState from 'hooks/useApiRequestCompletionState';
 import useAlert from 'hooks/useAlert';
-import useDialog from 'hooks/useDialog';
 import usePluginApi from 'hooks/usePluginApi';
 import usePreviousState from 'hooks/usePreviousState';
 import {getConnectedState, getIsRhsLoading, getLinkModalState, getRefetchState, getSnackbarState} from 'selectors';
 import {setConnected} from 'reducers/connectedState';
+import {hideLinkModal, showLinkModal} from 'reducers/linkModal';
+import {resetRefetch} from 'reducers/refetchState';
 import utils from 'utils';
 
 import './Rhs.styles.scss';
-import {hideLinkModal, showLinkModal} from 'reducers/linkModal';
-import {resetRefetch} from 'reducers/refetchState';
 
 export const Rhs = () => {
     const {makeApiRequestWithCompletionStatus, getApiState, state} = usePluginApi();
@@ -69,7 +68,7 @@ export const Rhs = () => {
     ), [totalLinkedChannels]);
 
     // Show disconnect dialog component
-    const {DialogComponent, showDialog, hideDialog} = useDialog(DialogsIds.disconnect);
+    const [showDisconnectDialog, setShowDisconnectDialog] = useState(false);
 
     const {isRhsLoading} = getIsRhsLoading(state);
     const {isOpen} = getSnackbarState(state);
@@ -78,6 +77,7 @@ export const Rhs = () => {
 
     const {presentInWhitelist} = data as WhitelistUserResponse;
     const {data: linkedChannels, isLoading} = getApiState(pluginApiServiceConfigs.getLinkedChannels.apiServiceName, getLinkedChannelsParams as SearchLinkedChannelParams);
+    const {isLoading: isUserDisconnectingLoading} = getApiState(pluginApiServiceConfigs.disconnectUser.apiServiceName);
 
     // Handle searching of linked channels with debounce
     useEffect(() => {
@@ -133,7 +133,7 @@ export const Rhs = () => {
         serviceName: pluginApiServiceConfigs.disconnectUser.apiServiceName,
         handleSuccess: () => {
             dispatch(setConnected({connected: false, username: '', msteamsUserId: '', isAlreadyConnected: false}));
-            hideDialog();
+            setShowDisconnectDialog(false);
             showAlert({
                 message: 'Your account has been disconnected.',
                 severity: 'default',
@@ -144,7 +144,7 @@ export const Rhs = () => {
                 message: 'Error occurred while disconnecting the user.',
                 severity: 'error',
             });
-            hideDialog();
+            setShowDisconnectDialog(false);
         },
     });
 
@@ -232,20 +232,9 @@ export const Rhs = () => {
                                 size='sm'
                                 variant='text'
                                 className='p-0 lh-16'
-                                onClick={() => showDialog({
-                                    destructive: true,
-                                    primaryButtonText: 'Disconnect',
-                                    secondaryButtonText: 'Cancel',
-                                    description: 'Are you sure you want to disconnect your Microsoft Teams Account? You will no longer be able to send and receive messages to Microsoft Teams users from Mattermost.',
-                                    isLoading: false,
-                                    title: 'Disconnect Microsoft Teams Account',
-                                })}
+                                onClick={() => setShowDisconnectDialog(true)}
                             >{'Disconnect'}</Button>
                         </div>
-                        <DialogComponent
-                            onSubmitHandler={disconnectUser}
-                            onCloseHandler={hideDialog}
-                        />
                     </div>
                 ) : (
                     <div className='p-20 d-flex flex-column gap-20'>
@@ -332,9 +321,21 @@ export const Rhs = () => {
                         )}
                     </>
                 )}
+                <Dialog
+                    show={showDisconnectDialog}
+                    destructive={true}
+                    primaryButtonText='Disconnect'
+                    secondaryButtonText='Cancel'
+                    description='Are you sure you want to disconnect your Microsoft Teams Account? You will no longer be able to send and receive messages to Microsoft Teams users from Mattermost.'
+                    title='Disconnect Microsoft Teams Account'
+                    onSubmitHandler={disconnectUser}
+                    onCloseHandler={() => setShowDisconnectDialog(false)}
+                >
+                    {isUserDisconnectingLoading && <LinearProgress/>}
+                </Dialog>
             </div>
         );
-    }, [connected, isRhsLoading, isLoading, totalLinkedChannels, firstRender, searchLinkedChannelsText]);
+    }, [connected, isRhsLoading, isLoading, totalLinkedChannels, firstRender, searchLinkedChannelsText, showDisconnectDialog]);
 
     return (
         <>

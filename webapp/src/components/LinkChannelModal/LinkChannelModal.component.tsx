@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 
-import {LinearProgress, Modal} from '@brightscout/mattermost-ui-library';
+import {LinearProgress, Modal, Dialog} from '@brightscout/mattermost-ui-library';
 
 import {useDispatch} from 'react-redux';
 
@@ -15,10 +15,6 @@ import useAlert from 'hooks/useAlert';
 
 import {refetch} from 'reducers/refetchState';
 
-import useDialog from 'hooks/useDialog';
-
-import {DialogsIds} from 'constants/common.constants';
-
 import {SearchMSChannels} from './SearchMSChannels';
 import {SearchMSTeams} from './SearchMSTeams';
 import {SearchMMChannels} from './SearchMMChannels';
@@ -29,6 +25,9 @@ export const LinkChannelModal = ({onClose}: {onClose: () => void}) => {
     const {state, makeApiRequestWithCompletionStatus} = usePluginApi();
     const {show = false, isLoading} = getLinkModalState(state);
     const {currentTeamId} = getCurrentTeam(state);
+
+    // Show retry dialog component
+    const [showRetryDialog, setShowRetryDialog] = useState(false);
 
     const [mMChannel, setMmChannel] = useState<Channel | null>(null);
     const [mSTeam, setMsTeam] = useState<MSTeamOrChannel | null>(null);
@@ -56,8 +55,6 @@ export const LinkChannelModal = ({onClose}: {onClose: () => void}) => {
         dispatch(setLinkModalLoading(true));
     };
 
-    const {DialogComponent, showDialog, hideDialog} = useDialog(DialogsIds.retryLink);
-
     useApiRequestCompletionState({
         serviceName: pluginApiServiceConfigs.linkChannels.apiServiceName,
         payload: linkChannelsPayload as LinkChannelsPayload,
@@ -73,12 +70,7 @@ export const LinkChannelModal = ({onClose}: {onClose: () => void}) => {
         handleError: () => {
             dispatch(setLinkModalLoading(false));
             handleModalClose(true);
-            showDialog({
-                title: 'Unable to link channels',
-                description: 'We were not able to link the selected channels. Please try again.',
-                primaryButtonText: 'Try Again',
-                secondaryButtonText: 'Cancel',
-            });
+            setShowRetryDialog(true);
         },
     });
 
@@ -108,14 +100,18 @@ export const LinkChannelModal = ({onClose}: {onClose: () => void}) => {
                     teamId={mSTeam?.ID}
                 />
             </Modal>
-            <DialogComponent
+            <Dialog
+                show={showRetryDialog}
+                destructive={true}
+                primaryButtonText='Try Again'
+                secondaryButtonText='Cancel'
+                description='We were not able to link the selected channels. Please try again.'
+                title='Unable to link channels'
                 onSubmitHandler={() => {
+                    setShowRetryDialog(false);
                     dispatch(showLinkModal());
-                    hideDialog();
                 }}
-                onCloseHandler={() => {
-                    hideDialog();
-                }}
+                onCloseHandler={() => setShowRetryDialog(false)}
             />
         </>
     );

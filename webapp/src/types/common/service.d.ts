@@ -1,6 +1,6 @@
 type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE';
 
-type PluginApiServiceName = 'needsConnect' | 'connect' | 'whitelistUser' | 'getLinkedChannels' | 'disconnectUser' | 'searchMSTeams' | 'searchMSChannels' | 'linkChannels';
+type PluginApiServiceName = 'needsConnect' | 'connect' | 'whitelistUser' | 'getLinkedChannels' | 'disconnectUser' | 'searchMSTeams' | 'searchMSChannels' | 'linkChannels' | 'unlinkChannel';
 
 type PluginApiService = {
     path: string,
@@ -13,4 +13,4 @@ type APIError = {
     message: string,
 }
 
-type APIRequestPayload = LinkChannelsPayload | SearchLinkedChannelParams | void;
+type APIRequestPayload = LinkChannelsPayload | SearchLinkedChannelParams | UnlinkChannelParams | void;
