@@ -1,4 +1,4 @@
-export interface PluginRegistry {
+interface PluginRegistry {
     registerPostTypeComponent(typeName: string, component: React.ElementType)
     registerRootComponent(component: React.ElementType)
     registerAdminConsoleCustomSetting(key: string, component: React.ElementType)

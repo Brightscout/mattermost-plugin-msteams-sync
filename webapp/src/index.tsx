@@ -13,8 +13,6 @@ import {handleConnect, handleDisconnect} from 'websocket';
 
 import manifest from './manifest';
 
-// eslint-disable-next-line import/no-unresolved
-import {PluginRegistry} from './types/mattermost-webapp';
 import App from './App';
 
 export default class Plugin {

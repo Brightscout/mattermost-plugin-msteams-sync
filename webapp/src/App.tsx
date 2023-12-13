@@ -2,9 +2,6 @@ import React, {useEffect} from 'react';
 import {Action, Store} from 'redux';
 import {useDispatch} from 'react-redux';
 
-// eslint-disable-next-line import/no-unresolved
-import {PluginRegistry} from 'types/mattermost-webapp';
-
 import {GlobalState} from 'mattermost-redux/types/store';
 
 import {RhsTitle} from 'components';
@@ -60,6 +57,7 @@ const App = ({registry, store}:{registry: PluginRegistry, store: Store<GlobalSta
         serviceName: pluginApiServiceConfigs.whitelistUser.apiServiceName,
         handleSuccess: () => {
             const {presentInWhitelist} = whitelistUserData as WhitelistUserResponse;
+            // Register the channel header button and app bar if the user is a whitelist user
             if (presentInWhitelist) {
                 const {_, toggleRHSPlugin} = registry.registerRightHandSidebarComponent(Rhs, <RhsTitle/>);
                 registry.registerChannelHeaderButtonAction(
