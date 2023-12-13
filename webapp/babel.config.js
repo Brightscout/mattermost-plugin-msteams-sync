@@ -7,8 +7,6 @@ const config = {
             targets: {
                 chrome: 66,
                 firefox: 60,
-                edge: 42,
-                safari: 12,
             },
             modules: false,
             corejs: 3,
@@ -39,6 +37,8 @@ config.env = {
         plugins: config.plugins,
     },
 };
+
+// Refer for more information: https://babeljs.io/docs/babel-preset-env#modules
 config.env.test.presets[0][1].modules = 'auto';
 
 module.exports = config;
