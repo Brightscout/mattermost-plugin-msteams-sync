@@ -6,7 +6,7 @@ import {Button, Input, Spinner} from '@brightscout/mattermost-ui-library';
 
 import {Icon, IconName, LinkedChannelCard, Snackbar, WarningCard} from 'components';
 import {pluginApiServiceConfigs} from 'constants/apiService.constant';
-import {debounceFunctionTimeLimit, defaultPage, defaultPerPage} from 'constants/common.constants';
+import {debounceSearchFunctionTimeLimitInMilliseconds, defaultPage, defaultPerPage} from 'constants/common.constants';
 import Constants from 'constants/connectAccount.constants';
 import {channelListTitle, noMoreChannelsText} from 'constants/linkedChannels.constants';
 import useApiRequestCompletionState from 'hooks/useApiRequestCompletionState';
@@ -40,10 +40,7 @@ export const Rhs = () => {
     const showAlert = useAlert();
 
     // Increase the page number by 1
-    const handlePagination = () => {
-        setPaginationQueryParams({...paginationQueryParams, page: paginationQueryParams.page + 1,
-        });
-    };
+    const handlePagination = () => setPaginationQueryParams({...paginationQueryParams, page: paginationQueryParams.page + 1});
 
     // Make api call to connect user account
     const connectAccount = useCallback(() => {
@@ -69,9 +66,7 @@ export const Rhs = () => {
     // Show disconnect dialog component
     const {DialogComponent, showDialog, hideDialog} = useDialog({
         onSubmitHandler: disconnectUser,
-        onCloseHandler: () => {
-            hideDialog();
-        },
+        onCloseHandler: () => hideDialog(),
     });
 
     const {isRhsLoading} = getIsRhsLoading(state);
@@ -88,7 +83,7 @@ export const Rhs = () => {
 
         const timer = setTimeout(() => {
             resetStates();
-        }, debounceFunctionTimeLimit);
+        }, debounceSearchFunctionTimeLimitInMilliseconds);
 
         /* eslint-disable consistent-return */
         return () => {
@@ -129,7 +124,7 @@ export const Rhs = () => {
         },
     });
 
-    // Disconnect user and show alerts on completion of the api to disconnect user
+    // Disconnect a user and show alerts on completion of the api to disconnect the user
     useApiRequestCompletionState({
         serviceName: pluginApiServiceConfigs.disconnectUser.apiServiceName,
         handleSuccess: () => {

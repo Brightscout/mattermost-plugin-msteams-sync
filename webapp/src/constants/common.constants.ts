@@ -8,7 +8,7 @@ export const defaultPage = 0;
 
 export const defaultPerPage = 20;
 
-export const debounceFunctionTimeLimit = 500;
+export const debounceSearchFunctionTimeLimitInMilliseconds = 500;
 
 // Severity used in alert component
 export const alertSeverity: Record<SnackbarColor, SnackbarColor> = {
