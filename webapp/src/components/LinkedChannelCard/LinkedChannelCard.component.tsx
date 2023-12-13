@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {Tooltip} from '@brightscout/mattermost-ui-library';
+import {Button, Icon as UILibIcon, Tooltip} from '@brightscout/mattermost-ui-library';
 
 import {General as MMConstants} from 'mattermost-redux/constants';
 
@@ -47,5 +47,14 @@ export const LinkedChannelCard = ({msTeamsChannelName, msTeamsTeamName, mattermo
                 </Tooltip>
             </div>
         </div>
+        <Button
+            variant='text'
+            className='msteams-linked-channel__unlink-icon'
+        >
+            <UILibIcon
+                name='Unlink'
+                size={16}
+            />
+        </Button>
     </div>
 );
