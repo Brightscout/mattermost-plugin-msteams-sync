@@ -13,12 +13,12 @@ import utils from 'utils';
 import {setLinkModalLoading} from 'reducers/linkModal';
 import {getLinkModalState} from 'selectors';
 
-export const SearchMSTeams = ({setMsTeam}: {setMsTeam: React.Dispatch<React.SetStateAction<MSTeamOrChannel | null>>}) => {
+export const SearchMSTeams = ({setMSTeam}: {setMSTeam: React.Dispatch<React.SetStateAction<MSTeamOrChannel | null>>}) => {
     const dispatch = useDispatch();
     const {makeApiRequestWithCompletionStatus, getApiState, state} = usePluginApi();
     const [searchTerm, setSearchTerm] = useState<string>('');
     const {msTeam} = getLinkModalState(state);
-    const [searchTeamsPayload, setSearchTeamsPayload] = useState<SearchLinkedChannelParams | null>(null);
+    const [searchTeamsPayload, setSearchTeamsPayload] = useState<SearchParams | null>(null);
     const [searchSuggestions, setSearchSuggestions] = useState<ListItemType[]>([]);
 
     useEffect(() => {
@@ -43,14 +43,14 @@ export const SearchMSTeams = ({setMsTeam}: {setMsTeam: React.Dispatch<React.SetS
     const handleSearch = (val: string) => {
         if (!val) {
             setSearchSuggestions([]);
-            setMsTeam(null);
+            setMSTeam(null);
         }
         setSearchTerm(val);
         debouncedSearchTeams({searchFor: val});
     };
 
     const handleTeamSelect = (_: any, option: ListItemType) => {
-        setMsTeam({
+        setMSTeam({
             ID: option.value,
             DisplayName: option.label as string,
         });
@@ -59,14 +59,14 @@ export const SearchMSTeams = ({setMsTeam}: {setMsTeam: React.Dispatch<React.SetS
 
     const handleClearInput = () => {
         setSearchTerm('');
-        setMsTeam(null);
+        setMSTeam(null);
         setSearchSuggestions([]);
     };
 
-    const {data: searchedTeams, isLoading: searchSuggestionsLoading} = getApiState(pluginApiServiceConfigs.searchMSTeams.apiServiceName, searchTeamsPayload as SearchLinkedChannelParams);
+    const {data: searchedTeams, isLoading: searchSuggestionsLoading} = getApiState(pluginApiServiceConfigs.searchMSTeams.apiServiceName, searchTeamsPayload as SearchParams);
     useApiRequestCompletionState({
         serviceName: pluginApiServiceConfigs.searchMSTeams.apiServiceName,
-        payload: searchTeamsPayload as SearchLinkedChannelParams,
+        payload: searchTeamsPayload as SearchParams,
         handleSuccess: () => {
             if (searchedTeams) {
                 const suggestions: ListItemType[] = [];
@@ -98,7 +98,7 @@ export const SearchMSTeams = ({setMsTeam}: {setMsTeam: React.Dispatch<React.SetS
             </div>
             <MMSearch
                 fullWidth={true}
-                label='Select a team in Microsoft Teams '
+                label='Select a team in Microsoft Teams'
                 items={searchSuggestions}
                 onSelect={handleTeamSelect}
                 searchValue={searchTerm}
