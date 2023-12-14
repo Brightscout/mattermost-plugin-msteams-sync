@@ -30,16 +30,16 @@ export const LinkChannelModal = ({onClose}: {onClose: () => void}) => {
     const {show = false, isLoading} = getLinkModalState(state);
     const {currentTeamId} = getCurrentTeam(state);
 
-    const [mMChannel, setMmChannel] = useState<Channel | null>(null);
-    const [mSTeam, setMsTeam] = useState<MSTeamOrChannel | null>(null);
-    const [mSChannel, setMsChannel] = useState<MSTeamOrChannel | null>(null);
+    const [mmChannel, setMMChannel] = useState<MMTeamOrChannel | null>(null);
+    const [msTeam, setMSTeam] = useState<MSTeamOrChannel | null>(null);
+    const [msChannel, setMSChannel] = useState<MSTeamOrChannel | null>(null);
     const [linkChannelsPayload, setLinkChannelsPayload] = useState<LinkChannelsPayload | null>(null);
 
     const handleModalClose = (preserveFields?: boolean) => {
         if (!preserveFields) {
-            setMmChannel(null);
-            setMsTeam(null);
-            setMsChannel(null);
+            setMMChannel(null);
+            setMSTeam(null);
+            setMSChannel(null);
         }
         onClose();
     };
@@ -47,9 +47,9 @@ export const LinkChannelModal = ({onClose}: {onClose: () => void}) => {
     const handleChannelLinking = () => {
         const payload: LinkChannelsPayload = {
             mattermostTeamID: currentTeamId || '',
-            mattermostChannelID: mMChannel?.id || '',
-            msTeamsTeamID: mSTeam?.ID || '',
-            msTeamsChannelID: mSChannel?.ID || '',
+            mattermostChannelID: mmChannel?.id || '',
+            msTeamsTeamID: msTeam?.ID || '',
+            msTeamsChannelID: msChannel?.ID || '',
         };
         setLinkChannelsPayload(payload);
         makeApiRequestWithCompletionStatus(pluginApiServiceConfigs.linkChannels.apiServiceName, payload);
@@ -88,24 +88,24 @@ export const LinkChannelModal = ({onClose}: {onClose: () => void}) => {
                 show={show}
                 className='msteams-sync-modal'
                 title='Link a channel'
-                subtitle='Link a channel in Mattermost with a channel in Microsoft Teams.'
+                subtitle='Link a channel in Mattermost with a channel in Microsoft Teams'
                 primaryActionText='Link Channels'
                 secondaryActionText='Cancel'
                 onFooterCloseHandler={() => handleModalClose(true)}
                 onHeaderCloseHandler={() => handleModalClose(true)}
-                isPrimaryButtonDisabled={!mMChannel || !mSChannel || !mSTeam}
+                isPrimaryButtonDisabled={!mmChannel || !msChannel || !msTeam}
                 onSubmitHandler={handleChannelLinking}
             >
                 {isLoading && <LinearProgress className='fixed w-full left-0 top-100'/>}
                 <SearchMMChannels
-                    setChannel={setMmChannel}
+                    setChannel={setMMChannel}
                     teamId={currentTeamId}
                 />
                 <hr className='w-full my-32'/>
-                <SearchMSTeams setMsTeam={setMsTeam}/>
+                <SearchMSTeams setMSTeam={setMSTeam}/>
                 <SearchMSChannels
-                    setChannel={setMsChannel}
-                    teamId={mSTeam?.ID}
+                    setChannel={setMSChannel}
+                    teamId={msTeam?.ID}
                 />
             </Modal>
             <DialogComponent

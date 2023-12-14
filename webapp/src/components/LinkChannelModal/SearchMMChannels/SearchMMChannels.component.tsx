@@ -56,7 +56,7 @@ export const SearchMMChannels = ({
                     dispatch(setLinkModalLoading(false));
                 }).catch((err) => {
                     setSuggestionsLoading(false);
-                    dispatch(setLinkModalLoading(true));
+                    dispatch(setLinkModalLoading(false));
                 });
         }
     };
