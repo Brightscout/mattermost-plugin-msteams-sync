@@ -14,11 +14,15 @@
     }
 
     &:hover {
-      cursor: pointer;
       background-color: var(--center-channel-color-08);
 
       .msteams-linked-channel__unlink-icon {
         display: flex;
+        cursor: pointer;
+
+        .mm-icon {
+          margin: 0 !important;
+        }
       }
     }
 

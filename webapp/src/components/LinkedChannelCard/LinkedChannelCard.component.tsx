@@ -49,6 +49,7 @@ export const LinkedChannelCard = ({msTeamsChannelName, msTeamsTeamName, mattermo
         </div>
         <Button
             variant='text'
+            aria-label='unlink channel'
             className='msteams-linked-channel__unlink-icon'
         >
             <UILibIcon
