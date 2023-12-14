@@ -1,6 +1,6 @@
 import {PayloadAction, createSlice} from '@reduxjs/toolkit';
 
-import {DialogState, ModalState} from 'types/common/store.d';
+import {ModalState} from 'types/common/store.d';
 
 const initialState: ModalState = {
     show: false,

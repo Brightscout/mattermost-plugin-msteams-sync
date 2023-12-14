@@ -2,9 +2,9 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import {useDispatch} from 'react-redux';
 
-import {Button, Input, Spinner, Dialog, LinearProgress} from '@brightscout/mattermost-ui-library';
+import {Button, Input, Spinner} from '@brightscout/mattermost-ui-library';
 
-import {Icon, IconName, LinkChannelModal, LinkedChannelCard, Snackbar, WarningCard} from 'components';
+import {Dialog, Icon, IconName, LinkChannelModal, LinkedChannelCard, Snackbar, WarningCard} from 'components';
 import {pluginApiServiceConfigs} from 'constants/apiService.constant';
 import {debounceFunctionTimeLimit, defaultPage, defaultPerPage} from 'constants/common.constants';
 import Constants from 'constants/connectAccount.constants';
@@ -77,7 +77,7 @@ export const Rhs = () => {
 
     const {presentInWhitelist} = data as WhitelistUserResponse;
     const {data: linkedChannels, isLoading} = getApiState(pluginApiServiceConfigs.getLinkedChannels.apiServiceName, getLinkedChannelsParams as SearchLinkedChannelParams);
-    const {isLoading: isUserDisconnectingLoading} = getApiState(pluginApiServiceConfigs.disconnectUser.apiServiceName);
+    const {isLoading: isUserDisconnecting} = getApiState(pluginApiServiceConfigs.disconnectUser.apiServiceName);
 
     // Handle searching of linked channels with debounce
     useEffect(() => {
@@ -326,12 +326,12 @@ export const Rhs = () => {
                     destructive={true}
                     primaryButtonText='Disconnect'
                     secondaryButtonText='Cancel'
-                    description='Are you sure you want to disconnect your Microsoft Teams Account? You will no longer be able to send and receive messages to Microsoft Teams users from Mattermost.'
                     title='Disconnect Microsoft Teams Account'
+                    isLoading={isUserDisconnecting}
                     onSubmitHandler={disconnectUser}
                     onCloseHandler={() => setShowDisconnectDialog(false)}
                 >
-                    {isUserDisconnectingLoading && <LinearProgress/>}
+                    {'Are you sure you want to disconnect your Microsoft Teams Account? You will no longer be able to send and receive messages to Microsoft Teams users from Mattermost.'}
                 </Dialog>
             </div>
         );

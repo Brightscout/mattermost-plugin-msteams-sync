@@ -1,10 +1,10 @@
 import React, {useState} from 'react';
 import {useDispatch} from 'react-redux';
 
-import {Button, Icon as UILibIcon, Tooltip, LinearProgress, Dialog} from '@brightscout/mattermost-ui-library';
+import {Button, Icon as UILibIcon, Tooltip} from '@brightscout/mattermost-ui-library';
 import {General as MMConstants} from 'mattermost-redux/constants';
 
-import {Icon} from 'components/Icon';
+import {Icon, Dialog} from 'components';
 import {pluginApiServiceConfigs} from 'constants/apiService.constant';
 import usePluginApi from 'hooks/usePluginApi';
 import useApiRequestCompletionState from 'hooks/useApiRequestCompletionState';
@@ -26,7 +26,7 @@ export const LinkedChannelCard = ({msTeamsChannelName, msTeamsTeamName, mattermo
     const dispatch = useDispatch();
     const showAlert = useAlert();
 
-    const {isLoading} = getApiState(pluginApiServiceConfigs.unlinkChannel.apiServiceName, unlinkChannelParams as UnlinkChannelParams);
+    const {isLoading: isUnlinkChannelsLoading} = getApiState(pluginApiServiceConfigs.unlinkChannel.apiServiceName, unlinkChannelParams as UnlinkChannelParams);
 
     const unlinkChannel = () => {
         if (unlinkChannelParams?.channelId) {
@@ -90,8 +90,7 @@ export const LinkedChannelCard = ({msTeamsChannelName, msTeamsTeamName, mattermo
                 onClick={() => {
                     setUnlinkChannelParams({channelId: mattermostChannelID});
                     setShowUnlinkDialog(true);
-                }
-                }
+                }}
                 className='msteams-linked-channel__unlink-icon'
             >
                 <UILibIcon
@@ -107,21 +106,22 @@ export const LinkedChannelCard = ({msTeamsChannelName, msTeamsTeamName, mattermo
                 secondaryButtonText='Cancel'
                 onSubmitHandler={unlinkChannel}
                 onCloseHandler={() => setShowUnlinkDialog(false)}
+                isLoading={isUnlinkChannelsLoading}
             >
-                {isLoading && <LinearProgress className='absolute w-full left-0 top-62'/>}
-                <span>{'Are you sure you want to unlink the '}<b>{mattermostChannelName}</b>{' and '} <b>{msTeamsChannelName}</b>{' channels? Messages will no longer by synced.'}</span>
+                <>{'Are you sure you want to unlink the '}<b>{mattermostChannelName}</b>{' and '} <b>{msTeamsChannelName}</b>{' channels? Messages will no longer be synced.'}</>
             </Dialog>
             <Dialog
                 show={showRetryDialog}
                 title='Unlink error'
                 destructive={true}
-                description='We were not able to unlink the selected channels. Please try again.'
                 primaryButtonText='Try Again'
                 secondaryButtonText='Cancel'
                 onSubmitHandler={unlinkChannel}
                 onCloseHandler={() => setShowRetryDialog(false)}
+                isLoading={isUnlinkChannelsLoading}
+
             >
-                {isLoading && <LinearProgress/>}
+                {'We were not able to unlink the selected channels. Please try again.'}
             </Dialog>
         </div>
     );

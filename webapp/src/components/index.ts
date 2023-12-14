@@ -4,3 +4,4 @@ export * from './WarningCard';
 export * from './LinkedChannelCard';
 export * from './Snackbar';
 export * from './LinkChannelModal';
+export * from './Dialog';

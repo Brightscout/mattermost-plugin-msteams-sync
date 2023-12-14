@@ -1,6 +1,6 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 
-import {LinearProgress, Modal, Dialog} from '@brightscout/mattermost-ui-library';
+import {LinearProgress, Modal} from '@brightscout/mattermost-ui-library';
 
 import {useDispatch} from 'react-redux';
 
@@ -8,6 +8,7 @@ import usePluginApi from 'hooks/usePluginApi';
 
 import {getCurrentTeam, getLinkModalState} from 'selectors';
 
+import {Dialog} from 'components/Dialog';
 import {pluginApiServiceConfigs} from 'constants/apiService.constant';
 import useApiRequestCompletionState from 'hooks/useApiRequestCompletionState';
 import {setLinkModalLoading, showLinkModal} from 'reducers/linkModal';
@@ -105,14 +106,15 @@ export const LinkChannelModal = ({onClose}: {onClose: () => void}) => {
                 destructive={true}
                 primaryButtonText='Try Again'
                 secondaryButtonText='Cancel'
-                description='We were not able to link the selected channels. Please try again.'
                 title='Unable to link channels'
                 onSubmitHandler={() => {
                     setShowRetryDialog(false);
                     dispatch(showLinkModal());
                 }}
                 onCloseHandler={() => setShowRetryDialog(false)}
-            />
+            >
+                {'We were not able to link the selected channels. Please try again.'}
+            </Dialog>
         </>
     );
 };
