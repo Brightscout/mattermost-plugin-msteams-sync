@@ -71,8 +71,6 @@ export const Rhs = () => {
 
     const {isRhsLoading} = getIsRhsLoading(state);
     const {isOpen} = getSnackbarState(state);
-    const {data} = getApiState(pluginApiServiceConfigs.whitelistUser.apiServiceName);
-    const {presentInWhitelist} = data as WhitelistUserResponse;
     const {data: linkedChannels, isLoading} = getApiState(pluginApiServiceConfigs.getLinkedChannels.apiServiceName, getLinkedChannelsParams as SearchLinkedChannelParams);
 
     // Handle searching of linked channels with debounce
@@ -149,8 +147,10 @@ export const Rhs = () => {
         // Show spinner in the rhs during loading
         if (isRhsLoading || (firstRender && isLoading)) {
             return (
-                <div className='absolute d-flex align-items-center justify-center w-full h-full'>
-                    <Spinner size='xl'/>
+                <div className='msteams-sync-utils'>
+                    <div className='absolute d-flex align-items-center justify-center w-full h-full'>
+                        <Spinner size='xl'/>
+                    </div>
                 </div>
             );
         }
@@ -314,10 +314,7 @@ export const Rhs = () => {
 
     return (
         <>
-            {
-                presentInWhitelist ?
-                    getRhsView() : 'MS Teams Sync plugin'
-            }
+            {getRhsView()}
             {isOpen && <Snackbar/>}
         </>
     );
