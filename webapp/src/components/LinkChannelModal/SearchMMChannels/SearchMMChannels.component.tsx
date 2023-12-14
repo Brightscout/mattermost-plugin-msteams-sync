@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 
 import {Client4} from 'mattermost-redux/client';
 import {channels as MMChannelTypes} from 'mattermost-redux/types';
+import {General as MMConstants} from 'mattermost-redux/constants';
 
 import {ListItemType, MMSearch} from '@brightscout/mattermost-ui-library';
 
@@ -37,7 +38,7 @@ export const SearchMMChannels = ({
     }, [teamId]);
 
     const searchChannels = ({searchFor}: {searchFor?: string}) => {
-        if (searchFor && teamId) {
+        if (searchFor) {
             setSuggestionsLoading(true);
             dispatch(setLinkModalLoading(true));
             Client4.searchAllChannels(searchFor).
@@ -48,7 +49,7 @@ export const SearchMMChannels = ({
                             label: channel.display_name,
                             value: channel.id,
                             secondaryLabel: teams[channel.team_id].display_name,
-                            icon: channel.type === 'P' ? 'Lock' : 'Globe',
+                            icon: channel.type === MMConstants.PRIVATE_CHANNEL ? 'Lock' : 'Globe',
                         });
                     }
                     setSearchSuggestions(suggestions);
