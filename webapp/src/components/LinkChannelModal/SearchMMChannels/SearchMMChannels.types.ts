@@ -1,4 +1,4 @@
 export type SearchMMChannelProps = {
-    setChannel: React.Dispatch<React.SetStateAction<Channel | null>>;
+    setChannel: React.Dispatch<React.SetStateAction<MMTeamOrChannel | null>>;
     teamId: string | null,
 }

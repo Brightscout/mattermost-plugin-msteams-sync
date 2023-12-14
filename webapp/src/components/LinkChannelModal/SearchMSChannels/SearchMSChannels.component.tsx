@@ -101,5 +101,6 @@ export const SearchMSChannels = ({setChannel, teamId}: SearchMSChannelProps) => 
                 optionsLoading={searchSuggestionsLoading}
                 disabled={!teamId}
             />
-        </div>);
+        </div>
+    );
 };

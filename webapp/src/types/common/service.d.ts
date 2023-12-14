@@ -13,4 +13,4 @@ type APIError = {
     message: string,
 }
 
-type APIRequestPayload = SearchLinkedChannelParams | void;
+type APIRequestPayload = SearchParams | void;

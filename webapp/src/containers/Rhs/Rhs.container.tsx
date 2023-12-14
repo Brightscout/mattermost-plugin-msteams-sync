@@ -29,7 +29,7 @@ export const Rhs = () => {
         page: defaultPage,
         per_page: defaultPerPage,
     });
-    const [getLinkedChannelsParams, setGetLinkedChannelsParams] = useState<SearchLinkedChannelParams | null>({...paginationQueryParams});
+    const [getLinkedChannelsParams, setGetLinkedChannelsParams] = useState<SearchParams | null>({...paginationQueryParams});
     const {connected, msteamsUserId, username, isAlreadyConnected} = getConnectedState(state);
     const [searchLinkedChannelsText, setSearchLinkedChannelsText] = useState('');
     const [firstRender, setFirstRender] = useState(true);
@@ -78,7 +78,7 @@ export const Rhs = () => {
     const {isOpen} = getSnackbarState(state);
     const {data} = getApiState(pluginApiServiceConfigs.whitelistUser.apiServiceName);
     const {presentInWhitelist} = data as WhitelistUserResponse;
-    const {data: linkedChannels, isLoading} = getApiState(pluginApiServiceConfigs.getLinkedChannels.apiServiceName, getLinkedChannelsParams as SearchLinkedChannelParams);
+    const {data: linkedChannels, isLoading} = getApiState(pluginApiServiceConfigs.getLinkedChannels.apiServiceName, getLinkedChannelsParams as SearchParams);
 
     // Handle searching of linked channels with debounce
     useEffect(() => {
@@ -98,7 +98,7 @@ export const Rhs = () => {
 
     // Make api call to get linked channels
     useEffect(() => {
-        const linkedChannelsParams: SearchLinkedChannelParams = {page: paginationQueryParams.page, per_page: paginationQueryParams.per_page};
+        const linkedChannelsParams: SearchParams = {page: paginationQueryParams.page, per_page: paginationQueryParams.per_page};
         if (searchLinkedChannelsText) {
             linkedChannelsParams.search = searchLinkedChannelsText;
         }
@@ -118,7 +118,7 @@ export const Rhs = () => {
     // Update total linked channels after completion of the api to get linked channels
     useApiRequestCompletionState({
         serviceName: pluginApiServiceConfigs.getLinkedChannels.apiServiceName,
-        payload: getLinkedChannelsParams as SearchLinkedChannelParams,
+        payload: getLinkedChannelsParams as SearchParams,
         handleSuccess: () => {
             if (linkedChannels) {
                 setTotalLinkedChannels([...totalLinkedChannels, ...(linkedChannels as ChannelLinkData[])]);

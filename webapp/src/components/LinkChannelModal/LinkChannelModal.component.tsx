@@ -14,14 +14,14 @@ export const LinkChannelModal = ({onClose}: {onClose: () => void}) => {
     const {state} = usePluginApi();
     const {show = false, isLoading} = getLinkModalState(state);
     const currentTeam = getCurrentTeam(state);
-    const [mMChannel, setMmChannel] = useState<Channel | null>(null);
-    const [mSTeam, setMsTeam] = useState<MSTeamOrChannel | null>(null);
-    const [mSChannel, setMsChannel] = useState<MSTeamOrChannel | null>(null);
+    const [mmChannel, setMMChannel] = useState<MMTeamOrChannel | null>(null);
+    const [msTeam, setMSTeam] = useState<MSTeamOrChannel | null>(null);
+    const [msChannel, setMSChannel] = useState<MSTeamOrChannel | null>(null);
 
     const handleModalClose = () => {
-        setMmChannel(null);
-        setMsTeam(null);
-        setMsChannel(null);
+        setMMChannel(null);
+        setMSTeam(null);
+        setMSChannel(null);
         onClose();
     };
 
@@ -29,26 +29,26 @@ export const LinkChannelModal = ({onClose}: {onClose: () => void}) => {
         <Modal
             show={show}
             title='Link a channel'
-            subtitle='Link a channel in Mattermost with a channel in Microsoft Teams.'
+            subtitle='Link a channel in Mattermost with a channel in Microsoft Teams'
             primaryActionText='Link Channels'
             secondaryActionText='Cancel'
             onFooterCloseHandler={handleModalClose}
             onHeaderCloseHandler={handleModalClose}
-            isPrimaryButtonDisabled={!mMChannel || !mSChannel || !mSTeam}
+            isPrimaryButtonDisabled={!mmChannel || !msChannel || !msTeam}
             onSubmitHandler={() => {
                 // TODO: handle channel linking
             }}
         >
             {isLoading && <LinearProgress className='fixed w-full left-0 top-100'/>}
             <SearchMMChannels
-                setChannel={setMmChannel}
+                setChannel={setMMChannel}
                 teamId={currentTeam}
             />
             <hr className='w-full my-32'/>
-            <SearchMSTeams setMsTeam={setMsTeam}/>
+            <SearchMSTeams setMSTeam={setMSTeam}/>
             <SearchMSChannels
-                setChannel={setMsChannel}
-                teamId={mSTeam?.ID}
+                setChannel={setMSChannel}
+                teamId={msTeam?.ID}
             />
         </Modal>
     );
