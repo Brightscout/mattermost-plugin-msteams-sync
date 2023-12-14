@@ -15,7 +15,7 @@ type WebsocketEventParams = {
     data: Record<string, string>,
 }
 
-type RhsEnabledResponse= {
+type ConfigResponse= {
     rhsEnabled: boolean
 }
 

@@ -1813,7 +1813,7 @@ func TestUnlinkChannels(t *testing.T) {
 	}
 }
 
-func TestRhsEnabled(t *testing.T) {
+func TestGetConfig(t *testing.T) {
 	for _, test := range []struct {
 		Name               string
 		SetupPlugin        func(*Plugin)
@@ -1842,7 +1842,7 @@ func TestRhsEnabled(t *testing.T) {
 			test.SetupPlugin(plugin)
 
 			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/rhs-enabled", nil)
+			r := httptest.NewRequest(http.MethodGet, "/config", nil)
 			r.Header.Add(HeaderMattermostUserID, testutils.GetUserID())
 			plugin.ServeHTTP(nil, w, r)
 

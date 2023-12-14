@@ -30,10 +30,10 @@ export const msTeamsPluginApi = createApi({
                 method: pluginApiServiceConfigs.connect.method,
             }),
         }),
-        [pluginApiServiceConfigs.rhsEnabled.apiServiceName]: builder.query<RhsEnabledResponse, APIRequestPayload>({
+        [pluginApiServiceConfigs.getConfig.apiServiceName]: builder.query<ConfigResponse, APIRequestPayload>({
             query: () => ({
-                url: pluginApiServiceConfigs.rhsEnabled.path,
-                method: pluginApiServiceConfigs.rhsEnabled.method,
+                url: pluginApiServiceConfigs.getConfig.path,
+                method: pluginApiServiceConfigs.getConfig.method,
             }),
         }),
         [pluginApiServiceConfigs.getLinkedChannels.apiServiceName]: builder.query<ChannelLinkData[], APIRequestPayload>({

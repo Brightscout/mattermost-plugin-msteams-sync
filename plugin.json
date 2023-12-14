@@ -175,7 +175,7 @@
             "key": "enableRhs",
             "display_name": "Enable RHS",
             "type": "bool",
-            "help_text": "When true, user will be able to view RHS (right hand sidebar).",
+            "help_text": "When true, users will be able to view RHS (right hand sidebar).",
             "default": false
         },{
             "key": "appManifestDownload",

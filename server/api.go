@@ -95,7 +95,7 @@ func NewAPI(p *Plugin, store store.Store) *API {
 	router.HandleFunc("/oauth-redirect", api.oauthRedirectHandler).Methods(http.MethodGet)
 	router.HandleFunc("/connected-users", api.getConnectedUsers).Methods(http.MethodGet)
 	router.HandleFunc("/connected-users/download", api.getConnectedUsersFile).Methods(http.MethodGet)
-	router.HandleFunc("/rhs-enabled", api.handleAuthRequired(api.rhsEnabled)).Methods(http.MethodGet)
+	router.HandleFunc("/config", api.handleAuthRequired(api.getConfig)).Methods(http.MethodGet)
 
 	channelsRouter.HandleFunc("/link", api.handleAuthRequired(api.checkUserConnected(api.linkChannels))).Methods(http.MethodPost)
 	channelsRouter.HandleFunc(fmt.Sprintf("/{%s}/unlink", PathParamChannelID), api.handleAuthRequired(api.unlinkChannels)).Methods(http.MethodDelete)
@@ -892,7 +892,7 @@ func (a *API) getConnectedUsersFile(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (a *API) rhsEnabled(w http.ResponseWriter, _ *http.Request) {
+func (a *API) getConfig(w http.ResponseWriter, _ *http.Request) {
 	response := map[string]bool{
 		"rhsEnabled": a.p.getConfiguration().EnableRHS,
 	}

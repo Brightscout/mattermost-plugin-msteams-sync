@@ -10,10 +10,10 @@ export const pluginApiServiceConfigs: Record<PluginApiServiceName, PluginApiServ
         method: 'GET',
         apiServiceName: 'needsConnect',
     },
-    rhsEnabled: {
-        path: '/rhs-enabled',
+    getConfig: {
+        path: '/config',
         method: 'GET',
-        apiServiceName: 'rhsEnabled',
+        apiServiceName: 'getConfig',
     },
     getLinkedChannels: {
         path: '/linked-channels',

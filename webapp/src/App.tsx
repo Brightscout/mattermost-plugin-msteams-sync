@@ -31,7 +31,7 @@ const App = ({registry, store}:{registry: PluginRegistry, store: Store<GlobalSta
     useEffect(() => {
         const linkedChannelsParams: SearchLinkedChannelParams = {page: defaultPage, per_page: defaultPerPage};
 
-        makeApiRequestWithCompletionStatus(pluginApiServiceConfigs.rhsEnabled.apiServiceName);
+        makeApiRequestWithCompletionStatus(pluginApiServiceConfigs.getConfig.apiServiceName);
         makeApiRequestWithCompletionStatus(pluginApiServiceConfigs.needsConnect.apiServiceName);
         makeApiRequestWithCompletionStatus(pluginApiServiceConfigs.getLinkedChannels.apiServiceName, linkedChannelsParams);
     }, []);
@@ -42,7 +42,7 @@ const App = ({registry, store}:{registry: PluginRegistry, store: Store<GlobalSta
         dispatch(setIsRhsLoading(isLoading));
     }, [isLoading]);
 
-    const {data: rhsEnabledData} = getApiState(pluginApiServiceConfigs.rhsEnabled.apiServiceName);
+    const {data: configData} = getApiState(pluginApiServiceConfigs.getConfig.apiServiceName);
 
     useApiRequestCompletionState({
         serviceName: pluginApiServiceConfigs.needsConnect.apiServiceName,
@@ -53,9 +53,9 @@ const App = ({registry, store}:{registry: PluginRegistry, store: Store<GlobalSta
     });
 
     useApiRequestCompletionState({
-        serviceName: pluginApiServiceConfigs.rhsEnabled.apiServiceName,
+        serviceName: pluginApiServiceConfigs.getConfig.apiServiceName,
         handleSuccess: () => {
-            const {rhsEnabled} = rhsEnabledData as RhsEnabledResponse;
+            const {rhsEnabled} = configData as ConfigResponse;
             const rhsButtonData = localStorage.getItem(rhsButtonId);
 
             // Unregister registered components and remove data present in the local storage.
