@@ -147,6 +147,12 @@ func (p *Plugin) ExecuteCommand(_ *plugin.Context, args *model.CommandArgs) (*mo
 }
 
 func (p *Plugin) executeLinkCommand(args *model.CommandArgs, parameters []string) (*model.CommandResponse, *model.AppError) {
+	client, err := p.GetClientForUser(args.UserId)
+	if err != nil {
+		p.API.LogError("Unable to get the client for user", "MMUserID", args.UserId, "Error", err.Error())
+		return p.cmdError(args.UserId, args.ChannelId, "Unable to link the channel, looks like your account is not connected to MS Teams")
+	}
+
 	if len(parameters) < 2 {
 		p.API.PublishWebSocketEvent(
 			"link_channels",
@@ -155,12 +161,6 @@ func (p *Plugin) executeLinkCommand(args *model.CommandArgs, parameters []string
 		)
 
 		return &model.CommandResponse{}, nil
-	}
-
-	client, err := p.GetClientForUser(args.UserId)
-	if err != nil {
-		p.API.LogError("Unable to get the client for user", "MMUserID", args.UserId, "Error", err.Error())
-		return p.cmdError(args.UserId, args.ChannelId, "Unable to link the channel, looks like your account is not connected to MS Teams")
 	}
 
 	p.sendBotEphemeralPost(args.UserId, args.ChannelId, commandWaitingMessage)

@@ -725,11 +725,18 @@ func TestExecuteLinkCommand(t *testing.T) {
 				api.On("GetChannel", testutils.GetChannelID()).Return(&model.Channel{
 					Type: model.ChannelTypeOpen,
 				}, nil).Times(1)
+				api.On("GetConfig").Return(&model.Config{
+					ServiceSettings: model.ServiceSettings{
+						SiteURL: model.NewString("/"),
+					},
+				}, nil).Times(1)
 				api.On("HasPermissionToChannel", testutils.GetUserID(), testutils.GetChannelID(), model.PermissionManageChannelRoles).Return(true).Times(1)
 				api.On("PublishWebSocketEvent", "link_channels", (map[string]interface{})(nil), &model.WebsocketBroadcast{UserId: testutils.GetUserID()}).Return().Once()
 				api.On("SendEphemeralPost", testutils.GetUserID(), testutils.GetEphemeralPost("bot-user-id", testutils.GetChannelID(), "Invalid link command, please pass the MS Teams team id and channel id as parameters.")).Return(testutils.GetPost(testutils.GetChannelID(), testutils.GetUserID(), time.Now().UnixMicro())).Times(1)
 			},
-			setupStore:   func(s *mockStore.Store) {},
+			setupStore: func(s *mockStore.Store) {
+				s.On("GetTokenForMattermostUser", testutils.GetUserID()).Return(&oauth2.Token{}, nil).Times(1)
+			},
 			setupClient:  func(c *mockClient.Client, uc *mockClient.Client) {},
 			setupMetrics: func(mockmetrics *mockMetrics.Metrics) {},
 		},
