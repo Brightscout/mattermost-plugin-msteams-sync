@@ -10,7 +10,7 @@ import {getCurrentTeam, getLinkModalState} from 'selectors';
 
 import {pluginApiServiceConfigs} from 'constants/apiService.constant';
 import useApiRequestCompletionState from 'hooks/useApiRequestCompletionState';
-import {setLinkModalLoading, showLinkModal} from 'reducers/linkModal';
+import {hideLinkModal, preserveState, resetState, setLinkModalLoading, showLinkModal} from 'reducers/linkModal';
 import useAlert from 'hooks/useAlert';
 
 import {refetch} from 'reducers/refetchState';
@@ -23,7 +23,7 @@ import {SearchMSChannels} from './SearchMSChannels';
 import {SearchMSTeams} from './SearchMSTeams';
 import {SearchMMChannels} from './SearchMMChannels';
 
-export const LinkChannelModal = ({onClose}: {onClose: () => void}) => {
+export const LinkChannelModal = () => {
     const dispatch = useDispatch();
     const showAlert = useAlert();
     const {state, makeApiRequestWithCompletionStatus} = usePluginApi();
@@ -35,13 +35,16 @@ export const LinkChannelModal = ({onClose}: {onClose: () => void}) => {
     const [mSChannel, setMsChannel] = useState<MSTeamOrChannel | null>(null);
     const [linkChannelsPayload, setLinkChannelsPayload] = useState<LinkChannelsPayload | null>(null);
 
-    const handleModalClose = (preserveFields?: boolean) => {
-        if (!preserveFields) {
+    // console.log(mMChannel, mSChannel, mSTeam);
+
+    const handleModalClose = (preserve?: boolean) => {
+        if (!preserve) {
             setMmChannel(null);
             setMsTeam(null);
             setMsChannel(null);
         }
-        onClose();
+        dispatch(resetState());
+        dispatch(hideLinkModal());
     };
 
     const handleChannelLinking = () => {
@@ -91,10 +94,11 @@ export const LinkChannelModal = ({onClose}: {onClose: () => void}) => {
                 subtitle='Link a channel in Mattermost with a channel in Microsoft Teams.'
                 primaryActionText='Link Channels'
                 secondaryActionText='Cancel'
-                onFooterCloseHandler={() => handleModalClose(true)}
-                onHeaderCloseHandler={() => handleModalClose(true)}
+                onFooterCloseHandler={handleModalClose}
+                onHeaderCloseHandler={handleModalClose}
                 isPrimaryButtonDisabled={!mMChannel || !mSChannel || !mSTeam}
                 onSubmitHandler={handleChannelLinking}
+                backdrop={true}
             >
                 {isLoading && <LinearProgress className='fixed w-full left-0 top-100'/>}
                 <SearchMMChannels
@@ -110,11 +114,17 @@ export const LinkChannelModal = ({onClose}: {onClose: () => void}) => {
             </Modal>
             <DialogComponent
                 onSubmitHandler={() => {
+                    dispatch(preserveState({
+                        mmChannel: mMChannel?.displayName ?? '',
+                        msChannel: mSChannel?.DisplayName ?? '',
+                        msTeam: mSTeam?.DisplayName ?? '',
+                    }));
                     dispatch(showLinkModal());
                     hideDialog();
                 }}
                 onCloseHandler={() => {
                     hideDialog();
+                    dispatch(resetState());
                 }}
             />
         </>
