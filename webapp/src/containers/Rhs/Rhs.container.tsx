@@ -147,10 +147,8 @@ export const Rhs = () => {
         // Show spinner in the rhs during loading
         if (isRhsLoading || (firstRender && isLoading)) {
             return (
-                <div className='msteams-sync-utils'>
-                    <div className='absolute d-flex align-items-center justify-center w-full h-full'>
-                        <Spinner size='xl'/>
-                    </div>
+                <div className='absolute d-flex align-items-center justify-center w-full h-full'>
+                    <Spinner size='xl'/>
                 </div>
             );
         }
@@ -195,7 +193,7 @@ export const Rhs = () => {
          * user is connected and linked channels are present
         */
         return (
-            <div className='msteams-sync-rhs flex-1 d-flex flex-column'>
+            <div className='msteams-sync-rhs d-flex flex-column flex-1'>
                 {connected ? (
                     <div className='py-12 px-20 border-y-1 d-flex gap-8'>
                         {/* TODO: Refactor user Avatar */}
@@ -314,7 +312,12 @@ export const Rhs = () => {
 
     return (
         <>
-            {getRhsView()}
+            <div
+                className='msteams-sync-utils'
+                style={{display: 'flex', flex: 1, flexDirection: 'column'}}
+            >
+                {getRhsView()}
+            </div>
             {isOpen && <Snackbar/>}
         </>
     );

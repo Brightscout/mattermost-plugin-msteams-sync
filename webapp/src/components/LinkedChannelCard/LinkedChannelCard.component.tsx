@@ -31,20 +31,18 @@ export const LinkedChannelCard = ({msTeamsChannelName, msTeamsTeamName, mattermo
     };
 
     return (
-        <div className='msteams-sync-utils'>
-            <div className='px-16 py-12 border-t-1 d-flex gap-4 msteams-linked-channel'>
-                <div className='msteams-linked-channel__link-icon d-flex align-items-center flex-column justify-center'>
-                    <Icon iconName='link'/>
+        <div className='px-16 py-12 border-t-1 d-flex gap-4 msteams-linked-channel'>
+            <div className='msteams-linked-channel__link-icon d-flex align-items-center flex-column justify-center'>
+                <Icon iconName='link'/>
+            </div>
+            <div className='d-flex flex-column gap-6 msteams-linked-channel__body'>
+                <div className='d-flex gap-8 align-items-center'>
+                    <Icon iconName={mattermostChannelType === MMConstants.PRIVATE_CHANNEL ? 'lock' : 'globe'}/>
+                    {getData(mattermostChannelName, mattermostTeamName)}
                 </div>
-                <div className='d-flex flex-column gap-6 msteams-linked-channel__body'>
-                    <div className='d-flex gap-8 align-items-center'>
-                        <Icon iconName={mattermostChannelType === MMConstants.PRIVATE_CHANNEL ? 'lock' : 'globe'}/>
-                        {getData(mattermostChannelName, mattermostTeamName)}
-                    </div>
-                    <div className='d-flex gap-8 align-items-center'>
-                        <Icon iconName='msTeams'/>
-                        {getData(msTeamsChannelName, msTeamsTeamName)}
-                    </div>
+                <div className='d-flex gap-8 align-items-center'>
+                    <Icon iconName='msTeams'/>
+                    {getData(msTeamsChannelName, msTeamsTeamName)}
                 </div>
             </div>
         </div>
