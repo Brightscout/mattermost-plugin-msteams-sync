@@ -6,7 +6,7 @@ import {useDispatch} from 'react-redux';
 
 import {Icon} from 'components/Icon';
 import {pluginApiServiceConfigs} from 'constants/apiService.constant';
-import {debounceFunctionTimeLimit, defaultPage, defaultPerPage} from 'constants/common.constants';
+import {debounceFunctionTimeLimitInMilliseconds, defaultPage, defaultPerPage} from 'constants/common.constants';
 import useApiRequestCompletionState from 'hooks/useApiRequestCompletionState';
 import usePluginApi from 'hooks/usePluginApi';
 import utils from 'utils';
@@ -32,7 +32,7 @@ export const SearchMSTeams = ({setMSTeam}: {setMSTeam: React.Dispatch<React.SetS
         }
     };
 
-    const debouncedSearchTeams = useCallback(utils.debounce(searchTeams, debounceFunctionTimeLimit), [searchTeams]);
+    const debouncedSearchTeams = useCallback(utils.debounce(searchTeams, debounceFunctionTimeLimitInMilliseconds), [searchTeams]);
 
     const handleSearch = (val: string) => {
         if (!val) {

@@ -12,7 +12,7 @@ import utils from 'utils';
 
 import {Icon} from 'components/Icon';
 
-import {debounceFunctionTimeLimit} from 'constants/common.constants';
+import {debounceFunctionTimeLimitInMilliseconds} from 'constants/common.constants';
 
 import {setLinkModalLoading} from 'reducers/linkModal';
 
@@ -62,7 +62,7 @@ export const SearchMMChannels = ({
         }
     };
 
-    const debouncedSearchChannels = useCallback(utils.debounce(searchChannels, debounceFunctionTimeLimit), [searchChannels]);
+    const debouncedSearchChannels = useCallback(utils.debounce(searchChannels, debounceFunctionTimeLimitInMilliseconds), [searchChannels]);
 
     const handleSearch = (val: string) => {
         if (!val) {

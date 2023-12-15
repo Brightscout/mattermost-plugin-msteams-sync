@@ -6,7 +6,7 @@ import {useDispatch} from 'react-redux';
 
 import usePluginApi from 'hooks/usePluginApi';
 import utils from 'utils';
-import {debounceFunctionTimeLimit, defaultPage, defaultPerPage} from 'constants/common.constants';
+import {debounceFunctionTimeLimitInMilliseconds, defaultPage, defaultPerPage} from 'constants/common.constants';
 import {pluginApiServiceConfigs} from 'constants/apiService.constant';
 import useApiRequestCompletionState from 'hooks/useApiRequestCompletionState';
 
@@ -39,7 +39,7 @@ export const SearchMSChannels = ({setChannel, teamId}: SearchMSChannelProps) => 
         }
     };
 
-    const debouncedSearchChannels = useCallback(utils.debounce(searchChannels, debounceFunctionTimeLimit), [searchChannels]);
+    const debouncedSearchChannels = useCallback(utils.debounce(searchChannels, debounceFunctionTimeLimitInMilliseconds), [searchChannels]);
 
     const handleSearch = (val: string) => {
         if (!val) {

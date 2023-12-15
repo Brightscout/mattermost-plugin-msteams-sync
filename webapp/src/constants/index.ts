@@ -1,7 +1,7 @@
 import {pluginApiServiceConfigs} from './apiService.constant';
 import {channelListTitle, noMoreChannelsText} from './linkedChannels.constants';
 import {iconUrl} from './illustrations.constants';
-import {pluginTitle, siteUrl, alertTimeout, debounceFunctionTimeLimit} from './common.constants';
+import {pluginTitle, siteUrl, alertTimeout, debounceFunctionTimeLimitInMilliseconds} from './common.constants';
 
 export default {
     iconUrl,
@@ -11,5 +11,5 @@ export default {
     channelListTitle,
     alertTimeout,
     noMoreChannelsText,
-    debounceFunctionTimeLimit,
+    debounceFunctionTimeLimitInMilliseconds,
 };

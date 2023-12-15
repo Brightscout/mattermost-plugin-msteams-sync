@@ -6,7 +6,7 @@ import {Button, Input, Spinner} from '@brightscout/mattermost-ui-library';
 
 import {Dialog, Icon, IconName, LinkChannelModal, LinkedChannelCard, Snackbar, WarningCard} from 'components';
 import {pluginApiServiceConfigs} from 'constants/apiService.constant';
-import {DialogsIds, debounceFunctionTimeLimit, defaultPage, defaultPerPage} from 'constants/common.constants';
+import {DialogsIds, debounceFunctionTimeLimitInMilliseconds, defaultPage, defaultPerPage} from 'constants/common.constants';
 import Constants from 'constants/connectAccount.constants';
 import {channelListTitle, noMoreChannelsText} from 'constants/linkedChannels.constants';
 import useApiRequestCompletionState from 'hooks/useApiRequestCompletionState';
@@ -87,7 +87,7 @@ export const Rhs = () => {
 
         const timer = setTimeout(() => {
             resetStates();
-        }, debounceFunctionTimeLimit);
+        }, debounceFunctionTimeLimitInMilliseconds);
 
         /* eslint-disable consistent-return */
         return () => {
