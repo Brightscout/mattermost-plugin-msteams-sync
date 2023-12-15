@@ -8,7 +8,7 @@ import {Icon, IconName, LinkedChannelCard, Snackbar, WarningCard} from 'componen
 import {pluginApiServiceConfigs} from 'constants/apiService.constant';
 import {debounceSearchFunctionTimeLimitInMilliseconds, defaultPage, defaultPerPage} from 'constants/common.constants';
 import Constants from 'constants/connectAccount.constants';
-import {channelListTitle, noMoreChannelsText} from 'constants/linkedChannels.constants';
+import {channelListTitle, noMoreChannelsText, noResultsFoundText} from 'constants/linkedChannels.constants';
 import useApiRequestCompletionState from 'hooks/useApiRequestCompletionState';
 import useAlert from 'hooks/useAlert';
 import useDialog from 'hooks/useDialog';
@@ -33,6 +33,7 @@ export const Rhs = () => {
     const {connected, msteamsUserId, username, isAlreadyConnected} = getConnectedState(state);
     const [searchLinkedChannelsText, setSearchLinkedChannelsText] = useState('');
     const [firstRender, setFirstRender] = useState(true);
+    const [isLinkedChannelsLoading, setIsLinkedChannelsLoading] = useState(false);
 
     const previousState = usePreviousState({searchLinkedChannelsText});
 
@@ -98,6 +99,7 @@ export const Rhs = () => {
 
         setGetLinkedChannelsParams(linkedChannelsParams);
         makeApiRequestWithCompletionStatus(pluginApiServiceConfigs.getLinkedChannels.apiServiceName, linkedChannelsParams);
+        setIsLinkedChannelsLoading(true);
     }, [paginationQueryParams]);
 
     // Update connected state and show alert on successful connection of the user
@@ -119,7 +121,9 @@ export const Rhs = () => {
             if (firstRender && !paginationQueryParams.page) {
                 setFirstRender(false);
             }
+            setIsLinkedChannelsLoading(false);
         },
+        handleError: () => setIsLinkedChannelsLoading(false),
     });
 
     // Disconnect a user and show alerts on completion of the api to disconnect the user
@@ -239,14 +243,14 @@ export const Rhs = () => {
                     </div>
                 )}
                 {/* Show spinner during the first load of the linked channels. */}
-                {isLoading && firstRender && (
+                {isLinkedChannelsLoading && firstRender && (
                     <Spinner
                         size='xl'
                         className='scroll-container__spinner mt-10'
                     />
                 )}
                 {/* State when user is connected, but no linked channels are present. */}
-                {!totalLinkedChannels.length && !isLoading && !searchLinkedChannelsText && !previousState?.searchLinkedChannelsText && (
+                {!totalLinkedChannels.length && !isLinkedChannelsLoading && !searchLinkedChannelsText && !previousState?.searchLinkedChannelsText && (
                     <div className='d-flex align-items-center justify-center flex-1 flex-column px-40'>
                         {<>
                             <Icon iconName='noChannels'/>
@@ -255,7 +259,7 @@ export const Rhs = () => {
                     </div>
                 )}
                 {/* State when user is connected and linked channels are present. */}
-                {((Boolean(totalLinkedChannels.length) || isLoading || searchLinkedChannelsText || previousState?.searchLinkedChannelsText) && !firstRender) && (
+                {((Boolean(totalLinkedChannels.length) || isLinkedChannelsLoading || searchLinkedChannelsText || previousState?.searchLinkedChannelsText) && !firstRender) && (
                     <>
                         <div className='lh-24 p-20 d-flex flex-column gap-16'>
                             <h4 className='font-16 my-0 wt-600'>{channelListTitle}</h4>
@@ -271,7 +275,7 @@ export const Rhs = () => {
                             </div>
                         </div>
                         {/* Show a spinner while searching for a specific linked channel. */}
-                        {isLoading && !paginationQueryParams.page ? (
+                        {isLinkedChannelsLoading && !paginationQueryParams.page ? (
                             <Spinner
                                 size='xl'
                                 className='scroll-container__spinner'
@@ -288,7 +292,7 @@ export const Rhs = () => {
                                     loader={<Spinner className='scroll-container__spinner'/>}
                                     endMessage={
                                         <p className='text-center'>
-                                            <b>{noMoreChannelsText}</b>
+                                            <b>{(searchLinkedChannelsText || previousState?.searchLinkedChannelsText) && !totalLinkedChannels.length ? noResultsFoundText : noMoreChannelsText}</b>
                                         </p>
                                     }
                                     scrollableTarget='scrollableArea'
@@ -308,7 +312,7 @@ export const Rhs = () => {
                 )}
             </div>
         );
-    }, [connected, isRhsLoading, isLoading, totalLinkedChannels, firstRender, searchLinkedChannelsText]);
+    }, [connected, isRhsLoading, isLinkedChannelsLoading, totalLinkedChannels, firstRender, searchLinkedChannelsText]);
 
     return (
         <>

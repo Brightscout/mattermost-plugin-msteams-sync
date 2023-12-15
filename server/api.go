@@ -501,7 +501,7 @@ func (a *API) getLinkedChannels(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		searchTerm := r.URL.Query().Get(QueryParamSearchTerm)
+		searchTerm := strings.TrimSpace(r.URL.Query().Get(QueryParamSearchTerm))
 		offset, limit := a.p.GetOffsetAndLimit(r.URL.Query())
 		matchCount := 0
 		for _, link := range links {
