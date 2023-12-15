@@ -5,7 +5,7 @@ import {GlobalState} from 'mattermost-redux/types/store';
 
 import reducer from 'reducers';
 
-import EnforceConnectedAccountModal from 'components/enforceConnectedAccountModal';
+import EnforceConnectedModal from 'components/enforceConnectedAccountModal';
 import MSTeamsAppManifestSetting from 'components/appManifestSetting';
 import ListConnectedUsers from 'components/getConnectedUsersSetting';
 
@@ -17,7 +17,6 @@ import App from './App';
 
 export default class Plugin {
     enforceConnectedAccountId = '';
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function
     public async initialize(registry: PluginRegistry, store: Store<GlobalState, Action<Record<string, unknown>>>) {
         registry.registerReducer(reducer);
         registry.registerRootComponent(() => (
@@ -28,7 +27,7 @@ export default class Plugin {
         ));
 
         // @see https://developers.mattermost.com/extend/plugins/webapp/reference/
-        this.enforceConnectedAccountId = registry.registerRootComponent(EnforceConnectedAccountModal);
+        this.enforceConnectedAccountId = registry.registerRootComponent(EnforceConnectedModal);
 
         registry.registerAdminConsoleCustomSetting('appManifestDownload', MSTeamsAppManifestSetting);
         registry.registerAdminConsoleCustomSetting('ConnectedUsersReportDownload', ListConnectedUsers);

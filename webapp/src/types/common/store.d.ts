@@ -39,7 +39,3 @@ type SnackbarState = {
 };
 
 type SnackbarActionPayload = Pick<SnackbarState, 'message' | 'severity'>;
-
-type DialogState = Pick<DialogProps, 'destructive' | 'description' | 'show' | 'primaryButtonText' | 'secondaryButtonText' | 'title'> & {
-    isLoading?: boolean
-}
