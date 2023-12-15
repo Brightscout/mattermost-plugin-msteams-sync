@@ -1,6 +1,8 @@
 import React, {useCallback, useEffect, useState} from 'react';
 
 import {Client4} from 'mattermost-redux/client';
+import {channels as MMChannelTypes} from 'mattermost-redux/types';
+import {General as MMConstants} from 'mattermost-redux/constants';
 
 import {ListItemType, MMSearch} from '@brightscout/mattermost-ui-library';
 
@@ -10,9 +12,12 @@ import utils from 'utils';
 
 import {Icon} from 'components/Icon';
 
-import {debounceFunctionTimeLimit} from 'constants/common.constants';
+import {debounceFunctionTimeLimitInMilliseconds} from 'constants/common.constants';
 
 import {setLinkModalLoading} from 'reducers/linkModal';
+
+import usePluginApi from 'hooks/usePluginApi';
+import {getCurrentTeam, getLinkModalState} from 'selectors';
 
 import {SearchMMChannelProps} from './SearchMMChannels.types';
 
@@ -21,26 +26,34 @@ export const SearchMMChannels = ({
     teamId,
 }: SearchMMChannelProps) => {
     const dispatch = useDispatch();
+    const {state} = usePluginApi();
     const [searchTerm, setSearchTerm] = useState<string>('');
+    const {teams} = getCurrentTeam(state);
+    const {mmChannel} = getLinkModalState(state);
 
     const [searchSuggestions, setSearchSuggestions] = useState<ListItemType[]>([]);
     const [suggestionsLoading, setSuggestionsLoading] = useState<boolean>(false);
 
     useEffect(() => {
-        handleClearInput();
+        if (!mmChannel) {
+            handleClearInput();
+        }
+        setSearchTerm(mmChannel);
     }, [teamId]);
 
     const searchChannels = ({searchFor}: {searchFor?: string}) => {
-        if (searchFor && teamId) {
+        if (searchFor) {
             setSuggestionsLoading(true);
             dispatch(setLinkModalLoading(true));
-            Client4.autocompleteChannelsForSearch(teamId, searchFor).
+            Client4.searchAllChannels(searchFor).
                 then((channels) => {
-                    const suggestions = [];
-                    for (const channel of channels) {
+                    const suggestions:ListItemType[] = [];
+                    for (const channel of channels as MMChannelTypes.Channel[]) {
                         suggestions.push({
                             label: channel.display_name,
                             value: channel.id,
+                            secondaryLabel: teams[channel.team_id].display_name,
+                            icon: channel.type === MMConstants.PRIVATE_CHANNEL ? 'Lock' : 'Globe',
                         });
                     }
                     setSearchSuggestions(suggestions);
@@ -53,7 +66,7 @@ export const SearchMMChannels = ({
         }
     };
 
-    const debouncedSearchChannels = useCallback(utils.debounce(searchChannels, debounceFunctionTimeLimit), [searchChannels]);
+    const debouncedSearchChannels = useCallback(utils.debounce(searchChannels, debounceFunctionTimeLimitInMilliseconds), [searchChannels]);
 
     const handleSearch = (val: string) => {
         if (!val) {
@@ -89,6 +102,7 @@ export const SearchMMChannels = ({
                 fullWidth={true}
                 label='Search Mattermost channels'
                 items={searchSuggestions}
+                secondaryLabelPosition='inline'
                 onSelect={handleChannelSelect}
                 searchValue={searchTerm}
                 setSearchValue={handleSearch}
