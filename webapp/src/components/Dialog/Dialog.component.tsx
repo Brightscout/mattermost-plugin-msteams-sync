@@ -19,7 +19,7 @@ export const Dialog = ({
         destructive={destructive}
         primaryButtonText={primaryButtonText}
         secondaryButtonText={secondaryButtonText}
-        onCloseHandler={() => onCloseHandler()}
+        onCloseHandler={onCloseHandler}
         onSubmitHandler={onSubmitHandler}
         className={className}
         title={title}

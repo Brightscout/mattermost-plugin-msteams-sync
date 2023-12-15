@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import {Button} from '@brightscout/mattermost-ui-library';
 
@@ -15,6 +15,8 @@ import {setConnected} from 'reducers/connectedState';
 
 import {getConnectedState} from 'selectors';
 
+import {ReduxState} from 'types/common/store.d';
+
 import utils from 'utils';
 
 export const ConnectedAccount = () => {
@@ -22,6 +24,7 @@ export const ConnectedAccount = () => {
     const [showDialog, setShowDialog] = useState(false);
     const {makeApiRequestWithCompletionStatus, state} = usePluginApi();
     const {username, isAlreadyConnected, msteamsUserId, connected} = getConnectedState(state);
+    const globalState = useSelector((reduxState: ReduxState) => reduxState);
 
     const showAlert = useAlert();
 
@@ -71,7 +74,7 @@ export const ConnectedAccount = () => {
                             style={{
                                 borderRadius: '50%',
                             }}
-                            src={utils.getAvatarUrl(msteamsUserId)}
+                            src={utils.getAvatarUrl(msteamsUserId, globalState?.entities?.general?.config?.SiteURL ?? '')}
                         />
                     </div>
                     <div>
