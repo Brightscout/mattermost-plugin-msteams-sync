@@ -1,17 +1,18 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import {Button, Input, Spinner} from '@brightscout/mattermost-ui-library';
 
-import {Icon, IconName, LinkedChannelCard, Snackbar, WarningCard} from 'components';
+import {ReduxState} from 'types/common/store.d';
+
+import {Dialog, Icon, IconName, LinkedChannelCard, Snackbar, WarningCard} from 'components';
 import {pluginApiServiceConfigs} from 'constants/apiService.constant';
 import {debounceSearchFunctionTimeLimitInMilliseconds, defaultPage, defaultPerPage} from 'constants/common.constants';
 import Constants from 'constants/connectAccount.constants';
 import {channelListTitle, noMoreChannelsText, noResultsFoundText} from 'constants/linkedChannels.constants';
 import useApiRequestCompletionState from 'hooks/useApiRequestCompletionState';
 import useAlert from 'hooks/useAlert';
-import useDialog from 'hooks/useDialog';
 import usePluginApi from 'hooks/usePluginApi';
 import usePreviousState from 'hooks/usePreviousState';
 import {getConnectedState, getIsRhsLoading, getSnackbarState} from 'selectors';
@@ -22,6 +23,7 @@ import './Rhs.styles.scss';
 
 export const Rhs = () => {
     const {makeApiRequestWithCompletionStatus, getApiState, state} = usePluginApi();
+    const globalState = useSelector((reduxState: ReduxState) => reduxState);
 
     // state variables
     const [totalLinkedChannels, setTotalLinkedChannels] = useState<ChannelLinkData[]>([]);
@@ -65,14 +67,11 @@ export const Rhs = () => {
     ), [totalLinkedChannels]);
 
     // Show disconnect dialog component
-    const {DialogComponent, showDialog, hideDialog} = useDialog({
-        onSubmitHandler: disconnectUser,
-        onCloseHandler: () => hideDialog(),
-    });
-
+    const [showDisconnectDialog, setShowDisconnectDialog] = useState(false);
     const {isRhsLoading} = getIsRhsLoading(state);
     const {isOpen} = getSnackbarState(state);
     const {data: linkedChannels, isLoading} = getApiState(pluginApiServiceConfigs.getLinkedChannels.apiServiceName, getLinkedChannelsParams as SearchLinkedChannelParams);
+    const {isLoading: isUserDisconnecting} = getApiState(pluginApiServiceConfigs.disconnectUser.apiServiceName);
 
     // Handle searching of linked channels with debounce
     useEffect(() => {
@@ -131,7 +130,7 @@ export const Rhs = () => {
         serviceName: pluginApiServiceConfigs.disconnectUser.apiServiceName,
         handleSuccess: () => {
             dispatch(setConnected({connected: false, username: '', msteamsUserId: '', isAlreadyConnected: false}));
-            hideDialog();
+            setShowDisconnectDialog(false);
             showAlert({
                 message: 'Your account has been disconnected.',
                 severity: 'default',
@@ -142,7 +141,7 @@ export const Rhs = () => {
                 message: 'Error occurred while disconnecting the user.',
                 severity: 'error',
             });
-            hideDialog();
+            setShowDisconnectDialog(false);
         },
     });
 
@@ -213,7 +212,7 @@ export const Rhs = () => {
                                 style={{
                                     borderRadius: '50%',
                                 }}
-                                src={utils.getAvatarUrl(msteamsUserId)}
+                                src={utils.getAvatarUrl(msteamsUserId, globalState.entities.general.config.SiteURL ?? '')}
                             />
                         </div>
 
@@ -223,17 +222,9 @@ export const Rhs = () => {
                                 size='sm'
                                 variant='text'
                                 className='p-0 lh-16'
-                                onClick={() => showDialog({
-                                    destructive: true,
-                                    primaryButtonText: 'Disconnect',
-                                    secondaryButtonText: 'Cancel',
-                                    description: 'Are you sure you want to disconnect your Microsoft Teams Account? You will no longer be able to send and receive messages to Microsoft Teams users from Mattermost.',
-                                    isLoading: false,
-                                    title: 'Disconnect Microsoft Teams Account',
-                                })}
+                                onClick={() => setShowDisconnectDialog(true)}
                             >{'Disconnect'}</Button>
                         </div>
-                        <DialogComponent/>
                     </div>
                 ) : (
                     <div className='p-20 d-flex flex-column gap-20'>
@@ -310,9 +301,21 @@ export const Rhs = () => {
                         )}
                     </>
                 )}
+                <Dialog
+                    show={showDisconnectDialog}
+                    destructive={true}
+                    primaryButtonText='Disconnect'
+                    secondaryButtonText='Cancel'
+                    title='Disconnect Microsoft Teams Account'
+                    isLoading={isUserDisconnecting}
+                    onSubmitHandler={disconnectUser}
+                    onCloseHandler={() => setShowDisconnectDialog(false)}
+                >
+                    {'Are you sure you want to disconnect your Microsoft Teams Account? You will no longer be able to send and receive messages to Microsoft Teams users from Mattermost.'}
+                </Dialog>
             </div>
         );
-    }, [connected, isRhsLoading, isLinkedChannelsLoading, totalLinkedChannels, firstRender, searchLinkedChannelsText]);
+    }, [connected, isRhsLoading, isLinkedChannelsLoading, totalLinkedChannels, firstRender, searchLinkedChannelsText, showDisconnectDialog]);
 
     return (
         <>

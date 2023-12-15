@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {Action, Store} from 'redux';
 import {useDispatch} from 'react-redux';
 
@@ -28,18 +28,19 @@ import 'styles/main.scss';
 const App = ({registry, store}:{registry: PluginRegistry, store: Store<GlobalState, Action<Record<string, unknown>>>}): JSX.Element => {
     const dispatch = useDispatch();
     const {makeApiRequestWithCompletionStatus, getApiState} = usePluginApi();
+
     useEffect(() => {
         makeApiRequestWithCompletionStatus(pluginApiServiceConfigs.getConfig.apiServiceName);
         makeApiRequestWithCompletionStatus(pluginApiServiceConfigs.needsConnect.apiServiceName);
     }, []);
 
-    const {data: needsConnectData, isLoading} = getApiState(pluginApiServiceConfigs.needsConnect.apiServiceName);
+    const {data: needsConnectData, isLoading} = useMemo(() => getApiState(pluginApiServiceConfigs.needsConnect.apiServiceName), [getApiState]);
 
     useEffect(() => {
         dispatch(setIsRhsLoading(isLoading));
     }, [isLoading]);
 
-    const {data: configData} = getApiState(pluginApiServiceConfigs.getConfig.apiServiceName);
+    const {data: configData} = useMemo(() => getApiState(pluginApiServiceConfigs.getConfig.apiServiceName), [getApiState]);
 
     useApiRequestCompletionState({
         serviceName: pluginApiServiceConfigs.needsConnect.apiServiceName,
