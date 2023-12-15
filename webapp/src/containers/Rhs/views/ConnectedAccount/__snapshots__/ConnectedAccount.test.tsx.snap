@@ -18,7 +18,7 @@ exports[`Connected Account View Should render correctly 1`] = `
               style="height: 32px; width: 32px; border-radius: 50%;"
             >
               <img
-                src="http://localhost/plugins/com.mattermost.msteams-sync/avatar/mock_msteams_user_id"
+                src="/plugins/com.mattermost.msteams-sync/avatar/mock_msteams_user_id"
                 style="border-radius: 50%;"
               />
             </div>
@@ -62,7 +62,7 @@ exports[`Connected Account View Should render correctly 1`] = `
             style="height: 32px; width: 32px; border-radius: 50%;"
           >
             <img
-              src="http://localhost/plugins/com.mattermost.msteams-sync/avatar/mock_msteams_user_id"
+              src="/plugins/com.mattermost.msteams-sync/avatar/mock_msteams_user_id"
               style="border-radius: 50%;"
             />
           </div>
