@@ -21,4 +21,3 @@ type LinkChannelsPayload = {
     msTeamsTeamID: string,
     msTeamsChannelID: string,
 }
-
