@@ -39,9 +39,9 @@ const (
 	QueryParamSearchTerm = "search"
 
 	// Path params
-	PathParamTeamID       = "team_id"
-	PathParamChannelID    = "channel_id"
-	PathParamAvatarUserID = "userId"
+	PathParamTeamID        = "team_id"
+	PathParamChannelID     = "channel_id"
+	PathParamMSTeamsUserID = "user_id"
 
 	// Used for storing the token in the request context to pass from one middleware to another
 	// #nosec G101 -- This is a false positive. The below line is not a hardcoded credential
@@ -85,7 +85,7 @@ func NewAPI(p *Plugin, store store.Store) *API {
 	msTeamsRouter := router.PathPrefix("/msteams").Subrouter()
 	channelsRouter := router.PathPrefix("/channels").Subrouter()
 
-	router.HandleFunc(fmt.Sprintf("/avatar/{%s:.*}", PathParamAvatarUserID), api.getAvatar).Methods(http.MethodGet)
+	router.HandleFunc(fmt.Sprintf("/avatar/{%s:.*}", PathParamMSTeamsUserID), api.getAvatar).Methods(http.MethodGet)
 	router.HandleFunc("/changes", api.processActivity).Methods(http.MethodPost)
 	router.HandleFunc("/lifecycle", api.processLifecycle).Methods(http.MethodPost)
 	router.HandleFunc("/needsConnect", api.handleAuthRequired(api.needsConnect)).Methods(http.MethodGet)
@@ -119,7 +119,7 @@ func NewAPI(p *Plugin, store store.Store) *API {
 // getAvatar returns the microsoft teams avatar
 func (a *API) getAvatar(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	userID := params[PathParamAvatarUserID]
+	userID := params[PathParamMSTeamsUserID]
 	photo, appErr := a.store.GetAvatarCache(userID)
 	if appErr != nil || len(photo) == 0 {
 		var err error
