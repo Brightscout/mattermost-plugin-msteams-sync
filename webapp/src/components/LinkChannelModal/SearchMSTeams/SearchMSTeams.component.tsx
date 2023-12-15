@@ -74,9 +74,7 @@ export const SearchMSTeams = ({setMSTeam}: {setMSTeam: React.Dispatch<React.SetS
                     suggestions.push({
                         label: team.DisplayName,
                         value: team.ID,
-
-                        // TODO: Replace with msteams icon
-                        icon: 'Pin',
+                        icon: <Icon iconName='msTeams'/>,
                     });
                 }
                 setSearchSuggestions(suggestions);
@@ -85,8 +83,6 @@ export const SearchMSTeams = ({setMSTeam}: {setMSTeam: React.Dispatch<React.SetS
         },
         handleError: () => {
             dispatch(setLinkModalLoading(false));
-
-            // TODO: Handle this error
         },
     });
 

@@ -251,10 +251,9 @@ export const Rhs = () => {
                     <>
                         <div className='d-flex justify-between align-items-center p-20'>
                             <h4 className='font-16 lh-24 my-0 wt-600'>{channelListTitle}</h4>
-                            {/* TODO: Replace with Add icon after ui lib version bump */}
                             {connected && (
                                 <Button
-                                    iconName='Unlink'
+                                    iconName='Add'
                                     size='sm'
                                     onClick={() => dispatch(showLinkModal())}
                                 >{'Add'}</Button>

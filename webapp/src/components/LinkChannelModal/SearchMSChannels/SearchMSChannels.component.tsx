@@ -84,9 +84,7 @@ export const SearchMSChannels = ({setChannel, teamId}: SearchMSChannelProps) => 
                         label: channel.DisplayName,
                         value: channel.ID,
                         secondaryLabel: channel.ID,
-
-                        // TODO: Replace with msteams icon
-                        icon: 'Pin',
+                        icon: <Icon iconName='msTeams'/>,
                     });
                 }
                 setSearchSuggestions(suggestions);
