@@ -35,8 +35,6 @@ export const LinkChannelModal = () => {
     const [msChannel, setMSChannel] = useState<MSTeamOrChannel | null>(null);
     const [linkChannelsPayload, setLinkChannelsPayload] = useState<LinkChannelsPayload | null>(null);
 
-    // console.log(mMChannel, mSChannel, mSTeam);
-
     const handleModalClose = (preserve?: boolean) => {
         if (!preserve) {
             setMMChannel(null);
