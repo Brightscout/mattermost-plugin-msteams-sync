@@ -1,12 +1,12 @@
 import React, {useCallback, useEffect, useState} from 'react';
 
 import {Client4} from 'mattermost-redux/client';
-import {channels as MMChannelTypes} from 'mattermost-redux/types';
+import {channels as MMChannelTypes, teams as TeamsTypes} from 'mattermost-redux/types';
 import {General as MMConstants} from 'mattermost-redux/constants';
 
 import {ListItemType, MMSearch} from '@brightscout/mattermost-ui-library';
 
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import utils from 'utils';
 
@@ -16,8 +16,10 @@ import {debounceFunctionTimeLimitInMilliseconds} from 'constants/common.constant
 
 import {setLinkModalLoading} from 'reducers/linkModal';
 
+import {ReduxState} from 'types/common/store.d';
+
 import usePluginApi from 'hooks/usePluginApi';
-import {getCurrentTeam, getLinkModalState} from 'selectors';
+import {getLinkModalState} from 'selectors';
 
 import {SearchMMChannelProps} from './SearchMMChannels.types';
 
@@ -28,7 +30,7 @@ export const SearchMMChannels = ({
     const dispatch = useDispatch();
     const {state} = usePluginApi();
     const [searchTerm, setSearchTerm] = useState<string>('');
-    const {teams} = getCurrentTeam(state);
+    const {teams} = useSelector((reduxState: ReduxState) => reduxState.entities);
     const {mmChannel} = getLinkModalState(state);
 
     const [searchSuggestions, setSearchSuggestions] = useState<ListItemType[]>([]);
@@ -48,11 +50,11 @@ export const SearchMMChannels = ({
             Client4.searchAllChannels(searchFor).
                 then((channels) => {
                     const suggestions:ListItemType[] = [];
-                    for (const channel of channels as MMChannelTypes.Channel[]) {
+                    for (const channel of channels as MMChannelTypes.ChannelWithTeamData[]) {
                         suggestions.push({
                             label: channel.display_name,
                             value: channel.id,
-                            secondaryLabel: teams[channel.team_id].display_name,
+                            secondaryLabel: channel.team_display_name,
                             icon: channel.type === MMConstants.PRIVATE_CHANNEL ? 'Lock' : 'Globe',
                         });
                     }

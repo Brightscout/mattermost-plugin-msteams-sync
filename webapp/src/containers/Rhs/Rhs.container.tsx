@@ -1,14 +1,16 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import {Button, Input, Spinner} from '@brightscout/mattermost-ui-library';
 
+import {ReduxState} from 'types/common/store.d';
+
 import {Dialog, Icon, IconName, LinkChannelModal, LinkedChannelCard, Snackbar, WarningCard} from 'components';
 import {pluginApiServiceConfigs} from 'constants/apiService.constant';
-import {debounceFunctionTimeLimitInMilliseconds, defaultPage, defaultPerPage} from 'constants/common.constants';
+import {debounceSearchFunctionTimeLimitInMilliseconds, defaultPage, defaultPerPage} from 'constants/common.constants';
 import Constants from 'constants/connectAccount.constants';
-import {channelListTitle, noMoreChannelsText} from 'constants/linkedChannels.constants';
+import {channelListTitle, noMoreChannelsText, noResultsFoundText} from 'constants/linkedChannels.constants';
 import useApiRequestCompletionState from 'hooks/useApiRequestCompletionState';
 import useAlert from 'hooks/useAlert';
 import usePluginApi from 'hooks/usePluginApi';
@@ -24,6 +26,7 @@ import './Rhs.styles.scss';
 export const Rhs = () => {
     const {makeApiRequestWithCompletionStatus, getApiState, state} = usePluginApi();
     const {Avatar} = window.Components;
+    const globalState = useSelector((reduxState: ReduxState) => reduxState);
 
     // state variables
     const [totalLinkedChannels, setTotalLinkedChannels] = useState<ChannelLinkData[]>([]);
@@ -35,6 +38,7 @@ export const Rhs = () => {
     const {connected, msteamsUserId, username, isAlreadyConnected} = getConnectedState(state);
     const [searchLinkedChannelsText, setSearchLinkedChannelsText] = useState('');
     const [firstRender, setFirstRender] = useState(true);
+    const [isLinkedChannelsLoading, setIsLinkedChannelsLoading] = useState(false);
 
     const previousState = usePreviousState({searchLinkedChannelsText});
 
@@ -42,10 +46,9 @@ export const Rhs = () => {
     const showAlert = useAlert();
 
     // Increase the page number by 1
-    const handlePagination = () => {
-        setPaginationQueryParams({...paginationQueryParams, page: paginationQueryParams.page + 1,
-        });
-    };
+    const handlePagination = useCallback(() => {
+        setPaginationQueryParams({...paginationQueryParams, page: paginationQueryParams.page + 1});
+    }, [paginationQueryParams]);
 
     // Make api call to connect user account
     const connectAccount = useCallback(() => {
@@ -74,9 +77,7 @@ export const Rhs = () => {
     const {isRhsLoading} = getIsRhsLoading(state);
     const {isOpen} = getSnackbarState(state);
     const {refetch} = getRefetchState(state);
-    const {data} = getApiState(pluginApiServiceConfigs.whitelistUser.apiServiceName);
 
-    const {presentInWhitelist} = data as WhitelistUserResponse;
     const {data: linkedChannels, isLoading} = getApiState(pluginApiServiceConfigs.getLinkedChannels.apiServiceName, getLinkedChannelsParams as SearchParams);
     const {isLoading: isUserDisconnecting} = getApiState(pluginApiServiceConfigs.disconnectUser.apiServiceName);
 
@@ -88,7 +89,7 @@ export const Rhs = () => {
 
         const timer = setTimeout(() => {
             resetStates();
-        }, debounceFunctionTimeLimitInMilliseconds);
+        }, debounceSearchFunctionTimeLimitInMilliseconds);
 
         /* eslint-disable consistent-return */
         return () => {
@@ -105,9 +106,10 @@ export const Rhs = () => {
 
         setGetLinkedChannelsParams(linkedChannelsParams);
         makeApiRequestWithCompletionStatus(pluginApiServiceConfigs.getLinkedChannels.apiServiceName, linkedChannelsParams);
+        setIsLinkedChannelsLoading(true);
     }, [paginationQueryParams]);
 
-    // Update connected reducer and show alert on successful connection of the user
+    // Update connected state and show alert on successful connection of the user
     useEffect(() => {
         if (connected && !isAlreadyConnected) {
             showAlert({message: 'Your account is connected successfully.', severity: 'default'});
@@ -126,10 +128,12 @@ export const Rhs = () => {
             if (firstRender && !paginationQueryParams.page) {
                 setFirstRender(false);
             }
+            setIsLinkedChannelsLoading(false);
         },
+        handleError: () => setIsLinkedChannelsLoading(false),
     });
 
-    // Disconnect user and show alerts on completion of the api to disconnect user
+    // Disconnect a user and show alerts on completion of the api to disconnect the user
     useApiRequestCompletionState({
         serviceName: pluginApiServiceConfigs.disconnectUser.apiServiceName,
         handleSuccess: () => {
@@ -207,10 +211,10 @@ export const Rhs = () => {
          * user is connected and linked channels are present
         */
         return (
-            <div className='msteams-sync-rhs flex-1 d-flex flex-column'>
+            <div className='msteams-sync-rhs d-flex flex-1 flex-column'>
                 {connected ? (
                     <div className='py-12 px-20 border-y-1 d-flex gap-8'>
-                        <Avatar url={utils.getAvatarUrl(msteamsUserId)}/>
+                        <Avatar url={utils.getAvatarUrl(msteamsUserId, globalState.entities.general.config.SiteURL ?? '')}/>
                         <div>
                             <h5 className='my-0 font-12 lh-16'>{'Connected as '}<span className='wt-600'>{username}</span></h5>
                             <Button
@@ -229,14 +233,14 @@ export const Rhs = () => {
                     </div>
                 )}
                 {/* Show spinner during the first load of the linked channels. */}
-                {isLoading && firstRender && (
+                {isLinkedChannelsLoading && firstRender && (
                     <Spinner
                         size='xl'
                         className='scroll-container__spinner mt-10'
                     />
                 )}
                 {/* State when user is connected, but no linked channels are present. */}
-                {!totalLinkedChannels.length && !isLoading && !searchLinkedChannelsText && !previousState?.searchLinkedChannelsText && (
+                {!totalLinkedChannels.length && !isLinkedChannelsLoading && !searchLinkedChannelsText && !previousState?.searchLinkedChannelsText && (
                     <div className='d-flex align-items-center justify-center flex-1 flex-column px-40'>
                         <Icon iconName='noChannels'/>
                         <h3 className='my-0 lh-28 wt-600 text-center'>{'There are no linked channels yet'}</h3>
@@ -287,7 +291,7 @@ export const Rhs = () => {
                                     loader={<Spinner className='scroll-container__spinner'/>}
                                     endMessage={
                                         <p className='text-center'>
-                                            <b>{noMoreChannelsText}</b>
+                                            <b>{(searchLinkedChannelsText || previousState?.searchLinkedChannelsText) && !totalLinkedChannels.length ? noResultsFoundText : noMoreChannelsText}</b>
                                         </p>
                                     }
                                     scrollableTarget='scrollableArea'
@@ -319,14 +323,16 @@ export const Rhs = () => {
                 </Dialog>
             </div>
         );
-    }, [connected, isRhsLoading, isLoading, totalLinkedChannels, firstRender, searchLinkedChannelsText, showDisconnectDialog]);
+    }, [connected, isRhsLoading, isLinkedChannelsLoading, totalLinkedChannels, firstRender, searchLinkedChannelsText, showDisconnectDialog]);
 
     return (
         <>
-            {
-                presentInWhitelist ?
-                    getRhsView() : 'MS Teams Sync plugin'
-            }
+            <div
+                className='msteams-sync-utils'
+                style={{display: 'flex', flex: 1, flexDirection: 'column'}}
+            >
+                {getRhsView()}
+            </div>
             {isOpen && <Snackbar/>}
             {<LinkChannelModal/>}
         </>

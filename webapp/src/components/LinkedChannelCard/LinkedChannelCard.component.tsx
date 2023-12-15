@@ -15,6 +15,25 @@ import {LinkedChannelCardProps} from './LinkedChannelCard.types';
 
 import './LinkedChannelCard.styles.scss';
 
+const getData = (channelName: string, teamName: string) => {
+    return (
+        <>
+            <Tooltip
+                placement='left'
+                text={channelName}
+            >
+                <h5 className='my-0 msteams-linked-channel__entity-label'>{channelName}</h5>
+            </Tooltip>
+            <Tooltip
+                placement='left'
+                text={teamName}
+            >
+                <h5 className='my-0 opacity-6 msteams-linked-channel__entity-label'>{teamName}</h5>
+            </Tooltip>
+        </>
+    );
+};
+
 export const LinkedChannelCard = ({msTeamsChannelName, msTeamsTeamName, mattermostChannelName, mattermostTeamName, mattermostChannelType, mattermostChannelID}: LinkedChannelCardProps) => {
     const [unlinkChannelParams, setUnlinkChannelParams] = useState<UnlinkChannelParams | null>(null);
 
@@ -56,33 +75,11 @@ export const LinkedChannelCard = ({msTeamsChannelName, msTeamsTeamName, mattermo
             <div className='d-flex flex-column gap-6 msteams-linked-channel__body'>
                 <div className='d-flex gap-8 align-items-center'>
                     {mattermostChannelType === MMConstants.PRIVATE_CHANNEL ? <Icon iconName='lock'/> : <Icon iconName='globe'/>}
-                    <Tooltip
-                        placement='left'
-                        text={mattermostChannelName}
-                    >
-                        <h5 className='my-0 msteams-linked-channel__body-values'>{mattermostChannelName}</h5>
-                    </Tooltip>
-                    <Tooltip
-                        placement='left'
-                        text={mattermostTeamName}
-                    >
-                        <h5 className='my-0 opacity-6 msteams-linked-channel__body-values'>{mattermostTeamName}</h5>
-                    </Tooltip>
+                    {getData(mattermostChannelName, mattermostTeamName)}
                 </div>
                 <div className='d-flex gap-8 align-items-center'>
                     <Icon iconName='msTeams'/>
-                    <Tooltip
-                        placement='left'
-                        text={msTeamsChannelName}
-                    >
-                        <h5 className='my-0 msteams-linked-channel__body-values'>{msTeamsChannelName}</h5>
-                    </Tooltip>
-                    <Tooltip
-                        placement='left'
-                        text={msTeamsTeamName}
-                    >
-                        <h5 className='my-0 opacity-6 msteams-linked-channel__body-values'>{msTeamsTeamName}</h5>
-                    </Tooltip>
+                    {getData(msTeamsChannelName, msTeamsTeamName)}
                 </div>
             </div>
             <Button

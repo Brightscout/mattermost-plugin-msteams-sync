@@ -135,7 +135,9 @@
 <a name='L70'></a><a href='#L70'>70</a>
 <a name='L71'></a><a href='#L71'>71</a>
 <a name='L72'></a><a href='#L72'>72</a>
-<a name='L73'></a><a href='#L73'>73</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -150,40 +152,40 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -207,7 +209,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import React, {useEffect, useRef} from 'react';
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import React, {useCallback, useEffect, useRef} from 'react';
 import {useDispatch} from 'react-redux';
 &nbsp;
 import {Button} from '@brightscout/mattermost-ui-library';
@@ -222,13 +226,25 @@ import {alertTimeout} from 'constants/common.constants';
 &nbsp;
 import {SnackbarColor} from './Snackbar.types';
 &nbsp;
+const snackbarColorMap: Record&lt;SnackbarColor, string&gt; = {
+    error: 'bg-error',
+    default: 'bg-default',
+    success: 'bg-success',
+};
+&nbsp;
+const snackbarIconMap: Record&lt;SnackbarColor, IconName&gt; = {
+    error: 'warning',
+    default: 'tick',
+    success: 'tick',
+};
+&nbsp;
 export const Snackbar = () =&gt; {
     const dispatch = useDispatch();
     const {state} = usePluginApi();
     const timeId = useRef(0);
     const {isOpen, message, severity} = getSnackbarState(state);
 &nbsp;
-    const handleClose = () =&gt; dispatch(closeAlert());
+    const handleClose = useCallback(() =&gt; dispatch(closeAlert()), []);
 &nbsp;
     useEffect(() =&gt; {
         <span class="missing-if-branch" title="else path not taken" >E</span>if (isOpen) {
@@ -243,39 +259,29 @@ export const Snackbar = () =&gt; {
         };
     }, [isOpen]);
 &nbsp;
-    const snackbarColorMap: Record&lt;SnackbarColor, string&gt; = {
-        error: 'bg-error',
-        default: 'bg-default',
-        success: 'bg-success',
-    };
-&nbsp;
-    const snackbarIconMap: Record&lt;SnackbarColor, IconName&gt; = {
-        error: 'warning',
-        default: 'tick',
-        success: 'tick',
-    };
-&nbsp;
     return (
-        &lt;div
-            className={`fixed bottom-20 right-20 left-20 py-8 px-12 rounded-4 d-flex gap-8 align-items-center justify-between elevation-2 msteams-sync-rhs__snackbar ${snackbarColorMap[severity]}`}
-        &gt;
-            &lt;div className='d-flex align-items-center gap-8'&gt;
-                &lt;Icon
-                    iconName={snackbarIconMap[severity]}
-                    className='icon-white icon-16'
-                /&gt;
-                &lt;h5 className='my-0 lh-24 wt-600 text-white'&gt;{message}&lt;/h5&gt;
-            &lt;/div&gt;
-            &lt;Button
-                variant='text'
-                className='snackbar__close'
-                onClick={handleClose}
+        &lt;div className='msteams-sync-utils'&gt;
+            &lt;div
+                className={`fixed bottom-20 right-20 left-20 py-8 px-12 rounded-4 d-flex gap-8 align-items-center justify-between elevation-2 msteams-sync-rhs__snackbar ${snackbarColorMap[severity]}`}
             &gt;
-                &lt;Icon
-                    iconName='close'
-                    className='icon-white icon-16'
-                /&gt;
-            &lt;/Button&gt;
+                &lt;div className='d-flex align-items-center gap-8'&gt;
+                    &lt;Icon
+                        iconName={snackbarIconMap[severity]}
+                        className='icon-white icon-16'
+                    /&gt;
+                    &lt;h5 className='my-0 lh-24 wt-600 text-white'&gt;{message}&lt;/h5&gt;
+                &lt;/div&gt;
+                &lt;Button
+                    variant='text'
+                    className='snackbar__close'
+                    onClick={handleClose}
+                &gt;
+                    &lt;Icon
+                        iconName='close'
+                        className='icon-white icon-16'
+                    /&gt;
+                &lt;/Button&gt;
+            &lt;/div&gt;
         &lt;/div&gt;
     );
 };
@@ -286,7 +292,7 @@ export const Snackbar = () =&gt; {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2023-12-11T16:13:16.017Z
+                at 2023-12-15T14:42:23.652Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

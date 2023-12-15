@@ -2,11 +2,11 @@ import React, {useState} from 'react';
 
 import {LinearProgress, Modal} from '@brightscout/mattermost-ui-library';
 
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import usePluginApi from 'hooks/usePluginApi';
 
-import {getCurrentTeam, getLinkModalState} from 'selectors';
+import {getLinkModalState} from 'selectors';
 
 import {Dialog} from 'components/Dialog';
 import {pluginApiServiceConfigs} from 'constants/apiService.constant';
@@ -15,6 +15,8 @@ import {hideLinkModal, preserveState, resetState, setLinkModalLoading, showLinkM
 import useAlert from 'hooks/useAlert';
 
 import {refetch} from 'reducers/refetchState';
+
+import {ReduxState} from 'types/common/store.d';
 
 import {SearchMSChannels} from './SearchMSChannels';
 import {SearchMSTeams} from './SearchMSTeams';
@@ -25,7 +27,7 @@ export const LinkChannelModal = () => {
     const showAlert = useAlert();
     const {state, makeApiRequestWithCompletionStatus} = usePluginApi();
     const {show = false, isLoading} = getLinkModalState(state);
-    const {currentTeamId} = getCurrentTeam(state);
+    const {currentTeamId} = useSelector((reduxState:ReduxState) => reduxState.entities.teams);
 
     // Show retry dialog component
     const [showRetryDialog, setShowRetryDialog] = useState(false);
@@ -80,7 +82,7 @@ export const LinkChannelModal = () => {
         <>
             <Modal
                 show={show}
-                className='msteams-sync-modal'
+                className='msteams-sync-modal msteams-sync-utils'
                 title='Link a channel'
                 subtitle='Link a channel in Mattermost with a channel in Microsoft Teams'
                 primaryActionText='Link Channels'
