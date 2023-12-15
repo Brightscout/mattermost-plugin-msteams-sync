@@ -6,23 +6,31 @@ import {useDispatch} from 'react-redux';
 
 import usePluginApi from 'hooks/usePluginApi';
 import utils from 'utils';
-import {debounceFunctionTimeLimit, defaultPage, defaultPerPage} from 'constants/common.constants';
+import {debounceFunctionTimeLimitInMilliseconds, defaultPage, defaultPerPage} from 'constants/common.constants';
 import {pluginApiServiceConfigs} from 'constants/apiService.constant';
 import useApiRequestCompletionState from 'hooks/useApiRequestCompletionState';
 
 import {setLinkModalLoading} from 'reducers/linkModal';
 
+import {Icon} from 'components/Icon';
+
+import {getLinkModalState} from 'selectors';
+
 import {SearchMSChannelProps} from './SearchMSChannels.types';
 
 export const SearchMSChannels = ({setChannel, teamId}: SearchMSChannelProps) => {
     const dispatch = useDispatch();
-    const {makeApiRequestWithCompletionStatus, getApiState} = usePluginApi();
+    const {makeApiRequestWithCompletionStatus, getApiState, state} = usePluginApi();
+    const {msChannel} = getLinkModalState(state);
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [searchChannelsPayload, setSearchChannelsPayload] = useState<SearchMSChannelsParams | null>(null);
     const [searchSuggestions, setSearchSuggestions] = useState<ListItemType[]>([]);
 
     useEffect(() => {
-        handleClearInput();
+        if (!msChannel || !teamId) {
+            handleClearInput();
+        }
+        setSearchTerm(msChannel);
     }, [teamId]);
 
     const searchChannels = ({searchFor}: {searchFor?: string}) => {
@@ -39,7 +47,7 @@ export const SearchMSChannels = ({setChannel, teamId}: SearchMSChannelProps) => 
         }
     };
 
-    const debouncedSearchChannels = useCallback(utils.debounce(searchChannels, debounceFunctionTimeLimit), [searchChannels]);
+    const debouncedSearchChannels = useCallback(utils.debounce(searchChannels, debounceFunctionTimeLimitInMilliseconds), [searchChannels]);
 
     const handleSearch = (val: string) => {
         if (!val) {
@@ -104,5 +112,6 @@ export const SearchMSChannels = ({setChannel, teamId}: SearchMSChannelProps) => 
                 optionsLoading={searchSuggestionsLoading}
                 disabled={!teamId}
             />
-        </div>);
+        </div>
+    );
 };

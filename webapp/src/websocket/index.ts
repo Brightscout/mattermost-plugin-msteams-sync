@@ -3,6 +3,7 @@ import {Action, Store} from 'redux';
 import {GlobalState} from 'mattermost-redux/types/store';
 
 import {setConnected} from 'reducers/connectedState';
+import {showLinkModal} from 'reducers/linkModal';
 import {refetch} from 'reducers/refetchState';
 
 export function handleConnect(store: Store<GlobalState, Action<Record<string, unknown>>>) {
@@ -25,3 +26,14 @@ export function handleUnlinkChannels(store: Store<GlobalState, Action<Record<str
     };
 }
 
+export function handleModalLink(store: Store<GlobalState, Action<Record<string, unknown>>>) {
+    return (_: WebsocketEventParams) => {
+        store.dispatch(showLinkModal() as Action);
+    };
+}
+
+export function handleLink(store: Store<GlobalState, Action<Record<string, unknown>>>) {
+    return (_: WebsocketEventParams) => {
+        store.dispatch(refetch() as Action);
+    };
+}

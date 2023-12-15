@@ -50,7 +50,7 @@ export const msTeamsPluginApi = createApi({
                 responseHandler: (res) => res.text(),
             }),
         }),
-        [pluginApiServiceConfigs.searchMSTeams.apiServiceName]: builder.query<MSTeamsSearchResponse, SearchLinkedChannelParams>({
+        [pluginApiServiceConfigs.searchMSTeams.apiServiceName]: builder.query<MSTeamsSearchResponse, SearchParams>({
             query: (params) => ({
                 url: pluginApiServiceConfigs.searchMSTeams.path,
                 method: pluginApiServiceConfigs.searchMSTeams.method,

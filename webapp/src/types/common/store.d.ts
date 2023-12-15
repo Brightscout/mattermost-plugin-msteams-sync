@@ -2,8 +2,7 @@ import {BaseQueryFn, FetchArgs, FetchBaseQueryError, FetchBaseQueryMeta} from '@
 
 import {GlobalState} from 'mattermost-redux/types/store';
 
-import {DialogProps} from '@brightscout/mattermost-ui-library';
-
+import {DialogProps, ListItemType} from '@brightscout/mattermost-ui-library';
 import {ModalProps} from '@brightscout/mattermost-ui-library/build/components/Modal';
 
 import {SnackbarColor} from 'components/Snackbar/Snackbar.types';
@@ -41,6 +40,9 @@ type SnackbarActionPayload = Pick<SnackbarState, 'message' | 'severity'>;
 type ModalState = {
     show?: boolean;
     isLoading?: boolean;
+    mmChannel: string;
+    msTeam: string;
+    msChannel: string;
 }
 
 type RefetchState = {
