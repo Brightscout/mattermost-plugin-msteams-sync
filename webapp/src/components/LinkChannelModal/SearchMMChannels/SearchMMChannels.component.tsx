@@ -57,9 +57,7 @@ export const SearchMMChannels = ({
                         });
                     }
                     setSearchSuggestions(suggestions);
-                    setSuggestionsLoading(false);
-                    dispatch(setLinkModalLoading(false));
-                }).catch((err) => {
+                }).finally(() => {
                     setSuggestionsLoading(false);
                     dispatch(setLinkModalLoading(false));
                 });
