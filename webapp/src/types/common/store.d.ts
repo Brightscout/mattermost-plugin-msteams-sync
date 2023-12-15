@@ -7,10 +7,10 @@ import {DialogProps} from '@brightscout/mattermost-ui-library';
 import {SnackbarColor} from 'components/Snackbar/Snackbar.types';
 import {IconName} from 'components';
 
-type PluginState = RootState<{ [x: string]: QueryDefinition<void, BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError, {}, FetchBaseQueryMeta>, never, void, 'msTeamsPluginApi'>; }, never, 'msTeamsPluginApi'>
+type PluginReduxState = RootState<{ [x: string]: QueryDefinition<void, BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError, {}, FetchBaseQueryMeta>, never, void, 'msTeamsPluginApi'>; }, never, 'msTeamsPluginApi'>
 
 interface ReduxState extends GlobalState {
-    'plugins-com.mattermost.msteams-sync': PluginState
+    'plugins-com.mattermost.msteams-sync': PluginReduxState
 }
 
 type ApiRequestCompletionState = {

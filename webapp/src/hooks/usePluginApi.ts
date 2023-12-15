@@ -7,7 +7,7 @@ import {ReduxState} from 'types/common/store.d';
 import {setApiRequestCompletionState} from 'reducers/apiRequest';
 import {msTeamsPluginApi} from 'services';
 
-function usePluginApi() {    
+function usePluginApi() {
     const state = useSelector((reduxState: ReduxState) => reduxState['plugins-com.mattermost.msteams-sync']);
     const dispatch = useDispatch();
 

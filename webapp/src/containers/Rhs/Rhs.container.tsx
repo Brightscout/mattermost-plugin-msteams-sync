@@ -1,4 +1,4 @@
-import React, {memo, useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 
 import {Spinner} from '@brightscout/mattermost-ui-library';
 
