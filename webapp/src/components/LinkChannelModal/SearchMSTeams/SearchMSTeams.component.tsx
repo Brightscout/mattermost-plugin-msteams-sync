@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 
 import {ListItemType, MMSearch} from '@brightscout/mattermost-ui-library';
 
@@ -11,13 +11,19 @@ import useApiRequestCompletionState from 'hooks/useApiRequestCompletionState';
 import usePluginApi from 'hooks/usePluginApi';
 import utils from 'utils';
 import {setLinkModalLoading} from 'reducers/linkModal';
+import {getLinkModalState} from 'selectors';
 
 export const SearchMSTeams = ({setMSTeam}: {setMSTeam: React.Dispatch<React.SetStateAction<MSTeamOrChannel | null>>}) => {
     const dispatch = useDispatch();
-    const {makeApiRequestWithCompletionStatus, getApiState} = usePluginApi();
+    const {makeApiRequestWithCompletionStatus, getApiState, state} = usePluginApi();
     const [searchTerm, setSearchTerm] = useState<string>('');
+    const {msTeam} = getLinkModalState(state);
     const [searchTeamsPayload, setSearchTeamsPayload] = useState<SearchParams | null>(null);
     const [searchSuggestions, setSearchSuggestions] = useState<ListItemType[]>([]);
+
+    useEffect(() => {
+        setSearchTerm(msTeam);
+    }, []);
 
     const searchTeams = ({searchFor}: {searchFor?: string}) => {
         if (searchFor) {

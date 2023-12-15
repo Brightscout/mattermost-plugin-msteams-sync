@@ -19,11 +19,12 @@ import {setConnected} from 'reducers/connectedState';
 import utils from 'utils';
 
 import './Rhs.styles.scss';
-import {hideLinkModal, showLinkModal} from 'reducers/linkModal';
+import {showLinkModal} from 'reducers/linkModal';
 import {resetRefetch} from 'reducers/refetchState';
 
 export const Rhs = () => {
     const {makeApiRequestWithCompletionStatus, getApiState, state} = usePluginApi();
+    const {Avatar} = window.Components;
 
     // state variables
     const [totalLinkedChannels, setTotalLinkedChannels] = useState<ChannelLinkData[]>([]);
@@ -209,23 +210,7 @@ export const Rhs = () => {
             <div className='msteams-sync-rhs flex-1 d-flex flex-column'>
                 {connected ? (
                     <div className='py-12 px-20 border-y-1 d-flex gap-8'>
-                        {/* TODO: Refactor user Avatar */}
-                        <div
-                            style={{
-                                height: '32px',
-                                width: '32px',
-                                borderRadius: '50%',
-                                backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.12)',
-                            }}
-                        >
-                            <img
-                                style={{
-                                    borderRadius: '50%',
-                                }}
-                                src={utils.getAvatarUrl(msteamsUserId)}
-                            />
-                        </div>
-
+                        <Avatar url={utils.getAvatarUrl(msteamsUserId)}/>
                         <div>
                             <h5 className='my-0 font-12 lh-16'>{'Connected as '}<span className='wt-600'>{username}</span></h5>
                             <Button
@@ -343,7 +328,7 @@ export const Rhs = () => {
                     getRhsView() : 'MS Teams Sync plugin'
             }
             {isOpen && <Snackbar/>}
-            {<LinkChannelModal onClose={() => dispatch(hideLinkModal())}/>}
+            {<LinkChannelModal/>}
         </>
     );
 };

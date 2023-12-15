@@ -17,7 +17,7 @@ import {debounceFunctionTimeLimitInMilliseconds} from 'constants/common.constant
 import {setLinkModalLoading} from 'reducers/linkModal';
 
 import usePluginApi from 'hooks/usePluginApi';
-import {getCurrentTeam} from 'selectors';
+import {getCurrentTeam, getLinkModalState} from 'selectors';
 
 import {SearchMMChannelProps} from './SearchMMChannels.types';
 
@@ -29,12 +29,16 @@ export const SearchMMChannels = ({
     const {state} = usePluginApi();
     const [searchTerm, setSearchTerm] = useState<string>('');
     const {teams} = getCurrentTeam(state);
+    const {mmChannel} = getLinkModalState(state);
 
     const [searchSuggestions, setSearchSuggestions] = useState<ListItemType[]>([]);
     const [suggestionsLoading, setSuggestionsLoading] = useState<boolean>(false);
 
     useEffect(() => {
-        handleClearInput();
+        if (!mmChannel) {
+            handleClearInput();
+        }
+        setSearchTerm(mmChannel);
     }, [teamId]);
 
     const searchChannels = ({searchFor}: {searchFor?: string}) => {
