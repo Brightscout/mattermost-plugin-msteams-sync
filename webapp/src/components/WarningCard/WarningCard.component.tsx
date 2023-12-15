@@ -23,7 +23,7 @@ export const WarningCard = ({onConnect}: WarningCardProps) => {
                 <Icon iconName='warning'/>
                 <div>
                     <div className='d-flex align-items-start justify-between'>
-                        <h5 className='wt-600 mt-0'>{'Please Connect your MS Teams account.'}</h5>
+                        <h5 className='wt-600 mt-0'>{'Please connect your account'}</h5>
                     </div>
                     <p>{'Your Microsoft Teams account is not connected. Please connect your account to continue with Microsoft Teams sync.'}
                     </p>

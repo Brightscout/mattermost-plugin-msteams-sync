@@ -35,7 +35,7 @@ exports[`Warning Card component Should render correctly 1`] = `
               <h5
                 class="wt-600 mt-0"
               >
-                Please Connect your MS Teams account.
+                Please connect your account
               </h5>
             </div>
             <p>
@@ -85,7 +85,7 @@ exports[`Warning Card component Should render correctly 1`] = `
             <h5
               class="wt-600 mt-0"
             >
-              Please Connect your MS Teams account.
+              Please connect your account
             </h5>
           </div>
           <p>
