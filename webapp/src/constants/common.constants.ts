@@ -18,8 +18,3 @@ export const alertSeverity: Record<SnackbarColor, SnackbarColor> = {
 export const alertTimeout = 4000;
 
 export const debounceFunctionTimeLimitInMilliseconds = 300;
-
-export const DialogsIds = {
-    retryLink: 'dialog-retry-link',
-    disconnect: 'dialog-disconnect',
-};

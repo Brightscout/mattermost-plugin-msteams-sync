@@ -20,6 +20,12 @@ export function handleDisconnect(store: Store<GlobalState, Action<Record<string,
     };
 }
 
+export function handleUnlinkChannels(store: Store<GlobalState, Action<Record<string, unknown>>>) {
+    return (_: WebsocketEventParams) => {
+        store.dispatch(refetch() as Action);
+    };
+}
+
 export function handleModalLink(store: Store<GlobalState, Action<Record<string, unknown>>>) {
     return (_: WebsocketEventParams) => {
         store.dispatch(showLinkModal() as Action);

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 
 import {LinearProgress, Modal} from '@brightscout/mattermost-ui-library';
 
@@ -8,16 +8,13 @@ import usePluginApi from 'hooks/usePluginApi';
 
 import {getCurrentTeam, getLinkModalState} from 'selectors';
 
+import {Dialog} from 'components/Dialog';
 import {pluginApiServiceConfigs} from 'constants/apiService.constant';
 import useApiRequestCompletionState from 'hooks/useApiRequestCompletionState';
 import {hideLinkModal, preserveState, resetState, setLinkModalLoading, showLinkModal} from 'reducers/linkModal';
 import useAlert from 'hooks/useAlert';
 
 import {refetch} from 'reducers/refetchState';
-
-import useDialog from 'hooks/useDialog';
-
-import {DialogsIds} from 'constants/common.constants';
 
 import {SearchMSChannels} from './SearchMSChannels';
 import {SearchMSTeams} from './SearchMSTeams';
@@ -29,6 +26,9 @@ export const LinkChannelModal = () => {
     const {state, makeApiRequestWithCompletionStatus} = usePluginApi();
     const {show = false, isLoading} = getLinkModalState(state);
     const {currentTeamId} = getCurrentTeam(state);
+
+    // Show retry dialog component
+    const [showRetryDialog, setShowRetryDialog] = useState(false);
 
     const [mmChannel, setMMChannel] = useState<MMTeamOrChannel | null>(null);
     const [msTeam, setMSTeam] = useState<MSTeamOrChannel | null>(null);
@@ -57,8 +57,6 @@ export const LinkChannelModal = () => {
         dispatch(setLinkModalLoading(true));
     };
 
-    const {DialogComponent, showDialog, hideDialog} = useDialog(DialogsIds.retryLink);
-
     useApiRequestCompletionState({
         serviceName: pluginApiServiceConfigs.linkChannels.apiServiceName,
         payload: linkChannelsPayload as LinkChannelsPayload,
@@ -74,12 +72,7 @@ export const LinkChannelModal = () => {
         handleError: () => {
             dispatch(setLinkModalLoading(false));
             handleModalClose(true);
-            showDialog({
-                title: 'Unable to link channels',
-                description: 'We were not able to link the selected channels. Please try again.',
-                primaryButtonText: 'Try Again',
-                secondaryButtonText: 'Cancel',
-            });
+            setShowRetryDialog(true);
         },
     });
 
@@ -110,21 +103,28 @@ export const LinkChannelModal = () => {
                     teamId={msTeam?.ID}
                 />
             </Modal>
-            <DialogComponent
+            <Dialog
+                show={showRetryDialog}
+                destructive={true}
+                primaryButtonText='Try Again'
+                secondaryButtonText='Cancel'
+                title='Unable to link channels'
                 onSubmitHandler={() => {
                     dispatch(preserveState({
                         mmChannel: mmChannel?.displayName ?? '',
                         msChannel: msChannel?.DisplayName ?? '',
                         msTeam: msTeam?.DisplayName ?? '',
                     }));
+                    setShowRetryDialog(false);
                     dispatch(showLinkModal());
-                    hideDialog();
                 }}
                 onCloseHandler={() => {
-                    hideDialog();
+                    setShowRetryDialog(false);
                     dispatch(resetState());
                 }}
-            />
+            >
+                {'We were not able to link the selected channels. Please try again.'}
+            </Dialog>
         </>
     );
 };

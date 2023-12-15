@@ -17,7 +17,7 @@ import {pluginTitle} from 'constants/common.constants';
 
 import {iconUrl} from 'constants/illustrations.constants';
 
-import {handleConnect, handleDisconnect, handleLink, handleModalLink} from 'websocket';
+import {handleConnect, handleDisconnect, handleLink, handleModalLink, handleUnlinkChannels} from 'websocket';
 
 import manifest from './manifest';
 
@@ -54,6 +54,7 @@ export default class Plugin {
 
         registry.registerWebSocketEventHandler(`custom_${manifest.id}_connect`, handleConnect(store));
         registry.registerWebSocketEventHandler(`custom_${manifest.id}_disconnect`, handleDisconnect(store));
+        registry.registerWebSocketEventHandler(`custom_${manifest.id}_unlink`, handleUnlinkChannels(store));
         registry.registerWebSocketEventHandler(`custom_${manifest.id}_link_channels`, handleModalLink(store));
         registry.registerWebSocketEventHandler(`custom_${manifest.id}_link`, handleLink(store));
     }
