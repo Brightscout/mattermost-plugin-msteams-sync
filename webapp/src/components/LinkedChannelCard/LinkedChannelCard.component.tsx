@@ -89,6 +89,10 @@ export const LinkedChannelCard = ({msTeamsChannelName, msTeamsTeamName, mattermo
                 variant='text'
                 aria-label='unlink channel'
                 className='msteams-linked-channel__unlink-icon'
+                onClick={() => {
+                    setUnlinkChannelParams({channelId: mattermostChannelID});
+                    setShowUnlinkDialog(true);
+                }}
             >
                 <UILibIcon
                     name='Unlink'
@@ -116,7 +120,6 @@ export const LinkedChannelCard = ({msTeamsChannelName, msTeamsTeamName, mattermo
                 onSubmitHandler={unlinkChannel}
                 onCloseHandler={() => setShowRetryDialog(false)}
                 isLoading={isUnlinkChannelsLoading}
-
             >
                 {'We were not able to unlink the selected channels. Please try again.'}
             </Dialog>
