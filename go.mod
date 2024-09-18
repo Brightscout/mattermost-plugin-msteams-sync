@@ -102,7 +102,8 @@ require (
 	github.com/getsentry/sentry-go v0.28.1 // indirect
 	github.com/gigawattio/window v0.0.0-20180317192513-0f5467e35573 // indirect
 	github.com/go-asn1-ber/asn1-ber v1.5.7 // indirect
-	github.com/go-logr/logr v1.4.1 // indirect
+	github.com/go-ini/ini v1.67.0 // indirect
+	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-resty/resty/v2 v2.13.1 // indirect
